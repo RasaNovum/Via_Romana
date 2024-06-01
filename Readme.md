@@ -7,7 +7,7 @@
 <a href="https://discord.gg/WGh4mq6W5U"><img src="https://img.shields.io/badge/Socials-Discord-5865F2"></a>
 </h1>
 
-Via Romana introduces a fast travel system where players can link signs over paths, allowing for instant teleportation between them.
+Via Romana is a mod which allows fast travel only after a road connecting the destinations has been made, incentivizing players to build and see the world.
 
 ![Landing Image](https://i.imgur.com/dHqT8mo.png)
 
