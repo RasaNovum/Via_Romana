@@ -11,5 +11,7 @@ Via Romana is a mod which allows fast travel only after a road connecting the de
 
 ![Landing Image](https://i.imgur.com/dHqT8mo.png)
 
+If you have any questions that arn't [answered in our Wiki](https://github.com/RasaNovum/Via_Romana/wiki), feel free to [ask on our Discord](https://discord.com/invite/WGh4mq6W5U)!
+
 **Permissions**
 - Feel free to include this mod in your modpack as long as you download it from our official sources.
