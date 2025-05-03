@@ -1,0 +1,19 @@
+{
+  "display": {
+    "icon": {
+      "item": "minecraft:oak_sign"
+    },
+    "title": "A Strand Type Game",
+    "description": "Use signs to connect the world",
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "a_strand_type_game": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "parent": "minecraft:story/root"
+}

@@ -1,0 +1,60 @@
+plugins {
+    id 'com.github.johnrengelman.shadow'
+}
+
+architectury {
+    platformSetupLoomIde()
+    fabric()
+}
+
+configurations {
+    common {
+        canBeResolved = true
+        canBeConsumed = false
+    }
+    compileClasspath.extendsFrom common
+    runtimeClasspath.extendsFrom common
+    developmentFabric.extendsFrom common
+
+    shadowBundle {
+        canBeResolved = true
+        canBeConsumed = false
+    }
+}
+
+dependencies {
+    modImplementation "net.fabricmc:fabric-loader:$rootProject.fabric_loader_version"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:$rootProject.fabric_api_version"
+    modImplementation "dev.architectury:architectury-fabric:$rootProject.architectury_api_version"
+    modImplementation "me.shedaniel.cloth:cloth-config-fabric:$rootProject.cloth_config_version"
+
+    common(project(path: ':common', configuration: 'namedElements')) { transitive false }
+    shadowBundle project(path: ':common', configuration: 'transformProductionFabric')
+}
+
+processResources {
+    filesMatching('fabric.mod.json') {
+        expand(
+                version: project.version,
+                mod_id: rootProject.archives_name,
+                fabric_loader_version: rootProject.fabric_loader_version,
+                minecraft_version: rootProject.minecraft_version,
+                fabric_api_version: rootProject.fabric_api_version,
+                cloth_config_version: rootProject.cloth_config_version
+        )
+    }
+}
+
+shadowJar {
+    configurations = [project.configurations.shadowBundle]
+    archiveClassifier = 'dev-shadow'
+
+    exclude 'net/fabricmc/loader/**'
+    exclude 'net/fabricmc/fabric/**'
+    exclude 'com/google/**'
+    exclude 'org/slf4j/**'
+}
+
+remapJar {
+    inputFile.set shadowJar.archiveFile
+}

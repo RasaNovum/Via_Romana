@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "${mod_id}",
+  "version": "${version}",
+  "name": "Via Romana",
+  "description": "Via Romana allows fast travel only after a road connecting the destinations has been made, incentivizing players to build and see the world.",
+  "authors": [
+    "Rasa Novum"
+  ],
+  "contact": {
+    "homepage": "https://github.com/RasaNovum/Via_Romana",
+    "sources": ""
+  },
+  "license": "All Rights Reserved",
+  "icon": "assets/via_romana/icon.png",
+  "accessWidener": "${mod_id}.accesswidener",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "net.rasanovum.viaromana.fabric.ViaRomanaMod"
+    ],
+    "client": [
+      "net.rasanovum.viaromana.fabric.ClientInit"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=${fabric_loader_version}",
+    "fabric-api": "*",
+    "minecraft": "~${minecraft_version}",
+    "java": ">=17",
+    "cloth-config": ">=${cloth_config_version}"
+  },
+  "mixins": [
+    "via_romana.mixins.json"
+  ]
+}

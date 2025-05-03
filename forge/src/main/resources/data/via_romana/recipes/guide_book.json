@@ -1,0 +1,25 @@
+{
+  "type": "forge:conditional",
+  "recipes": [
+    {
+      "conditions": [
+        {
+          "type": "forge:mod_loaded",
+          "modid": "patchouli"
+        }
+      ],
+      "recipe": {
+        "type":"patchouli:shapeless_book_recipe",
+        "ingredients": [
+          {
+            "item": "minecraft:book"
+          },
+          {
+            "tag": "via_romana:warp_sign"
+          }
+        ],
+        "book": "via_romana:guide"
+      }
+    }
+  ]
+}
