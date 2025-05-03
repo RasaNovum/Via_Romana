@@ -1,5 +1,8 @@
 package net.rasanovum.viaromana.network;
 
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.*;
+import net.minecraft.util.datafix.DataFixTypes;
 import net.rasanovum.viaromana.PlatformUtils;
 
 import net.minecraft.world.level.storage.LevelResource;
@@ -11,13 +14,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.nbt.Tag;
-import net.minecraft.nbt.StringTag;
-import net.minecraft.nbt.NumericTag;
-import net.minecraft.nbt.NbtIo;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ByteTag;
 import net.minecraft.client.Minecraft;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -73,7 +69,7 @@ public class ViaRomanaModVariables {
         public static WorldVariables clientSide = new WorldVariables();
         private boolean dirty = false;
 
-        public static WorldVariables load(CompoundTag tag) {
+        public static WorldVariables load(CompoundTag tag, HolderLookup.Provider provider) {
             WorldVariables data = new WorldVariables();
             data.read(tag);
             return data;
@@ -83,7 +79,7 @@ public class ViaRomanaModVariables {
         }
 
         @Override
-        public CompoundTag save(CompoundTag nbt) {
+        public CompoundTag save(CompoundTag nbt, HolderLookup.Provider provider) {
             return nbt;
         }
 
@@ -104,7 +100,7 @@ public class ViaRomanaModVariables {
 
         public static WorldVariables get(LevelAccessor world) {
             if (world instanceof ServerLevel level) {
-                return level.getDataStorage().computeIfAbsent(e -> WorldVariables.load(e), WorldVariables::new, DATA_NAME);
+                return level.getDataStorage().computeIfAbsent(new Factory<>(WorldVariables::new, WorldVariables::load, DataFixTypes.LEVEL), DATA_NAME);
             } else {
                 return clientSide;
             }
@@ -112,7 +108,7 @@ public class ViaRomanaModVariables {
 
         public void syncToPlayer(ServerPlayer player) {
             if (networkHandler != null) {
-                networkHandler.sendToPlayer(player, new SavedDataSyncMessage(1, this));
+                networkHandler.sendToPlayer(player, new SavedDataSyncMessage(1, this, player));
             } else {
                 PlatformUtils.getLogger().warn("Network handler not initialized, cannot sync WorldVariables.");
             }
@@ -143,7 +139,7 @@ public class ViaRomanaModVariables {
         public List<Object> ValidDimensionList = new ArrayList<>();
         public List<Object> ValidSignList = new ArrayList<>();
 
-        public static MapVariables load(CompoundTag tag) {
+        public static MapVariables load(CompoundTag tag, HolderLookup.Provider provider) {
             MapVariables data = new MapVariables();
             data.read(tag);
             return data;
@@ -171,7 +167,7 @@ public class ViaRomanaModVariables {
         }
 
         @Override
-        public CompoundTag save(CompoundTag nbt) {
+        public CompoundTag save(CompoundTag nbt, HolderLookup.Provider provider) {
             nbt.putString("AcceptedBlockIDs", AcceptedBlockIDs);
             nbt.putString("AcceptedBlockStrings", AcceptedBlockStrings);
             nbt.putString("AcceptedBlockTags", AcceptedBlockTags);
@@ -220,7 +216,7 @@ public class ViaRomanaModVariables {
                     PlatformUtils.getLogger().error("Could not get Overworld from server to load MapVariables!");
                     return clientSide;
                 }
-                return overworld.getDataStorage().computeIfAbsent(e -> MapVariables.load(e), MapVariables::new, DATA_NAME);
+                return overworld.getDataStorage().computeIfAbsent(new SavedData.Factory<>(MapVariables::new, MapVariables::load, DataFixTypes.LEVEL), DATA_NAME);
             } else {
                 return clientSide;
             }
@@ -228,7 +224,7 @@ public class ViaRomanaModVariables {
 
         public void syncToPlayer(ServerPlayer player) {
             if (networkHandler != null) {
-                networkHandler.sendToPlayer(player, new SavedDataSyncMessage(0, this));
+                networkHandler.sendToPlayer(player, new SavedDataSyncMessage(0, this, player));
             } else {
                 PlatformUtils.getLogger().warn("Network handler not initialized, cannot sync MapVariables.");
             }
@@ -240,9 +236,9 @@ public class ViaRomanaModVariables {
         public final int type;
         public final CompoundTag dataTag;
 
-        public SavedDataSyncMessage(int type, SavedData data) {
+        public SavedDataSyncMessage(int type, SavedData data, ServerPlayer player) {
             this.type = type;
-            this.dataTag = data.save(new CompoundTag());
+            this.dataTag = data.save(new CompoundTag(), player.server.registryAccess());
         }
 
         public SavedDataSyncMessage(FriendlyByteBuf buffer) {
@@ -457,7 +453,7 @@ public class ViaRomanaModVariables {
                 file.renameTo(backupFile);
             }
 
-            NbtIo.writeCompressed(nbt, file);
+            NbtIo.writeCompressed(nbt, file.toPath());
 
         } catch (IOException e) {
             PlatformUtils.getLogger().error("Failed to save player variables NBT for " + fileName, e);
@@ -472,13 +468,13 @@ public class ViaRomanaModVariables {
 
         if (file.exists()) {
             try {
-                return NbtIo.readCompressed(file);
+                return NbtIo.readCompressed(file.toPath(), NbtAccounter.unlimitedHeap());
             } catch (IOException e) {
                 PlatformUtils.getLogger().error("Failed to load player variables NBT from " + file.getName() + ", trying backup.", e);
                 if (backupFile.exists()) {
                     try {
                         PlatformUtils.getLogger().warn("Attempting to load from backup file: {}", backupFile.getName());
-                        return NbtIo.readCompressed(backupFile);
+                        return NbtIo.readCompressed(backupFile.toPath(), NbtAccounter.unlimitedHeap());
                     } catch (IOException e2) {
                         PlatformUtils.getLogger().error("Failed to load player variables NBT from backup " + backupFile.getName() + " as well.", e2);
                     }
@@ -487,7 +483,7 @@ public class ViaRomanaModVariables {
         } else if (backupFile.exists()) {
             try {
                 PlatformUtils.getLogger().warn("Main file {} missing, attempting to load from backup file: {}", file.getName(), backupFile.getName());
-                return NbtIo.readCompressed(backupFile);
+                return NbtIo.readCompressed(backupFile.toPath(), NbtAccounter.unlimitedHeap());
             } catch (IOException e) {
                 PlatformUtils.getLogger().error("Failed to load player variables NBT from backup " + backupFile.getName(), e);
             }

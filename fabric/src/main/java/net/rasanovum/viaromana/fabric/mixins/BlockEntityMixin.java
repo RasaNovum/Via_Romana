@@ -1,5 +1,6 @@
 package net.rasanovum.viaromana.fabric.mixins;
 
+import net.minecraft.core.HolderLookup;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -18,16 +19,16 @@ public class BlockEntityMixin implements ICustomDataHolder {
 	private CompoundTag fabricData = new CompoundTag();
 
 	@Inject(method = "saveAdditional", at = @At("RETURN"))
-	private void onSaveAdditional(CompoundTag nbt, CallbackInfo ci) {
+	private void onSaveAdditional(CompoundTag compoundTag, HolderLookup.Provider provider, CallbackInfo ci) {
 		if (!fabricData.isEmpty()) {
-			nbt.put("FabricData", fabricData);
+			compoundTag.put("FabricData", fabricData);
 		}
 	}
 
-	@Inject(method = "load", at = @At("RETURN"))
-	private void onLoad(CompoundTag nbt, CallbackInfo ci) {
-		if (nbt.contains("FabricData")) {
-			fabricData = nbt.getCompound("FabricData");
+	@Inject(method = "loadWithComponents", at = @At("RETURN"))
+	private void onLoad(CompoundTag compoundTag, HolderLookup.Provider provider, CallbackInfo ci) {
+		if (compoundTag.contains("FabricData")) {
+			fabricData = compoundTag.getCompound("FabricData");
 		}
 	}
 

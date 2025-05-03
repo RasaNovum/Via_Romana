@@ -11,8 +11,8 @@ import net.fabricmc.api.EnvType;
 public class ViaRomanaModOverlays {
 	public static void load() {
 		HudRenderCallback.EVENT.register((matrices, tickDelta) -> {
-			FadeOverlay.render(matrices, tickDelta);
-			ToastOverlay.render(matrices, tickDelta);
+			FadeOverlay.render(matrices, tickDelta.getRealtimeDeltaTicks());
+			ToastOverlay.render(matrices, tickDelta.getRealtimeDeltaTicks());
 		});
 	}
 }

@@ -92,7 +92,7 @@ public class TeleportHandler {
 		ResourceLocation soundId = BuiltInRegistries.SOUND_EVENT.getKey(blockState.getSoundType().getStepSound());
 		
 		if (soundId == null)
-			soundId = new ResourceLocation("block.grass.step");
+			soundId = ResourceLocation.fromNamespaceAndPath("minecraft","block.grass.step");
 
 		if (!level.isClientSide()) {
 			level.playSound(null, pos, BuiltInRegistries.SOUND_EVENT.get(soundId), SoundSource.BLOCKS, 0.5f, 1f);

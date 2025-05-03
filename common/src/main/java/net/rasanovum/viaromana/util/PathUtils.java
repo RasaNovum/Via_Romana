@@ -112,7 +112,7 @@ public class PathUtils {
         List<Object> validTagList = VariableAccess.mapVariables.getValidTagList();
         for (int index0 = 0; index0 < validTagList.size(); index0++) {
             String tagString = validTagList.get(index0) instanceof String s ? s : "";
-            if (targetBlock.is(TagKey.create(Registries.BLOCK, new ResourceLocation(tagString.toLowerCase(java.util.Locale.ENGLISH))))) {
+            if (targetBlock.is(TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace(tagString.toLowerCase(java.util.Locale.ENGLISH))))) {
                 return true;
             }
         }

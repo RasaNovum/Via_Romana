@@ -1,5 +1,6 @@
 package net.rasanovum.viaromana.fabric.network;
 
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.rasanovum.viaromana.network.ViaRomanaModVariables;
 import net.rasanovum.viaromana.network.NetworkHandler;
 
@@ -41,9 +42,9 @@ class FabricNetworkHandler implements NetworkHandler {
 }
 
 public class ViaRomanaModPacketHandler {
-    public static final ResourceLocation PLAYER_VARIABLES_SYNC_C2S = new ResourceLocation(ViaRomanaMod.MODID, "player_variables_sync_c2s");
-    public static final ResourceLocation PLAYER_VARIABLES_SYNC_S2C = new ResourceLocation(ViaRomanaMod.MODID, "player_variables_sync_s2c");
-    public static final ResourceLocation GLOBAL_VARIABLES_SYNC_S2C = new ResourceLocation(ViaRomanaMod.MODID, "global_variables_sync_s2c");
+    public static final ResourceLocation PLAYER_VARIABLES_SYNC_C2S = ResourceLocation.fromNamespaceAndPath(ViaRomanaMod.MODID, "player_variables_sync_c2s");
+    public static final ResourceLocation PLAYER_VARIABLES_SYNC_S2C = ResourceLocation.fromNamespaceAndPath(ViaRomanaMod.MODID, "player_variables_sync_s2c");
+    public static final ResourceLocation GLOBAL_VARIABLES_SYNC_S2C = ResourceLocation.fromNamespaceAndPath(ViaRomanaMod.MODID, "global_variables_sync_s2c");
 
     public static void initialize() {
         ViaRomanaModVariables.networkHandler = new FabricNetworkHandler();

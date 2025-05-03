@@ -125,7 +125,7 @@ public class SignInteract {
 
 	private static void playPickupSound(LevelAccessor world, Entity entity) {
 		if (world instanceof Level level) {
-			ResourceLocation soundLoc = new ResourceLocation("entity.item.pickup");
+			ResourceLocation soundLoc = ResourceLocation.fromNamespaceAndPath("minecraft","entity.item.pickup");
 			BlockPos pos = BlockPos.containing(entity.getX(), entity.getY(), entity.getZ());
 			if (!level.isClientSide()) {
 				level.playSound(null, pos, BuiltInRegistries.SOUND_EVENT.get(soundLoc), SoundSource.NEUTRAL, 1, 1);

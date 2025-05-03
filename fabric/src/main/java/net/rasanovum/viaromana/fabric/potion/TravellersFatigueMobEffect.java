@@ -18,9 +18,4 @@ public class TravellersFatigueMobEffect extends MobEffect {
 	public boolean isInstantenous() {
 		return true;
 	}
-
-	@Override
-	public boolean isDurationEffectTick(int duration, int amplifier) {
-		return true;
-	}
 }
