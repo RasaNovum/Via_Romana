@@ -1,5 +1,8 @@
 package net.rasanovum.viaromana.core;
 
+import net.minecraft.advancements.AdvancementHolder;
+import net.minecraft.core.Registry;
+import net.minecraft.sounds.SoundEvent;
 import net.rasanovum.viaromana.variables.VariableAccess;
 import net.rasanovum.viaromana.util.PathUtils;
 import net.rasanovum.viaromana.util.TimerUtils;
@@ -53,12 +56,14 @@ public class ChartingHandler {
 		if (entity == null)
 			return;
 
+		SoundEvent cartography_result = BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.fromNamespaceAndPath("minecraft","ui.cartography_table.take_result"));
+
 		if (VariableAccess.playerVariables.isChartingPath(entity)) {
 			if (world instanceof Level _level) {
 				if (!_level.isClientSide()) {
-					_level.playSound(null, BlockPos.containing(entity.getX(), entity.getY(), entity.getZ()), BuiltInRegistries.SOUND_EVENT.get(new ResourceLocation("ui.cartography_table.take_result")), SoundSource.PLAYERS, 1, 1);
+					_level.playSound(null, BlockPos.containing(entity.getX(), entity.getY(), entity.getZ()), cartography_result, SoundSource.PLAYERS, 1, 1);
 				} else {
-					_level.playLocalSound((entity.getX()), (entity.getY()), (entity.getZ()), BuiltInRegistries.SOUND_EVENT.get(new ResourceLocation("ui.cartography_table.take_result")), SoundSource.PLAYERS, 1, 1, false);
+					_level.playLocalSound((entity.getX()), (entity.getY()), (entity.getZ()), cartography_result, SoundSource.PLAYERS, 1, 1, false);
 				}
 			}
 			updateLastNode(entity);
@@ -68,14 +73,14 @@ public class ChartingHandler {
 
 			if (world instanceof Level _level) {
 				if (!_level.isClientSide()) {
-					_level.playSound(null, BlockPos.containing(entity.getX(), entity.getY(), entity.getZ()), BuiltInRegistries.SOUND_EVENT.get(new ResourceLocation("ui.cartography_table.take_result")), SoundSource.PLAYERS, 1, 1);
+					_level.playSound(null, BlockPos.containing(entity.getX(), entity.getY(), entity.getZ()), cartography_result, SoundSource.PLAYERS, 1, 1);
 				} else {
-					_level.playLocalSound((entity.getX()), (entity.getY()), (entity.getZ()), BuiltInRegistries.SOUND_EVENT.get(new ResourceLocation("ui.cartography_table.take_result")), SoundSource.PLAYERS, 1, 1, false);
+					_level.playLocalSound((entity.getX()), (entity.getY()), (entity.getZ()), cartography_result, SoundSource.PLAYERS, 1, 1, false);
 				}
 			}
 			
 			if (entity instanceof ServerPlayer _player) {
-				Advancement _adv = _player.server.getAdvancements().getAdvancement(new ResourceLocation("via_romana:a_strand_type_game"));
+				AdvancementHolder _adv = _player.server.getAdvancements().get(ResourceLocation.fromNamespaceAndPath("via_romana","a_strand_type_game"));
 				AdvancementProgress _ap = _player.getAdvancements().getOrStartProgress(_adv);
 				if (!_ap.isDone()) {
 					for (String criteria : _ap.getRemainingCriteria())

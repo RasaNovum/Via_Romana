@@ -1,21 +1,19 @@
-package net.rasanovum.viaromana.fabric.util;
+package net.rasanovum.viaromana.forge.util;
 
-import net.minecraft.core.Holder;
-import net.rasanovum.viaromana.fabric.ViaRomanaMod;
-import net.rasanovum.viaromana.variables.VariableAccess;
-
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.LevelAccessor;
+import net.rasanovum.viaromana.forge.ViaRomanaMod;
+import net.rasanovum.viaromana.variables.VariableAccess;
 
 public class MobEffectHelper {
     public static void applyEffect(Entity entity, String effectName, LevelAccessor world) {
         if (entity instanceof LivingEntity _entity && !_entity.level().isClientSide()) {
-            Holder<MobEffect> effect = getEffectByName(effectName);
+            MobEffect effect = getEffectByName(effectName);
             if (effect != null) {
                 _entity.addEffect(new MobEffectInstance(effect, (int) VariableAccess.mapVariables.getTravelFatigueCooldown(world), 0, false, false));
             } else {
@@ -26,13 +24,14 @@ public class MobEffectHelper {
 
     public static boolean hasEffect(Entity entity, String effectName) {
         if (entity instanceof LivingEntity _entity) {
-            Holder<MobEffect> effect = getEffectByName(effectName);
+            MobEffect effect = getEffectByName(effectName);
             return effect != null && _entity.hasEffect(effect);
         }
         return false;
     }
 
-    private static Holder<MobEffect> getEffectByName(String effectName) {
-        return BuiltInRegistries.MOB_EFFECT.getHolder(ResourceLocation.fromNamespaceAndPath(ViaRomanaMod.MODID, effectName)).get();
+    @SuppressWarnings("removal")
+    private static MobEffect getEffectByName(String effectName) {
+        return Registries.MOB_EFFECT.get(ResourceLocation.fromNamespaceAndPath(ViaRomanaMod.MODID, effectName));
     }
 }

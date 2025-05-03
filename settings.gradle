@@ -11,4 +11,4 @@ rootProject.name = 'via_romana'
 
 include 'common'
 include 'fabric'
-include 'forge'
+include 'neoforge'

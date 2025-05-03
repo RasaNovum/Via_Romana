@@ -29,7 +29,7 @@ public class SignCheck {
 	public static boolean isSignBlock(LevelAccessor world, double x, double y, double z) {
 		BlockState TargetBlock = Blocks.AIR.defaultBlockState();
 		TargetBlock = (world.getBlockState(BlockPos.containing(x, y, z)));
-		if ((new ItemStack(TargetBlock.getBlock())).is(TagKey.create(Registries.ITEM, new ResourceLocation("via_romana:warp_sign")))) {
+		if ((new ItemStack(TargetBlock.getBlock())).is(TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("via_romana","warp_sign")))) {
 			return true;
 		}
 
