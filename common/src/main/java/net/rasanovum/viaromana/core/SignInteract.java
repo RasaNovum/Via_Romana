@@ -198,7 +198,7 @@ public class SignInteract {
 							ChartingHandler.display(world, entity);
 						} else {
 							if (PathUtils.calculatePathStartDistance(entity) >= VariableAccess.mapVariables.getPathDistanceMinimum(world)) {
-								if (SignCheck.isSignFound(world, x, y, z, entity)) {
+								if (SignCheck.isSignFound(world, x, y, z, entity) && PathUtils.calculateNodeDistance(entity) <= VariableAccess.mapVariables.getNodeDistanceMaximum(world)) {
 									PathRecord.end(world, x, y, z, entity);
 									ChartingHandler.display(world, entity);
 								}
