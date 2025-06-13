@@ -1,6 +1,6 @@
 package net.rasanovum.viaromana.forge.init;
 
-import net.rasanovum.viaromana.potion.TravellersFatigueMobEffect;
+import net.rasanovum.viaromana.forge.potion.TravellersFatigueMobEffect;
 import net.rasanovum.viaromana.forge.ViaRomanaMod;
 
 import net.minecraft.world.effect.MobEffect;

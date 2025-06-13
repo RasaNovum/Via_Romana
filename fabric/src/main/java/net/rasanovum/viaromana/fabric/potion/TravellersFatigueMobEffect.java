@@ -1,4 +1,3 @@
-
 package net.rasanovum.viaromana.fabric.potion;
 
 import net.minecraft.world.effect.MobEffectCategory;
@@ -16,7 +15,7 @@ public class TravellersFatigueMobEffect extends MobEffect {
 
 	@Override
 	public boolean isInstantenous() {
-		return true;
+		return false;
 	}
 
 	@Override

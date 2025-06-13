@@ -1,7 +1,7 @@
 package net.rasanovum.viaromana.fabric.init;
 
 import net.rasanovum.viaromana.fabric.ViaRomanaMod;
-import net.rasanovum.viaromana.potion.TravellersFatigueMobEffect;
+import net.rasanovum.viaromana.fabric.potion.TravellersFatigueMobEffect;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.registries.BuiltInRegistries;
