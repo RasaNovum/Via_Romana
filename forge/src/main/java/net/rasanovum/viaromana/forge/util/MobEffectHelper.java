@@ -32,6 +32,14 @@ public class MobEffectHelper {
 
     @SuppressWarnings("removal")
     private static MobEffect getEffectByName(String effectName) {
-        return ForgeRegistries.MOB_EFFECTS.getValue(new ResourceLocation(ViaRomanaMod.MODID + ":" + effectName));
+        ResourceLocation effectId;
+        
+        if (effectName.contains(":")) {
+            effectId = new ResourceLocation(effectName);
+        } else {
+            effectId = new ResourceLocation(ViaRomanaMod.MODID, effectName);
+        }
+        
+        return ForgeRegistries.MOB_EFFECTS.getValue(effectId);
     }
 }

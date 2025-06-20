@@ -25,6 +25,8 @@
   "via_romana.landing": "Via Romana introduces a fast-travel system where players can link signs over paths, allowing for instant teleportation between them.",
   "path_charted": "Path Charted",
   "low_quality_message": "Path underdeveloped",
+  "has_fatigue": "Cannot warp while fatigued",
+  "has_encumbered": "Cannot warp while encumbered",
   "key.via_romana.interact_key": "Via Romana - Interact",
   "item.via_romana.guide": "Via Romana Guide Book",
   "cannot_warp_when_recording": "Cannot fast-travel while charting",

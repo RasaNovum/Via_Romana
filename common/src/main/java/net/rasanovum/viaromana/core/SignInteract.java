@@ -218,11 +218,16 @@ public class SignInteract {
 			} else {
 				if (!VariableAccess.playerVariables.isChartingPath(entity)) {
 					if (SignCheck.isTargettingLinked(world, x, y, z, entity)) {
-						if (!PlatformUtils.hasEffect(entity, "travellers_fatigue")) {
-							TeleportHandler.start(world, x, y, z, entity);
-						} else {
+						if (PlatformUtils.hasEffect(entity, "travellers_fatigue")) {
 							if (entity instanceof Player _player && !_player.level().isClientSide())
-								_player.displayClientMessage(Component.literal("Cannot warp while fatigued"), true);
+								_player.displayClientMessage(Component.literal((Component.translatable("has_fatigue").getString())), true);
+						}
+						else if (PlatformUtils.hasEffect(entity, "weightmod:encumbered")) {
+							if (entity instanceof Player _player && !_player.level().isClientSide())
+								_player.displayClientMessage(Component.literal((Component.translatable("has_encumbered").getString())), true);
+						}
+						else {
+							TeleportHandler.start(world, x, y, z, entity);
 						}
 					}
 				} else {
