@@ -6,3 +6,4 @@ build/
 .project
 .classpath
 *.launch
+.vscode/settings.json
