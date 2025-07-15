@@ -9,10 +9,10 @@ import net.rasanovum.viaromana.core.ResetVariables;
 public class OnJoinWorld {
     public OnJoinWorld() {
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-			execute(handler.getPlayer().level(), handler.getPlayer());
+			execute(handler.getPlayer().getLevel(), handler.getPlayer());
 		});
 		// ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
-		// 	execute(client.player.level(), client.player);
+		// 	execute(client.player.getLevel(), client.player);
 		// });
 	}
 

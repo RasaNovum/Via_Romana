@@ -13,7 +13,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 
 public class MobEffectHelper {
     public static void applyEffect(Entity entity, String effectName, LevelAccessor world) {
-        if (entity instanceof LivingEntity _entity && !_entity.level().isClientSide()) {
+        if (entity instanceof LivingEntity _entity && !_entity.getLevel().isClientSide()) {
             MobEffect effect = getEffectByName(effectName);
             if (effect != null) {
                 _entity.addEffect(new MobEffectInstance(effect, (int) VariableAccess.mapVariables.getTravelFatigueCooldown(world), 0, false, false));

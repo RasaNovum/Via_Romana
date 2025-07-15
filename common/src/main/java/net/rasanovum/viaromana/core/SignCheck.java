@@ -58,7 +58,7 @@ public class SignCheck {
 			TargetY = (Double) TeleportData.get(4);
 			TargetZ = (Double) TeleportData.get(5);
 		} catch (IndexOutOfBoundsException | ClassCastException e) {
-			if (entity instanceof Player _player && !_player.level().isClientSide())
+			if (entity instanceof Player _player && !_player.getLevel().isClientSide())
 				_player.displayClientMessage(Component.literal("Error: Invalid path data format."), true);
 			ResetVariables.execute(world, entity);
 			return false;
@@ -66,7 +66,7 @@ public class SignCheck {
 
 		if (VariableAccess.playerVariables.isChartingPath(entity)) {
 			if (!isSignBlock(world, TargetX, TargetY, TargetZ)) {
-				if (entity instanceof Player _player && !_player.level().isClientSide())
+				if (entity instanceof Player _player && !_player.getLevel().isClientSide())
 					_player.displayClientMessage(Component.literal("Starting sign not found, charting cancelled"), true);
 				TimerUtils.startLeftClickTimer(entity);
 				ResetVariables.execute(world, entity);
@@ -77,7 +77,7 @@ public class SignCheck {
 			if (TeleportData.size() > 6 && TeleportData.get(6) instanceof String) {
 				signNbtKey = (String) TeleportData.get(6);
 			} else {
-				if (entity instanceof Player _player && !_player.level().isClientSide())
+				if (entity instanceof Player _player && !_player.getLevel().isClientSide())
 					_player.displayClientMessage(Component.literal("Error: Missing sign data."), true);
 				ResetVariables.execute(world, entity);
 				return false;
@@ -94,7 +94,7 @@ public class SignCheck {
 					if (_blockEntity != null)
 						PlatformUtils.setString(world, BlockPos.containing(x, y, z), SignCheck.getTarget(world, x, y, z, entity), "");
 				}
-				if (entity instanceof Player _player && !_player.level().isClientSide())
+				if (entity instanceof Player _player && !_player.getLevel().isClientSide())
 					_player.displayClientMessage(Component.literal(("Linked sign not found, " + Component.translatable("sign_unlinked_message").getString())), true);
 				ResetVariables.execute(world, entity);
 				return false;
@@ -172,7 +172,7 @@ public class SignCheck {
 		Vec3 viewVector = entity.getViewVector(1f).scale(5);
 		Vec3 targetPosition = eyePosition.add(viewVector);
 		ClipContext clipContext = new ClipContext(eyePosition, targetPosition, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, entity);
-		BlockHitResult hitResult = entity.level().clip(clipContext);
+		BlockHitResult hitResult = entity.getLevel().clip(clipContext);
 		Direction hitDirection = hitResult.getDirection();
 
 		if (hitDirection == Direction.UP)

@@ -349,7 +349,7 @@ public class ViaRomanaModVariables {
             return new PlayerVariables();
         }
 
-        if (entity.level().isClientSide()) {
+        if (entity.getLevel().isClientSide()) {
             return clientPlayerVariables;
         }
 
@@ -388,8 +388,8 @@ public class ViaRomanaModVariables {
         if (player == null) return new PlayerVariables();
         PlayerVariables vars = getPlayerVariables(player);
         vars.syncToClient(player);
-        MapVariables.get(player.level()).syncToPlayer(player);
-        WorldVariables.get(player.level()).syncToPlayer(player);
+        MapVariables.get(player.getLevel()).syncToPlayer(player);
+        WorldVariables.get(player.getLevel()).syncToPlayer(player);
         return vars;
     }
 

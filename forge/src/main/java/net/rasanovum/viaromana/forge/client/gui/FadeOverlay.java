@@ -13,6 +13,7 @@ import net.minecraftforge.client.event.RenderGuiEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraft.client.gui.screens.Screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.platform.GlStateManager;
@@ -45,7 +46,10 @@ public class FadeOverlay {
             
             @SuppressWarnings("removal")
             ResourceLocation blackTexture = new ResourceLocation("via_romana:textures/screens/black.png");
-            event.getGuiGraphics().blit(blackTexture, 0, 0, 0, 0, screenWidth, screenHeight, screenWidth, screenHeight);
+            
+            RenderSystem.setShaderTexture(0, blackTexture);
+            
+            Screen.blit(event.getPoseStack(), 0, 0, 0, 0, screenWidth, screenHeight, screenWidth, screenHeight);
 
             RenderSystem.setShaderColor(1, 1, 1, 1);
             RenderSystem.depthMask(true);

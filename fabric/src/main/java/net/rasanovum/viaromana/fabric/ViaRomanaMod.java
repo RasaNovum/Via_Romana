@@ -41,7 +41,7 @@ public class ViaRomanaMod implements ModInitializer {
 		});
 
 		ServerPlayerEvents.COPY_FROM.register((oldPlayer, newPlayer, alive) -> {
-			boolean keepInventory = oldPlayer.level().getGameRules().getBoolean(net.minecraft.world.level.GameRules.RULE_KEEPINVENTORY);
+			boolean keepInventory = oldPlayer.getLevel().getGameRules().getBoolean(net.minecraft.world.level.GameRules.RULE_KEEPINVENTORY);
 			ViaRomanaModVariables.playerRespawned(oldPlayer, newPlayer, keepInventory || !alive);
 		});
 	}

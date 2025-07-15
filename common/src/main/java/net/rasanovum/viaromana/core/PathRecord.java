@@ -81,9 +81,9 @@ public class PathRecord {
 	}
 
 	private static void handleError(Entity entity, String message) {
-		if (entity instanceof Player player && !player.level().isClientSide()) {
+		if (entity instanceof Player player && !player.getLevel().isClientSide()) {
 			player.displayClientMessage(Component.literal(message), true);
 		}
-		ResetVariables.execute(entity.level(), entity);
+		ResetVariables.execute(entity.getLevel(), entity);
 	}
 }

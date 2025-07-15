@@ -153,7 +153,7 @@ public class PathUtils {
         double checkZ = 0;
         
         surfaceLevel = entity.getY();
-        if (!entity.onGround()) {
+        if (!entity.isOnGround()) {
             while (world.isEmptyBlock(BlockPos.containing(entity.getX(), surfaceLevel, entity.getZ()))) {
                 surfaceLevel = surfaceLevel - 1;
                 if (entity.getY() - surfaceLevel >= 10) {

@@ -18,7 +18,7 @@ public class OnDimensionChange {
     @SubscribeEvent
     public static void onDimensionChange(PlayerEvent.PlayerChangedDimensionEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
-            DimensionHandler.preventHopping(player.level(), player);
+            DimensionHandler.preventHopping(player.getLevel(), player);
         }
     }
 }

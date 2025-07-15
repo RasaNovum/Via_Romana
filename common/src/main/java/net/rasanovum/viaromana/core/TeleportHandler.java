@@ -159,7 +159,7 @@ public class TeleportHandler {
 			ResetVariables.execute(world, entity);
 			
 		} catch (IndexOutOfBoundsException | ClassCastException e) {
-			if (entity instanceof Player player && !player.level().isClientSide()) {
+			if (entity instanceof Player player && !player.getLevel().isClientSide()) {
 				player.displayClientMessage(
 					Component.literal("Error: Invalid path data format during teleport."), 
 					true

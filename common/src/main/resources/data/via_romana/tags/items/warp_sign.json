@@ -24,7 +24,7 @@
     "minecraft:cherry_hanging_sign",
     "minecraft:bamboo_hanging_sign",
     "#minecraft:signs",
-    "#minecraft:hanging_signs",
+    { "id": "#minecraft:hanging_signs", "required": false },
     { "id": "#supplementaries:sign_posts", "required": false },
     { "id": "#signpost:signpost", "required": false }
   ]

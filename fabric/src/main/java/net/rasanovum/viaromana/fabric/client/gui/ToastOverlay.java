@@ -7,15 +7,15 @@ import net.rasanovum.viaromana.client.toasts.ToastPatchouliToast;
 import net.rasanovum.viaromana.fabric.network.ViaRomanaModClientPacketHandler;
 import net.rasanovum.viaromana.network.ViaRomanaModVariables;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.Minecraft;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.fabricmc.api.Environment;
 import net.fabricmc.api.EnvType;
 
 @Environment(EnvType.CLIENT)
 public class ToastOverlay {    
-    public static void render(GuiGraphics guiGraphics, float tickDelta) {
+    public static void render(PoseStack poseStack, float tickDelta) {
         Player entity = Minecraft.getInstance().player;
         if (entity == null)
             return;

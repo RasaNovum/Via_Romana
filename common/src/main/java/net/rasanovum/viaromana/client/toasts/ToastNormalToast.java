@@ -6,8 +6,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.gui.components.toasts.ToastComponent;
 import net.minecraft.client.gui.components.toasts.Toast;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.Font;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 public class ToastNormalToast implements Toast {
@@ -16,7 +17,7 @@ public class ToastNormalToast implements Toast {
 	private boolean playedSound;
 
 	@Override
-	public Visibility render(GuiGraphics guiGraphics, ToastComponent component, long lastChanged) {
+	public Visibility render(PoseStack poseStack, ToastComponent component, long lastChanged) {
 		if (this.firstDrawTime == 0L) {
 			this.firstDrawTime = lastChanged;
 			if (!this.playedSound) {
@@ -24,11 +25,18 @@ public class ToastNormalToast implements Toast {
 				this.playedSound = true;
 			}
 		}
-		guiGraphics.blit(TEXTURE, 0, 0, 0, 32, this.width(), this.height());
+		
+		Font font = component.getMinecraft().font;
+		RenderSystem.setShaderTexture(0, TEXTURE);
+		component.blit(poseStack, 0, 0, 0, 32, this.width(), this.height());
+		
 		RenderSystem.enableBlend();
-		guiGraphics.blit(new ResourceLocation("via_romana:textures/screens/via_20x20.png"), 6, 7, 1, 1, 18, 18, 20, 20);
-		guiGraphics.drawString(component.getMinecraft().font, Component.translatable("toasts.via_romana.toast_normal.title"), 30, 7, -11534256, false);
-		guiGraphics.drawString(component.getMinecraft().font, Component.translatable("toasts.via_romana.toast_normal.description"), 30, 18, -16777216, false);
+		RenderSystem.setShaderTexture(0, new ResourceLocation("via_romana:textures/screens/via_20x20.png"));
+		component.blit(poseStack, 6, 7, 0, 0, 18, 18, 20, 20);
+		
+		font.draw(poseStack, Component.translatable("toasts.via_romana.toast_normal.title"), 30, 7, -11534256);
+		font.draw(poseStack, Component.translatable("toasts.via_romana.toast_normal.description"), 30, 18, -16777216);
+		
 		if (lastChanged - this.firstDrawTime <= 5000)
 			return Visibility.SHOW;
 		else

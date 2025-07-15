@@ -10,7 +10,7 @@ import net.minecraft.world.phys.Vec3;
 public class OnPlayerTick {
     public static void onPlayerTick(MinecraftServer server) {
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-            Level level = player.level();
+            Level level = player.getLevel();
             Vec3 pos = player.position();
             
             if (player == null || !player.isAlive() || player.connection == null || !player.connection.isAcceptingMessages())

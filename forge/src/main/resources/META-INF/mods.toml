@@ -1,7 +1,7 @@
 # The modLoader property tells Forge what type of mod this is
 modLoader="javafml" 
-# Forge version range - using 47.x for 1.20.1
-loaderVersion="[47,)"
+# Forge version range
+loaderVersion="[45,)"
 # License remains the same
 license="All Rights Reserved"
 # If issues need to be reported to an issue tracker
@@ -31,14 +31,14 @@ Via Romana allows fast travel only after a road connecting the destinations has 
 [[dependencies.via_romana]]
     modId="forge"
     mandatory=true
-    versionRange="[47,)"
+    versionRange="[45,)"
     ordering="NONE"
     side="BOTH"
 
 [[dependencies.via_romana]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.20.1]"
+    versionRange="[1.19.4]"
     ordering="NONE"
     side="BOTH"
 

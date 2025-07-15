@@ -5,17 +5,18 @@ import net.rasanovum.viaromana.variables.VariableAccess;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
 import net.fabricmc.api.Environment;
 import net.fabricmc.api.EnvType;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.platform.GlStateManager;
 
 @Environment(EnvType.CLIENT)
 public class FadeOverlay {
-    public static void render(GuiGraphics guiGraphics, float tickDelta) {
+    public static void render(PoseStack poseStack, float tickDelta) {
         int _fade = 0;
         int screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
         int screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();
@@ -38,7 +39,10 @@ public class FadeOverlay {
             RenderSystem.defaultBlendFunc();
             RenderSystem.setShaderColor(0, 0, 0, alpha);
             ResourceLocation blackTexture = new ResourceLocation("via_romana:textures/screens/black.png");
-            guiGraphics.blit(blackTexture, 0, 0, 0, 0, screenWidth, screenHeight, screenWidth, screenHeight);
+            
+            RenderSystem.setShaderTexture(0, blackTexture);
+            Screen.blit(poseStack, 0, 0, 0, 0, screenWidth, screenHeight, screenWidth, screenHeight);
+            
             RenderSystem.setShaderColor(1, 1, 1, 1);
         }
         

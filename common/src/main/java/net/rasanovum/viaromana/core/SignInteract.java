@@ -49,7 +49,7 @@ public class SignInteract {
 			if (!tagValue.isEmpty()) {
 				unlinkPath(world, x, y, z, entity);
 				ResetVariables.execute(world, entity);
-				if (entity instanceof Player player && !player.level().isClientSide()) {
+				if (entity instanceof Player player && !player.getLevel().isClientSide()) {
 					player.displayClientMessage(Component.literal(Component.translatable("sign_unlinked_message").getString()), true);
 				}
 			}
@@ -67,24 +67,24 @@ public class SignInteract {
 					TimerUtils.startLeftClickTimer(entity);
 					if (entity.isShiftKeyDown()) { // If charting path and shift-clicking
 						if (SignCheck.isSameSign(world, x, y, z, entity)) {
-							if (entity instanceof Player _player && !_player.level().isClientSide())
+							if (entity instanceof Player _player && !_player.getLevel().isClientSide())
 								_player.displayClientMessage(Component.literal((Component.translatable("cancel_path_message").getString())), true);
 							ResetVariables.execute(world, entity);
 						} else if (SignCheck.isTargettingLinked(world, x, y, z, entity)) {
-							if (entity instanceof Player _player && !_player.level().isClientSide())
+							if (entity instanceof Player _player && !_player.getLevel().isClientSide())
 								_player.displayClientMessage(Component.literal((Component.translatable("sign_already_linked").getString())), true);
 						} else {
 							mainLogic(world, x, y, z, entity);
 						}
 					} else { // If charting path, but not shift-clicking
 						if (SignCheck.isSameSign(world, x, y, z, entity)) {
-							if (entity instanceof Player _player && !_player.level().isClientSide())
+							if (entity instanceof Player _player && !_player.getLevel().isClientSide())
 								_player.displayClientMessage(Component.literal((Component.translatable("cannot_break_root_sign").getString())), true);
 							PlatformUtils.cancelClickEvent(true);
 							return;
 						}
 						if (SignCheck.isTargettingLinked(world, x, y, z, entity)) {
-							if (entity instanceof Player _player && !_player.level().isClientSide())
+							if (entity instanceof Player _player && !_player.getLevel().isClientSide())
 								_player.displayClientMessage(Component.literal((Component.translatable("cannot_warp_when_recording").getString())), true);
 						} else {
 							return;
@@ -165,7 +165,7 @@ public class SignInteract {
 				}
 			}
 			
-			if (entity instanceof Player player && !player.level().isClientSide()) {
+			if (entity instanceof Player player && !player.getLevel().isClientSide()) {
 				player.displayClientMessage(
 					Component.literal(Component.translatable("sign_unlinked_message").getString()),
 					true
@@ -173,7 +173,7 @@ public class SignInteract {
 			}
 			
 		} catch (IndexOutOfBoundsException | ClassCastException e) {
-			if (entity instanceof Player player && !player.level().isClientSide()) {
+			if (entity instanceof Player player && !player.getLevel().isClientSide()) {
 				player.displayClientMessage(
 					Component.literal("Error: Could not unlink sign due to invalid/missing data."),
 					true
@@ -192,7 +192,7 @@ public class SignInteract {
 				if (!SignCheck.isTargettingLinked(world, x, y, z, entity)) {
 					if (PathUtils.calculateInfrastructureQuality(world, entity) >= VariableAccess.mapVariables.getInfrastructureCheckQuality(world)) {
 						if (!VariableAccess.playerVariables.isChartingPath(entity)) {
-							if (entity instanceof Player _player && !_player.level().isClientSide())
+							if (entity instanceof Player _player && !_player.getLevel().isClientSide())
 								_player.displayClientMessage(Component.literal((Component.translatable("path_charting").getString())), true);
 							PathRecord.start(world, x, y, z, entity);
 							ChartingHandler.display(world, entity);
@@ -203,35 +203,31 @@ public class SignInteract {
 									ChartingHandler.display(world, entity);
 								}
 							} else {
-								if (entity instanceof Player _player && !_player.level().isClientSide())
+								if (entity instanceof Player _player && !_player.getLevel().isClientSide())
 									_player.displayClientMessage(Component.literal((Component.translatable("path_invalid_minimum").getString())), true);
 							}
 						}
 					} else {
-						if (entity instanceof Player _player && !_player.level().isClientSide())
+						if (entity instanceof Player _player && !_player.getLevel().isClientSide())
 							_player.displayClientMessage(Component.literal((Component.translatable("low_quality_message").getString())), true);
 					}
 				} else {
-					if (entity instanceof Player _player && !_player.level().isClientSide())
+					if (entity instanceof Player _player && !_player.getLevel().isClientSide())
 						_player.displayClientMessage(Component.literal((Component.translatable("sign_already_linked").getString())), true);
 				}
 			} else {
 				if (!VariableAccess.playerVariables.isChartingPath(entity)) {
 					if (SignCheck.isTargettingLinked(world, x, y, z, entity)) {
 						if (PlatformUtils.hasEffect(entity, "travellers_fatigue")) {
-							if (entity instanceof Player _player && !_player.level().isClientSide())
+							if (entity instanceof Player _player && !_player.getLevel().isClientSide())
 								_player.displayClientMessage(Component.literal((Component.translatable("has_fatigue").getString())), true);
-						}
-						else if (PlatformUtils.hasEffect(entity, "weightmod:encumbered")) {
-							if (entity instanceof Player _player && !_player.level().isClientSide())
-								_player.displayClientMessage(Component.literal((Component.translatable("has_encumbered").getString())), true);
 						}
 						else {
 							TeleportHandler.start(world, x, y, z, entity);
 						}
 					}
 				} else {
-					if (entity instanceof Player _player && !_player.level().isClientSide())
+					if (entity instanceof Player _player && !_player.getLevel().isClientSide())
 						_player.displayClientMessage(Component.literal((Component.translatable("cannot_warp_when_recording").getString())), true);
 				}
 			}

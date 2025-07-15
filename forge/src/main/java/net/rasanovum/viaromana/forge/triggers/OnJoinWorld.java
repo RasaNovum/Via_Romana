@@ -13,7 +13,7 @@ public class OnJoinWorld {
 
     @SubscribeEvent
     public static void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
-        execute(event.getEntity().level(), event.getEntity());
+        execute(event.getEntity().getLevel(), event.getEntity());
     }
 
     private static void execute(LevelAccessor world, Entity entity) {

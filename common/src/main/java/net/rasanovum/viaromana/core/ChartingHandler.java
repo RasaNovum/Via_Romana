@@ -23,20 +23,20 @@ public class ChartingHandler {
 
 		if (VariableAccess.playerVariables.isChartingPath(entity)) {
 			if (PathUtils.calculateNodeDistance(entity) > VariableAccess.mapVariables.getNodeDistanceMaximum(world)) {
-				if (entity instanceof Player _player && !_player.level().isClientSide())
+				if (entity instanceof Player _player && !_player.getLevel().isClientSide())
 					_player.displayClientMessage(Component.literal((Component.translatable("too_far_from_node_message").getString())), true);
 			} else if (PathUtils.calculateInfrastructureQuality(world, entity) < VariableAccess.mapVariables.getInfrastructureCheckQuality(world)) {
-				if (entity instanceof Player _player && !_player.level().isClientSide())
+				if (entity instanceof Player _player && !_player.getLevel().isClientSide())
 					_player.displayClientMessage(Component.literal((Component.translatable("low_quality_message").getString())), true);
 			} else if (PathUtils.calculateNodeDistance(entity) < VariableAccess.mapVariables.getNodeDistanceMinimum(world)) {
 				if (TimerUtils.checkMessageTimer(entity)) {
-					if (entity instanceof Player _player && !_player.level().isClientSide())
+					if (entity instanceof Player _player && !_player.getLevel().isClientSide())
 						_player.displayClientMessage(Component.literal((Component.translatable("path_charting").getString())), true);
 					TimerUtils.startMessageTimer(entity);
 				}
 				return;
 			} else if (PathUtils.calculatePathStartDistance(entity) >= VariableAccess.mapVariables.getPathDistanceMaximum(world)) {
-				if (entity instanceof Player _player && !_player.level().isClientSide())
+				if (entity instanceof Player _player && !_player.getLevel().isClientSide())
 					_player.displayClientMessage(Component.literal((Component.translatable("path_invalid_maximum").getString())), true);
 			} else {
 				if (SignCheck.isSignFound(world, x, y, z, entity)) {
@@ -63,7 +63,7 @@ public class ChartingHandler {
 			}
 			updateLastNode(entity);
 		} else {
-			if (entity instanceof Player _player && !_player.level().isClientSide())
+			if (entity instanceof Player _player && !_player.getLevel().isClientSide())
 				_player.displayClientMessage(Component.literal((Component.translatable("path_charted").getString())), true);
 
 			if (world instanceof Level _level) {

@@ -18,7 +18,7 @@ public class ClientInit implements ClientModInitializer {
 
 		ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
             if (client.player != null) {
-                ResetVariables.execute(client.player.level(), client.player);
+                ResetVariables.execute(client.player.getLevel(), client.player);
             }
         });
 	}

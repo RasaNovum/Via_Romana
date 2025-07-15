@@ -7,3 +7,4 @@ build/
 .classpath
 *.launch
 .vscode/settings.json
+/.architectury-transformer
