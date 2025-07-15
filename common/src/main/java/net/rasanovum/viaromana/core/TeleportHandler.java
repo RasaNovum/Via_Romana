@@ -13,7 +13,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.Registry;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -27,7 +27,7 @@ public class TeleportHandler {
 		if (entity == null)
 			return;
 		
-		String pathData = PlatformUtils.getString(world, BlockPos.containing(x, y, z), SignCheck.getTarget(world, x, y, z, entity));
+		String pathData = PlatformUtils.getString(world, new BlockPos(x, y, z), SignCheck.getTarget(world, x, y, z, entity));
 		VariableAccess.playerVariables.setPathData(entity, pathData);
 		
 		if (SignCheck.isSignFound(world, x, y, z, entity)) {
@@ -87,17 +87,17 @@ public class TeleportHandler {
 		if (!(world instanceof Level level))
 			return;
 		
-		BlockPos pos = BlockPos.containing(x, Math.ceil(y - 1), z);
+		BlockPos pos = new BlockPos(x, Math.ceil(y - 1), z);
 		BlockState blockState = world.getBlockState(pos);
-		ResourceLocation soundId = BuiltInRegistries.SOUND_EVENT.getKey(blockState.getSoundType().getStepSound());
+		ResourceLocation soundId = Registry.SOUND_EVENT.getKey(blockState.getSoundType().getStepSound());
 		
 		if (soundId == null)
 			soundId = new ResourceLocation("block.grass.step");
 
 		if (!level.isClientSide()) {
-			level.playSound(null, pos, BuiltInRegistries.SOUND_EVENT.get(soundId), SoundSource.BLOCKS, 0.5f, 1f);
+			level.playSound(null, pos, Registry.SOUND_EVENT.get(soundId), SoundSource.BLOCKS, 0.5f, 1f);
 		} else {
-			level.playLocalSound(x, y, z, BuiltInRegistries.SOUND_EVENT.get(soundId), SoundSource.BLOCKS, 0.5f, 1f, false);
+			level.playLocalSound(x, y, z, Registry.SOUND_EVENT.get(soundId), SoundSource.BLOCKS, 0.5f, 1f, false);
 		}
 	}
 	
@@ -137,7 +137,7 @@ public class TeleportHandler {
 				mountEntity = entity.getVehicle();
 				entity.stopRiding();
 				
-				if (mountEntity != null && VariableAccess.mapVariables.getValidEntityList(world).contains(BuiltInRegistries.ENTITY_TYPE.getKey(mountEntity.getType()).toString())) {
+				if (mountEntity != null && VariableAccess.mapVariables.getValidEntityList(world).contains(Registry.ENTITY_TYPE.getKey(mountEntity.getType()).toString())) {
 					teleportEntity(mountEntity, targetX, targetY, targetZ);
 				}
 			} else {

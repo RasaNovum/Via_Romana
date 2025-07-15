@@ -8,8 +8,7 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.tags.TagKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.Registry;
 import net.minecraft.core.BlockPos;
 
 import java.util.List;
@@ -103,16 +102,16 @@ public class PathUtils {
     // Checks if a block at the given coordinates is a valid path block
     public static boolean isBlockValidPath(LevelAccessor world, double x, double y, double z) {
         BlockState targetBlock = Blocks.AIR.defaultBlockState();
-        if (world.isEmptyBlock(BlockPos.containing(x, y, z))) {
+        if (world.isEmptyBlock(new BlockPos(x, y, z))) {
             return false;
         }
-        targetBlock = (world.getBlockState(BlockPos.containing(x, y, z)));
+        targetBlock = (world.getBlockState(new BlockPos(x, y, z)));
         
         // Check if block matches any valid tag
         List<Object> validTagList = VariableAccess.mapVariables.getValidTagList();
         for (int index0 = 0; index0 < validTagList.size(); index0++) {
             String tagString = validTagList.get(index0) instanceof String s ? s : "";
-            if (targetBlock.is(TagKey.create(Registries.BLOCK, new ResourceLocation(tagString.toLowerCase(java.util.Locale.ENGLISH))))) {
+            if (targetBlock.is(TagKey.create(Registry.BLOCK_REGISTRY, new ResourceLocation(tagString.toLowerCase(java.util.Locale.ENGLISH))))) {
                 return true;
             }
         }
@@ -121,7 +120,7 @@ public class PathUtils {
         List<Object> validBlockList = VariableAccess.mapVariables.getValidBlockList(world);
         for (int index1 = 0; index1 < validBlockList.size(); index1++) {
             String blockString = validBlockList.get(index1) instanceof String s ? s : "";
-            if ((BuiltInRegistries.BLOCK.getKey(targetBlock.getBlock()).toString()).equals(blockString)) {
+            if ((Registry.BLOCK.getKey(targetBlock.getBlock()).toString()).equals(blockString)) {
                 return true;
             }
         }
@@ -131,7 +130,7 @@ public class PathUtils {
         for (int index2 = 0; index2 < validStringList.size(); index2++) {
             String validString = validStringList.get(index2) instanceof String s ? s : "";
             if (!validString.isEmpty() && 
-                (BuiltInRegistries.BLOCK.getKey(targetBlock.getBlock()).toString()).contains(validString)) {
+                (Registry.BLOCK.getKey(targetBlock.getBlock()).toString()).contains(validString)) {
                 return true;
             }
         }
@@ -154,7 +153,7 @@ public class PathUtils {
         
         surfaceLevel = entity.getY();
         if (!entity.isOnGround()) {
-            while (world.isEmptyBlock(BlockPos.containing(entity.getX(), surfaceLevel, entity.getZ()))) {
+            while (world.isEmptyBlock(new BlockPos(entity.getX(), surfaceLevel, entity.getZ()))) {
                 surfaceLevel = surfaceLevel - 1;
                 if (entity.getY() - surfaceLevel >= 10) {
                     return 0;

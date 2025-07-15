@@ -13,8 +13,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
+import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
@@ -28,13 +27,13 @@ import java.util.ArrayList;
 public class SignCheck {
 	public static boolean isSignBlock(LevelAccessor world, double x, double y, double z) {
 		BlockState TargetBlock = Blocks.AIR.defaultBlockState();
-		TargetBlock = (world.getBlockState(BlockPos.containing(x, y, z)));
-		if ((new ItemStack(TargetBlock.getBlock())).is(TagKey.create(Registries.ITEM, new ResourceLocation("via_romana:warp_sign")))) {
+		TargetBlock = (world.getBlockState(new BlockPos(x, y, z)));
+		if ((new ItemStack(TargetBlock.getBlock())).is(TagKey.create(Registry.ITEM_REGISTRY, new ResourceLocation("via_romana:warp_sign")))) {
 			return true;
 		}
 
 		for (int index0 = 0; index0 < (int) VariableAccess.mapVariables.getValidSignList(world).size(); index0++) {
-			if ((BuiltInRegistries.BLOCK.getKey(TargetBlock.getBlock()).toString()).contains(VariableAccess.mapVariables.getValidSignList(world).get((int) index0) instanceof String _s ? _s : "")
+			if ((Registry.BLOCK.getKey(TargetBlock.getBlock()).toString()).contains(VariableAccess.mapVariables.getValidSignList(world).get((int) index0) instanceof String _s ? _s : "")
 					&& !(VariableAccess.mapVariables.getValidSignList(world).get((int) index0) instanceof String _s ? _s : "").isEmpty()) {
 				return true;
 			}
@@ -87,12 +86,12 @@ public class SignCheck {
 				public String getValue(LevelAccessor world, BlockPos pos, String tag) {
 					return PlatformUtils.getString(world, pos, tag);
 				}
-			}.getValue(world, BlockPos.containing(TargetX, TargetY, TargetZ), signNbtKey)).equals("")) {
+			}.getValue(world, new BlockPos(TargetX, TargetY, TargetZ), signNbtKey)).equals("")) {
 				if (!world.isClientSide()) {
-					BlockPos _bp = BlockPos.containing(x, y, z);
+					BlockPos _bp = new BlockPos(x, y, z);
 					BlockEntity _blockEntity = world.getBlockEntity(_bp);
 					if (_blockEntity != null)
-						PlatformUtils.setString(world, BlockPos.containing(x, y, z), SignCheck.getTarget(world, x, y, z, entity), "");
+						PlatformUtils.setString(world, new BlockPos(x, y, z), SignCheck.getTarget(world, x, y, z, entity), "");
 				}
 				if (entity instanceof Player _player && !_player.getLevel().isClientSide())
 					_player.displayClientMessage(Component.literal(("Linked sign not found, " + Component.translatable("sign_unlinked_message").getString())), true);
@@ -157,7 +156,7 @@ public class SignCheck {
 	}
 
 	public static boolean isSupplementariesSign(LevelAccessor world, double x, double y, double z) {
-		if ((BuiltInRegistries.BLOCK.getKey((world.getBlockState(BlockPos.containing(x, y, z))).getBlock()).toString()).contains("supplementaries")) {
+		if ((Registry.BLOCK.getKey((world.getBlockState(new BlockPos(x, y, z))).getBlock()).toString()).contains("supplementaries")) {
 			return true;
 		}
 		return false;
@@ -203,15 +202,15 @@ public class SignCheck {
 			public String getValue(LevelAccessor world, BlockPos pos, String tag) {
 				return PlatformUtils.getString(world, pos, tag);
 			}
-		}.getValue(world, BlockPos.containing(x, y, z), "linkedSignTop")).equals("") || !(new Object() {
+		}.getValue(world, new BlockPos(x, y, z), "linkedSignTop")).equals("") || !(new Object() {
 			public String getValue(LevelAccessor world, BlockPos pos, String tag) {
 				return PlatformUtils.getString(world, pos, tag);
 			}
-		}.getValue(world, BlockPos.containing(x, y, z), "linkedSignBottom")).equals("") || !(new Object() {
+		}.getValue(world, new BlockPos(x, y, z), "linkedSignBottom")).equals("") || !(new Object() {
 			public String getValue(LevelAccessor world, BlockPos pos, String tag) {
 				return PlatformUtils.getString(world, pos, tag);
 			}
-		}.getValue(world, BlockPos.containing(x, y, z), "linkedSign")).equals("")) {
+		}.getValue(world, new BlockPos(x, y, z), "linkedSign")).equals("")) {
 			return true;
 		}
 		return false;
@@ -225,18 +224,18 @@ public class SignCheck {
 			public String getValue(LevelAccessor world, BlockPos pos, String tag) {
 				return PlatformUtils.getString(world, pos, tag);
 			}
-		}.getValue(world, BlockPos.containing(x, y, z), "linkedSign")).equals("")) {
+		}.getValue(world, new BlockPos(x, y, z), "linkedSign")).equals("")) {
 			return true;
 		}
 		if (!(new Object() {
 			public String getValue(LevelAccessor world, BlockPos pos, String tag) {
 				return PlatformUtils.getString(world, pos, tag);
 			}
-		}.getValue(world, BlockPos.containing(x, y, z), "linkedSignTop")).equals("") && !(new Object() {
+		}.getValue(world, new BlockPos(x, y, z), "linkedSignTop")).equals("") && !(new Object() {
 			public String getValue(LevelAccessor world, BlockPos pos, String tag) {
 				return PlatformUtils.getString(world, pos, tag);
 			}
-		}.getValue(world, BlockPos.containing(x, y, z), "linkedSignBottom")).equals("")) {
+		}.getValue(world, new BlockPos(x, y, z), "linkedSignBottom")).equals("")) {
 			return true;
 		}
 		return false;
@@ -249,7 +248,7 @@ public class SignCheck {
 			public String getValue(LevelAccessor world, BlockPos pos, String tag) {
 				return PlatformUtils.getString(world, pos, tag);
 			}
-		}.getValue(world, BlockPos.containing(x, y, z), SignCheck.getTarget(world, x, y, z, entity))).equals("")) {
+		}.getValue(world, new BlockPos(x, y, z), SignCheck.getTarget(world, x, y, z, entity))).equals("")) {
 			return true;
 		}
 		return false;

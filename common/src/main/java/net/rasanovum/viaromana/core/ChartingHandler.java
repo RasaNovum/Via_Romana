@@ -10,7 +10,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementProgress;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -56,9 +56,9 @@ public class ChartingHandler {
 		if (VariableAccess.playerVariables.isChartingPath(entity)) {
 			if (world instanceof Level _level) {
 				if (!_level.isClientSide()) {
-					_level.playSound(null, BlockPos.containing(entity.getX(), entity.getY(), entity.getZ()), BuiltInRegistries.SOUND_EVENT.get(new ResourceLocation("ui.cartography_table.take_result")), SoundSource.PLAYERS, 1, 1);
+					_level.playSound(null, new BlockPos(entity.getX(), entity.getY(), entity.getZ()), Registry.SOUND_EVENT.get(new ResourceLocation("ui.cartography_table.take_result")), SoundSource.PLAYERS, 1, 1);
 				} else {
-					_level.playLocalSound((entity.getX()), (entity.getY()), (entity.getZ()), BuiltInRegistries.SOUND_EVENT.get(new ResourceLocation("ui.cartography_table.take_result")), SoundSource.PLAYERS, 1, 1, false);
+					_level.playLocalSound((entity.getX()), (entity.getY()), (entity.getZ()), Registry.SOUND_EVENT.get(new ResourceLocation("ui.cartography_table.take_result")), SoundSource.PLAYERS, 1, 1, false);
 				}
 			}
 			updateLastNode(entity);
@@ -68,9 +68,9 @@ public class ChartingHandler {
 
 			if (world instanceof Level _level) {
 				if (!_level.isClientSide()) {
-					_level.playSound(null, BlockPos.containing(entity.getX(), entity.getY(), entity.getZ()), BuiltInRegistries.SOUND_EVENT.get(new ResourceLocation("ui.cartography_table.take_result")), SoundSource.PLAYERS, 1, 1);
+					_level.playSound(null, new BlockPos(entity.getX(), entity.getY(), entity.getZ()), Registry.SOUND_EVENT.get(new ResourceLocation("ui.cartography_table.take_result")), SoundSource.PLAYERS, 1, 1);
 				} else {
-					_level.playLocalSound((entity.getX()), (entity.getY()), (entity.getZ()), BuiltInRegistries.SOUND_EVENT.get(new ResourceLocation("ui.cartography_table.take_result")), SoundSource.PLAYERS, 1, 1, false);
+					_level.playLocalSound((entity.getX()), (entity.getY()), (entity.getZ()), Registry.SOUND_EVENT.get(new ResourceLocation("ui.cartography_table.take_result")), SoundSource.PLAYERS, 1, 1, false);
 				}
 			}
 			

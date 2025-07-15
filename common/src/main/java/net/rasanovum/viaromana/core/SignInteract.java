@@ -16,7 +16,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.Registry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.CommandSource;
@@ -44,7 +44,7 @@ public class SignInteract {
 			return;
 			
 		if (SignCheck.isSignBlock(world, x, y, z)) {
-			String tagValue = PlatformUtils.getString(world, BlockPos.containing(x, y, z), SignCheck.getTarget(world, x, y, z, entity));
+			String tagValue = PlatformUtils.getString(world, new BlockPos(x, y, z), SignCheck.getTarget(world, x, y, z, entity));
 				
 			if (!tagValue.isEmpty()) {
 				unlinkPath(world, x, y, z, entity);
@@ -126,12 +126,12 @@ public class SignInteract {
 	private static void playPickupSound(LevelAccessor world, Entity entity) {
 		if (world instanceof Level level) {
 			ResourceLocation soundLoc = new ResourceLocation("entity.item.pickup");
-			BlockPos pos = BlockPos.containing(entity.getX(), entity.getY(), entity.getZ());
+			BlockPos pos = new BlockPos(entity.getX(), entity.getY(), entity.getZ());
 			if (!level.isClientSide()) {
-				level.playSound(null, pos, BuiltInRegistries.SOUND_EVENT.get(soundLoc), SoundSource.NEUTRAL, 1, 1);
+				level.playSound(null, pos, Registry.SOUND_EVENT.get(soundLoc), SoundSource.NEUTRAL, 1, 1);
 			} else {
 				level.playLocalSound(entity.getX(), entity.getY(), entity.getZ(), 
-					BuiltInRegistries.SOUND_EVENT.get(soundLoc), SoundSource.NEUTRAL, 1, 1, false);
+					Registry.SOUND_EVENT.get(soundLoc), SoundSource.NEUTRAL, 1, 1, false);
 			}
 		}
 	}
@@ -141,7 +141,7 @@ public class SignInteract {
 			return;
 		
 		String nbtKey = SignCheck.getTarget(world, x, y, z, entity);
-		String pathStoredData = PlatformUtils.getString(world, BlockPos.containing(x, y, z), nbtKey);
+		String pathStoredData = PlatformUtils.getString(world, new BlockPos(x, y, z), nbtKey);
 		List<Object> linkedSignData = PathUtils.decodePathData(pathStoredData);
 		String linkedSignNbtKey = "";
 
@@ -157,7 +157,7 @@ public class SignInteract {
 			}
 			
 			if (!world.isClientSide()) {
-				BlockPos targetPos = BlockPos.containing(targetX, targetY, targetZ);
+				BlockPos targetPos = new BlockPos(targetX, targetY, targetZ);
 				BlockEntity blockEntity = world.getBlockEntity(targetPos);
 				
 				if (blockEntity != null) {

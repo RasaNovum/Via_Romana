@@ -20,7 +20,7 @@ public class OnPlayerTick {
             if (server == null) return;
 
             for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-                if (player == null || !player.isAlive() || player.connection == null || !player.connection.isAcceptingMessages())
+                if (player == null || !player.isAlive() || player.connection == null)
                     continue;
 
                 Level level = player.getLevel();

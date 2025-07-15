@@ -72,7 +72,7 @@ public class PathRecord {
 
 	private static void updateBlockEntity(LevelAccessor world, double x, double y, double z, String key, String value) {
 		if (!world.isClientSide()) {
-			BlockPos pos = BlockPos.containing(x, y, z);
+			BlockPos pos = new BlockPos(x, y, z);
 			BlockEntity blockEntity = world.getBlockEntity(pos);
 			if (blockEntity != null) {
 				PlatformUtils.setString(world, pos, key, value);

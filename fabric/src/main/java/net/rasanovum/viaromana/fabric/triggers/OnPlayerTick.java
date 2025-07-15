@@ -13,7 +13,7 @@ public class OnPlayerTick {
             Level level = player.getLevel();
             Vec3 pos = player.position();
             
-            if (player == null || !player.isAlive() || player.connection == null || !player.connection.isAcceptingMessages())
+            if (player == null || !player.isAlive() || player.connection == null)
                 continue;
 
             // TimerUtils.checkTimers(player);
