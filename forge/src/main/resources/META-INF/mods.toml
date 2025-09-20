@@ -1,0 +1,59 @@
+# The modLoader property tells Forge what type of mod this is
+modLoader="javafml" 
+# Forge version range - using 47.x for 1.20.1
+loaderVersion="[47,)"
+# License remains the same
+license="All Rights Reserved"
+# If issues need to be reported to an issue tracker
+#issueTrackerURL="https://github.com/RasaNovum/Via_Romana/issues"
+
+[[mods]]
+# Mod ID stays the same
+modId="via_romana"
+# Using the project version
+version="${version}"
+# Display name for mod
+displayName="Via Romana"
+# URL for mod
+displayURL="https://github.com/RasaNovum/Via_Romana"
+# Logo file path
+logoFile="logo.png"
+# Credits from original mods.toml
+credits="xameyn, science_bird"
+# Authors for mod
+authors="Rasa Novum"
+# Description for mod
+description='''
+Via Romana allows fast travel only after a road connecting the destinations has been made, incentivizing players to build and see the world.
+'''
+
+# Dependencies section
+[[dependencies.via_romana]]
+    modId="forge"
+    mandatory=true
+    versionRange="[47,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.via_romana]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.20.1]"
+    ordering="NONE"
+    side="BOTH"
+
+# Optional dependencies
+[[dependencies.via_romana]]
+    modId="supplementaries"
+    mandatory=false
+    versionRange="[0,)"
+    ordering="NONE"
+    side="BOTH"
+    
+[[dependencies.via_romana]]
+    modId="patchouli"
+    mandatory=false
+    versionRange="[0,)"
+    ordering="NONE"
+    side="BOTH"
+

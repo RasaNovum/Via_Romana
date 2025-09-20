@@ -1,0 +1,43 @@
+{
+	"name": "The Basics",
+	"icon": "minecraft:oak_sign",
+	"sortnum": 2,
+	"priority": true,
+	"category": "via_romana:default",
+	"pages": [
+		{
+			"type": "patchouli:text",
+			"text": "This guide will teach you how to construct paths, link/unlink two points, and fast-travel between them."
+		},
+		{
+			"type": "patchouli:spotlight",
+			"title": "Pathing",
+			"item": "minecraft:dirt_path",
+			"text": "For a path to be valid, you must hit a certain threshold of $(thing)infrastructure blocks$(). If your path has too many natural blocks it will not be valid."
+		},
+		{
+			"type": "patchouli:spotlight",
+			"title": "Linking Signs",
+			"item": "minecraft:oak_sign",
+			"text": "You will be able to link any two unlinked signs across a distance if the path connecting them is valid.$(br2)To link a sign, $(thing)sneak & punch$() the sign you want to link from, then $(thing)sneak & punch$() the sign you want to link to."
+		},
+		{
+			"type": "patchouli:spotlight",
+			"title": "Unlinking Signs",
+			"item": "minecraft:iron_axe",
+			"text": "You are able to break any linked sign by $(thing)sneak & punching$() it. This will automatically unlink the sign it was linked to."
+		},
+		{
+			"type": "patchouli:spotlight",
+			"title": "Path Status",
+			"item": "minecraft:barrier",
+			"text": "If there is any issues with the path, an warning will be displayed. If the path is valid, the signs will be linked upon finishing."
+		},
+		{
+			"type": "patchouli:spotlight",
+			"title": "Fast-travel",
+			"item": "minecraft:leather_boots",
+			"text": "To fast-travel between two linked signs, $(thing)punch$() a linked sign and you will be transported to the connected linked sign."
+		}
+	]
+}
