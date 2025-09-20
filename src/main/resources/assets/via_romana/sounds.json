@@ -1,0 +1,10 @@
+{
+  "ambient.node_pulse": {
+    "subtitle": "subtitles.via_romana.ambient.node_pulse",
+    "sounds": [
+      {
+        "name": "via_romana:ambient/node_pulse", "stream": false
+      }
+    ]
+  }
+}

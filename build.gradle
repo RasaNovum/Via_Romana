@@ -1,0 +1,130 @@
+plugins {
+	id "maven-publish"
+	alias libs.plugins.loom
+	alias libs.plugins.minotaur
+}
+
+version = "$baseVersion+$branch"
+archivesBaseName = project.slug
+
+repositories {
+	maven { url "https://repo.sleeping.town/" }
+	maven { url "https://maven.terraformersmc.com/" }
+	maven { url "https://maven.shedaniel.me/" }
+	maven { url "https://api.modrinth.com/maven" }
+	maven { url "https://maven.parchmentmc.org" }
+	maven { url "https://raw.githubusercontent.com/SolidBlock-cn/mvn-repo/main" }
+	mavenCentral()
+}
+
+dependencies {
+	minecraft libs.mc
+
+	mappings loom.layered() {
+		officialMojangMappings()
+		parchment("org.parchmentmc.data:parchment-1.20.1:2023.09.03@zip")
+	}
+
+	modImplementation libs.fl
+	modImplementation libs.fapi
+	modImplementation libs.cloth.config
+
+	modImplementation libs.midnightlib
+	include libs.midnightlib
+	modImplementation libs.surveyor
+	include libs.surveyor
+	modImplementation libs.brrp
+	include libs.brrp
+
+	modCompileOnly libs.supplementaries
+
+	modImplementation "com.google.code.gson:gson:2.10.1"
+}
+
+processResources {
+	final Map<String, String> meta = [
+		version       : version,
+		modId         : modId,
+		modName       : modName,
+		modDescription: modDescription,
+		homepage      : homepage,
+		issues        : "${homepage}/issues",
+		sources       : homepage,
+		license       : license,
+		authors       : authors,
+		contributors  : contributors,
+		members       : "${authors}${contributors.isEmpty() ? '' : '. Contributions by ' + contributors}",
+		mc            : libs.versions.mc.get(),
+		fl            : libs.versions.fl.get(),
+		fapi          : libs.versions.fapi.get(),
+		surveyor      : libs.versions.surveyor.get(),
+		cloth_config  : libs.versions.cloth.config.get(),
+		midnightlib   : libs.versions.midnightlib.get(),
+		supplementaries: libs.versions.supplementaries.get()
+	]
+	inputs.properties(meta)
+	filesMatching("*.mod.json") { expand(meta) }
+	filesMatching("META-INF/*mods.toml") { expand(meta) }
+}
+
+loom {
+	accessWidenerPath = file("src/main/resources/${modId}.accesswidener")
+
+    mixin {
+        defaultRefmapName = "${modId}.refmap.json"
+    }
+
+	runConfigs {
+		client {
+			vmArg "-Dsodium.checks.issue2561=false"
+			programArg "--username=Dev"
+			runDir "run/client"
+		}
+		server {
+			runDir "run/server"
+		}
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.encoding = "UTF-8"
+	it.options.release = 17
+}
+
+java {
+	withSourcesJar()
+	sourceCompatibility = JavaVersion.VERSION_17
+	targetCompatibility = JavaVersion.VERSION_17
+}
+
+sourceSets {
+	main {
+		resources {
+			srcDirs += [
+				'src/main/generated'
+			]
+		}
+	}
+}
+
+jar {
+	from("LICENSE") {
+		rename { "${it}_${archivesBaseName}" }
+	}
+}
+
+modrinth {
+	token = "$System.env.MODRINTH_TOKEN"
+	projectId = modrinthSlug
+	versionNumber = project.version
+	uploadFile = remapJar
+	gameVersions = compatibleVersions.split(", ").toList()
+	loaders = compatibleLoaders.split(", ").toList()
+	changelog = !file("CHANGELOG.md").exists() ? "" : rootProject.file("CHANGELOG.md").text
+	syncBodyFrom = rootProject.file("README.md").text
+	dependencies {
+		required.version libs.fapi.get().getName(), libs.versions.fapi.get()
+		required.version libs.surveyor.get().getName(), libs.versions.surveyor.get()
+		optional.version libs.supplementaries.get().getName(), libs.versions.supplementaries.get()
+	}
+}

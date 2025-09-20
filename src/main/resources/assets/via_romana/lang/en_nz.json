@@ -1,0 +1,4 @@
+{
+  "via_romana.midnightconfig.enable_surveyor_landmark_coloring": "Colours connected destinations",
+  "via_romana.midnightconfig.enable_surveyor_landmark_coloring.tooltip": "Colour all landmarks in the same network the same colour to indicate connections."
+}

@@ -1,0 +1,24 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "net.rasanovum.viaromana.mixins",
+  "compatibilityLevel": "JAVA_17",
+  "client": [
+    "client.BlockLightEngineMixin",
+    "client.AbstractSignEditScreenAccessor",
+    "client.TextHolderEditScreenMixin",
+    "client.SignEditScreenMixin",
+    "client.WarpBlockScreenMixin",
+    "client.ClientPlayerInteractionManagerMixin"
+  ],
+  "mixins": [
+    "BlockEntityMixin",
+    "PreventFatigueRemovalMixin",
+    "ServerLevelMixin",
+    "ServerPlayerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "refmap": "via_romana.refmap.json"
+}

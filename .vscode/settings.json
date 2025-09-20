@@ -1,0 +1,26 @@
+{
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "cSpell.words": [
+        "accesswidener",
+        "Bufs",
+        "fapi",
+        "flintandsteel",
+        "KEEPINVENTORY",
+        "mehvahdjukaar",
+        "midnightconfig",
+        "midnightlib",
+        "MODID",
+        "Novum",
+        "Rasa",
+        "RasaNovum",
+        "refmap",
+        "Renderable",
+        "Romana",
+        "spongepowered",
+        "supplementaries",
+        "Via",
+        "ViaRomana"
+    ],
+    "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx16G -Xms100m -Xlog:disable",
+    "java.compile.nullAnalysis.mode": "automatic"
+}

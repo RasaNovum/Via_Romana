@@ -1,0 +1,10 @@
+run/
+bin/
+build/
+.gradle/
+.settings/
+.project
+.classpath
+*.launch
+.vscode/settings.json
+src/main/generated/.cache/e646a25c339e0de009e09bd202d29c54614fe197
