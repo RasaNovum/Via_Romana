@@ -124,8 +124,8 @@
   "via_romana.midnightconfig.enable_surveyor_landmark.tooltip": "Adds destinations as a landmark through Surveyor.",
   "via_romana.midnightconfig.enable_surveyor_landmark_coloring": "Colors connected destinations",
   "via_romana.midnightconfig.enable_surveyor_landmark_coloring.tooltip": "Colors all landmarks in the same network the same colour to indicate connections.",
-  "via_romana.midnightconfig.enable_invalid_block_overlay": "Enable Invalid Block Indication",
-  "via_romana.midnightconfig.enable_invalid_block_overlay.tooltip": "Highlights blocks that do not count as valid infrastructure for charting.",
+  "via_romana.midnightconfig.invalid_block_overlay_opacity": "Invalid Block Overlay Opacity",
+  "via_romana.midnightconfig.invalid_block_overlay_opacity.tooltip": "Highlights blocks that do not count as valid infrastructure for charting. Set to 0 to disable.",
 
   "via_romana.midnightconfig.invalid_entities": "Invalid Entities",
   "via_romana.midnightconfig.invalid_entities.tooltip": "List of entity IDs that cannot fast-travel.",

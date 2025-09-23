@@ -23,9 +23,9 @@ public class ViaRomanaConfig extends MidnightConfig {
     @Entry(category = VARIABLES) public static int maximum_map_dimension = 512;
     @Entry(category = VARIABLES) public static int map_refresh_interval = 10;
     @Entry(category = VARIABLES) public static int map_save_interval = 5;
+    @Entry(category = VARIABLES, min = 0f, max = 1f) public static float invalid_block_overlay_opacity = 0.4f;
     @Entry(category = VARIABLES) public static boolean enable_surveyor_landmark = false;
     @Entry(category = VARIABLES) public static boolean enable_surveyor_landmark_coloring = false;
-    @Entry(category = VARIABLES) public static boolean enable_invalid_block_overlay = true;
 
     // Management Category
     @Entry(category = MANAGEMENT) public static List<String> invalid_entities = Lists.newArrayList();

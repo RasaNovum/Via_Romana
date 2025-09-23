@@ -21,14 +21,14 @@ import org.joml.Matrix4f;
 
 public class InvalidBlockRenderer {
     private static final ResourceLocation BARRIER_TEXTURE = new ResourceLocation("textures/item/barrier.png");
-    private static final float ALPHA = 0.4f;
+    private static final float ALPHA = (float) ViaRomanaConfig.invalid_block_overlay_opacity;
     private static final int FADE_BUFFER = 3;
     private static final int REGION_SIZE = ViaRomanaConfig.infrastructure_check_radius + FADE_BUFFER;
 
     public static void renderInfrastructureBlocks(PoseStack poseStack, Level level, Player player, float tickDelta) {
-        boolean shouldRender = VariableAccess.playerVariables.isChartingPath(player) || player.getMainHandItem().getItem() instanceof ChartingMap || player.getOffhandItem().getItem() instanceof ChartingMap;
+        boolean shouldRender = ALPHA == 0 || VariableAccess.playerVariables.isChartingPath(player) || player.getMainHandItem().getItem() instanceof ChartingMap || player.getOffhandItem().getItem() instanceof ChartingMap;
 
-        if (!ViaRomanaConfig.enable_invalid_block_overlay || !shouldRender) return;
+        if (!shouldRender) return;
 
         Camera camera = Minecraft.getInstance().gameRenderer.getMainCamera();
         Vec3 cameraPos = camera.getPosition();
