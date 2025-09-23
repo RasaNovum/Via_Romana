@@ -67,7 +67,6 @@ public class MapActionButton extends AbstractButton {
 
         if (imageLocation != null) {
             if (!hasMessage) {
-                // Center the image horizontally
                 imageX = this.getX() + (this.width - 17) / 2;
             } else {
                 imageX = this.getX() + 5;

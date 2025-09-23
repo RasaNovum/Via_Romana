@@ -1,7 +1,5 @@
 package net.rasanovum.viaromana;
 
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
-
 import eu.midnightdust.lib.config.MidnightConfig;
 import folk.sisby.surveyor.WorldSummary;
 import net.fabricmc.api.ModInitializer;
@@ -10,7 +8,6 @@ import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.resources.ResourceLocation;
 import net.rasanovum.viaromana.command.ViaRomanaCommands;
 import net.rasanovum.viaromana.configuration.ViaRomanaConfig;
@@ -85,13 +82,11 @@ public class ViaRomana implements ModInitializer {
 
         ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> {
             if (success) {
-                CommandSourceStack source = server.createCommandSourceStack();
-                String command = "midnightconfig reload " + MODID;
                 try {
-                    server.getCommands().getDispatcher().execute(command, source);
-                    LOGGER.info("Via Romana config reloaded and synced to players via command.");
-                } catch (CommandSyntaxException e) {
-                    LOGGER.error("Failed to execute MidnightConfig reload command", e);
+                    MidnightConfig.init(MODID, ViaRomanaConfig.class);
+                    LOGGER.info("Via Romana config reloaded and synced to players.");
+                } catch (Exception e) {
+                    LOGGER.error("Failed to reload MidnightConfig", e);
                 }
 
                 ServerMapCache.shutdown();

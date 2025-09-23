@@ -36,12 +36,13 @@ public class ChartingScreen extends Screen {
     private static final int LARGE_BUTTON_SIZE = 80;
 
     private static final class Textures {
-        static final ResourceLocation BACKGROUND_IDLE = new ResourceLocation("via_romana", "textures/screens/background_map.png");
-        static final ResourceLocation BACKGROUND_CHARTING = new ResourceLocation("via_romana", "textures/screens/background_map_charting.png");
+        static final ResourceLocation BACKGROUND = new ResourceLocation("via_romana", "textures/screens/background_map.png");
+        static final ResourceLocation CHARTING_OVERLAY = new ResourceLocation("via_romana", "textures/screens/background_map_charting.png");
         static final ResourceLocation MAP_CANCEL = new ResourceLocation("via_romana", "textures/screens/element_cancel.png");
         static final ResourceLocation MAP_TUTORIAL = new ResourceLocation("via_romana", "textures/screens/element_tutorial.png");
         static final ResourceLocation MAP_TUTORIAL_BACK = new ResourceLocation("via_romana", "textures/screens/element_tutorial_back.png");
         static final ResourceLocation MAP_TUTORIAL_NEXT = new ResourceLocation("via_romana", "textures/screens/element_tutorial_next.png");
+        static final ResourceLocation MAP_TUTORIAL_RETURN = new ResourceLocation("via_romana", "textures/screens/element_return.png");
         static final ResourceLocation CHART_START_TILE = new ResourceLocation("via_romana", "textures/screens/chart_start_tile.png");
         static final ResourceLocation CHART_START_FRAME = new ResourceLocation("via_romana", "textures/screens/chart_start_frame.png");
         static final ResourceLocation CHART_FINISH_TILE = new ResourceLocation("via_romana", "textures/screens/chart_finish_tile.png");
@@ -123,8 +124,10 @@ public class ChartingScreen extends Screen {
     }
 
     private void renderBackgroundTexture(GuiGraphics guiGraphics) {
-        ResourceLocation bg = (this.currentScreenState == ScreenState.CHARTING) ? Textures.BACKGROUND_CHARTING : Textures.BACKGROUND_IDLE;
-        guiGraphics.blit(bg, panelX, panelY, 0, 0, BACKGROUND_WIDTH, BACKGROUND_HEIGHT, BACKGROUND_WIDTH, BACKGROUND_HEIGHT);
+        guiGraphics.blit(Textures.BACKGROUND, panelX, panelY, 0, 0, BACKGROUND_WIDTH, BACKGROUND_HEIGHT, BACKGROUND_WIDTH, BACKGROUND_HEIGHT);
+        if (this.currentScreenState == ScreenState.CHARTING) {
+            guiGraphics.blit(Textures.CHARTING_OVERLAY, panelX, panelY, 0, 0, BACKGROUND_WIDTH, BACKGROUND_HEIGHT, BACKGROUND_WIDTH, BACKGROUND_HEIGHT);
+        }
     }
 
     private void renderHeader(GuiGraphics guiGraphics) {
@@ -168,18 +171,20 @@ public class ChartingScreen extends Screen {
             default -> null;
         };
 
-        int imageWidth = 176;
-        int imageHeight = 96;
-        if (tutorialImage != null) {
-            int imageX = usableX + (USABLE_WIDTH - imageWidth) / 2;
-            int imageY = usableY + PADDING + 10;
-            RenderSystem.enableBlend();
-            RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 0.75f);
-            guiGraphics.blit(tutorialImage, imageX, imageY, 0, 0, imageWidth, imageHeight, imageWidth, imageHeight);
-            RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
-        }
+        if (tutorialImage == null) return;
+
+        int imageWidth = 200;
+        int imageHeight = 120;
+        int imageX = usableX + (USABLE_WIDTH - imageWidth) / 2;
+        int imageY = usableY + PADDING;
+        RenderSystem.enableBlend();
+        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 0.75f);
+        guiGraphics.blit(tutorialImage, imageX, imageY, 0, 0, imageWidth, imageHeight, imageWidth, imageHeight);
+        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
 
         Component tutorialMessage = getTutorialMessage();
+
+        imageHeight = 96; // Fixes text tooltip detection, don't worry about it :}
 
         if (tutorialMessage != Component.empty()) {
             int textTopY = usableY + imageHeight + PADDING * 2 + 8;
@@ -238,6 +243,9 @@ public class ChartingScreen extends Screen {
         }
     }
 
+    /*
+     * Returns the Style at the given mouse coordinates within the tutorial text area, or null if none.
+     */
     private Style getStyleAt(double mouseX, double mouseY) {
         Component tutorialMessage = getTutorialMessage();
         if (tutorialMessage == Component.empty()) {
@@ -516,7 +524,7 @@ public class ChartingScreen extends Screen {
     }
 
     private MapActionButton createTutorialButton() {
-        int btnWidth = 68, btnHeight = 16;
+        int btnWidth = 62, btnHeight = 16;
         return new MapActionButton(usableX + USABLE_WIDTH - btnWidth - PADDING + 10, usableY + USABLE_HEIGHT - btnHeight - PADDING, btnWidth, btnHeight,
             Component.translatable("gui.viaromana.tutorial_title"), Component.translatable("gui.viaromana.tutorial_tooltip"),
             button -> {
@@ -539,7 +547,7 @@ public class ChartingScreen extends Screen {
                 setState(ScreenState.IDLE);
                 tutorialPage = 0;
             },
-            Textures.MAP_CANCEL);
+            Textures.MAP_TUTORIAL_RETURN);
     }
 
     private MapActionButton createTutorialBackButton() {

@@ -11,6 +11,7 @@ import net.minecraft.world.level.block.Block;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.configuration.ViaRomanaConfig;
 import pers.solid.brrp.v1.api.RuntimeResourcePack;
+import net.minecraft.server.packs.PackType;
 
 /**
  * Generates block, entity, and dimension tag files using BRRP.
@@ -21,6 +22,8 @@ public class TagGenerator {
 
     public static void generateAllTags(RuntimeResourcePack pack) {
         try {
+            pack.clearResources(PackType.SERVER_DATA);
+            
             JsonObject pathBlockTag = generatePathBlockTagJson();
             JsonObject warpBlockTag = generateWarpBlockTagJson();
 
