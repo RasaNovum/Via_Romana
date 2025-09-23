@@ -1,6 +1,7 @@
 package net.rasanovum.viaromana.init;
 
 import net.rasanovum.viaromana.client.render.FadeRenderer;
+import net.rasanovum.viaromana.client.render.InvalidBlockRenderer;
 import net.rasanovum.viaromana.client.render.NodeRenderer;
 import net.rasanovum.viaromana.client.render.VignetteRenderer;
 
@@ -22,6 +23,7 @@ public class RenderInit {
 			Minecraft mc = Minecraft.getInstance();
 			if (mc.player != null && mc.level != null) {
 				NodeRenderer.renderNodeBeams(context.matrixStack(), mc.level, mc.player, context.tickDelta());
+				InvalidBlockRenderer.renderInfrastructureBlocks(context.matrixStack(), mc.level, mc.player, context.tickDelta());
 			}
 		});
 	}

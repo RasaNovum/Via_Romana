@@ -25,6 +25,7 @@ public class ViaRomanaConfig extends MidnightConfig {
     @Entry(category = VARIABLES) public static int map_save_interval = 5;
     @Entry(category = VARIABLES) public static boolean enable_surveyor_landmark = false;
     @Entry(category = VARIABLES) public static boolean enable_surveyor_landmark_coloring = false;
+    @Entry(category = VARIABLES) public static boolean enable_invalid_block_overlay = true;
 
     // Management Category
     @Entry(category = MANAGEMENT) public static List<String> invalid_entities = Lists.newArrayList();
