@@ -154,12 +154,17 @@ public class LinkSignScreen extends Screen {
     @Override
     public void tick() {
         super.tick();
-        // this.destinationNameField.tick();
+        this.destinationNameField.tick();
+    }
+
+    @Override
+    public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        // Skip 1.21 background rendering
     }
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        super.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
+        renderBackground(guiGraphics, mouseX, mouseY, partialTick);
         
         int panelX = (this.width - BACKGROUND_WIDTH) / 2;
         int panelY = (this.height - BACKGROUND_HEIGHT) / 2;

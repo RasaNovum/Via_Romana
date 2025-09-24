@@ -19,10 +19,13 @@ public class MapEditBox extends EditBox {
         this.font = font;
         this.setBordered(false);
     }
+
+    public void tick() {
+        this.frame++;
+    }
     
     @Override
     public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        this.frame++;
         if (!this.isVisible()) {
             return;
         }

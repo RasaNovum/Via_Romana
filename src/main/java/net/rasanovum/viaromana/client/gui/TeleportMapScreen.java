@@ -128,8 +128,13 @@ public class TeleportMapScreen extends Screen {
 
     //region Main Render Loop
     @Override
+    public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        // Skip 1.21 background rendering
+    }
+
+    @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-        super.renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
+        renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
 
         if (this.mapTexture == null || this.minecraft == null || this.minecraft.player == null || this.mapRenderer == null) return;
         
