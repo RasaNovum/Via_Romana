@@ -14,7 +14,7 @@ import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.client.data.ClientPathData;
 import net.rasanovum.viaromana.map.ServerMapCache;
 import net.rasanovum.viaromana.map.ServerMapUtils;
-import net.rasanovum.viaromana.network.DestinationResponsePacket;
+import net.rasanovum.viaromana.network.packets.DestinationResponsePacket;
 import net.rasanovum.viaromana.storage.IPathStorage;
 import net.rasanovum.viaromana.surveyor.ViaRomanaLandmark;
 import org.jetbrains.annotations.NotNull;

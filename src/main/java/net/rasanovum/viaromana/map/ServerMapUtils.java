@@ -2,7 +2,7 @@ package net.rasanovum.viaromana.map;
 
 import net.minecraft.world.level.ChunkPos;
 import net.rasanovum.viaromana.configuration.ViaRomanaConfig;
-import net.rasanovum.viaromana.network.DestinationResponsePacket;
+import net.rasanovum.viaromana.network.packets.DestinationResponsePacket;
 
 import java.util.HashSet;
 import java.util.List;

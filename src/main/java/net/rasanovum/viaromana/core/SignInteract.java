@@ -1,7 +1,7 @@
 package net.rasanovum.viaromana.core;
 
 import net.rasanovum.viaromana.variables.VariableAccess;
-import net.rasanovum.viaromana.network.DestinationRequestPacket;
+import net.rasanovum.viaromana.network.packets.DestinationRequestPacket;
 import net.rasanovum.viaromana.network.ViaRomanaModVariables;
 
 import net.minecraft.world.level.LevelAccessor;

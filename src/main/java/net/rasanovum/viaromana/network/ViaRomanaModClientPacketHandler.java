@@ -10,6 +10,7 @@ import net.minecraft.client.Minecraft;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.api.Environment;
 import net.fabricmc.api.EnvType;
+import net.rasanovum.viaromana.network.packets.*;
 
 @Environment(EnvType.CLIENT)
 public class ViaRomanaModClientPacketHandler {

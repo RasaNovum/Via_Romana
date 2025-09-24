@@ -11,8 +11,8 @@ import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.client.data.ClientPathData;
 import net.rasanovum.viaromana.client.gui.elements.*;
 import net.rasanovum.viaromana.core.LinkHandler;
-import net.rasanovum.viaromana.network.LinkSignRequestPacket;
-import net.rasanovum.viaromana.network.UnlinkSignRequestPacket;
+import net.rasanovum.viaromana.network.packets.LinkSignRequestPacket;
+import net.rasanovum.viaromana.network.packets.UnlinkSignRequestPacket;
 import net.rasanovum.viaromana.network.ViaRomanaModVariables;
 import net.rasanovum.viaromana.path.Node;
 

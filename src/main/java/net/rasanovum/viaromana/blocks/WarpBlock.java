@@ -9,7 +9,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
-import net.rasanovum.viaromana.network.OpenWarpBlockScreenS2C;
+import net.rasanovum.viaromana.network.packets.OpenWarpBlockScreenS2C;
 import net.rasanovum.viaromana.network.ViaRomanaModVariables;
 
 /**

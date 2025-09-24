@@ -6,11 +6,11 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.rasanovum.viaromana.map.MapInfo;
-import net.rasanovum.viaromana.network.MapRequestC2S;
-import net.rasanovum.viaromana.network.MapResponseS2C;
+import net.rasanovum.viaromana.network.packets.MapRequestC2S;
+import net.rasanovum.viaromana.network.packets.MapResponseS2C;
 import net.rasanovum.viaromana.network.ViaRomanaModVariables;
 import net.rasanovum.viaromana.ViaRomana;
-import net.rasanovum.viaromana.network.DestinationResponsePacket.NodeNetworkInfo;
+import net.rasanovum.viaromana.network.packets.DestinationResponsePacket.NodeNetworkInfo;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

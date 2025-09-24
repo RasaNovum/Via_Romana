@@ -17,6 +17,7 @@ import net.rasanovum.viaromana.core.ResetVariables;
 import net.rasanovum.viaromana.init.*;
 import net.rasanovum.viaromana.map.ServerMapCache;
 import net.rasanovum.viaromana.network.*;
+import net.rasanovum.viaromana.network.packets.*;
 import net.rasanovum.viaromana.surveyor.ViaRomanaLandmarkManager;
 import net.rasanovum.viaromana.tags.TagGenerator;
 
@@ -84,9 +85,7 @@ public class ViaRomana implements ModInitializer {
             ViaRomanaModVariables.playerLoggedOut(handler.player);
         });
         
-        ServerLifecycleEvents.SERVER_STARTING.register(server -> {
-            ServerMapCache.init(server);
-        });
+        ServerLifecycleEvents.SERVER_STARTING.register(ServerMapCache::init);
         
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
             ServerMapCache.processAllDirtyNetworks();

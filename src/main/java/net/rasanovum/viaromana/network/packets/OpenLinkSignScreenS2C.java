@@ -1,4 +1,4 @@
-package net.rasanovum.viaromana.network;
+package net.rasanovum.viaromana.network.packets;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;

@@ -19,7 +19,7 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.rasanovum.viaromana.configuration.ViaRomanaConfig;
 import net.rasanovum.viaromana.core.LinkHandler;
-import net.rasanovum.viaromana.network.TeleportRequestPacket;
+import net.rasanovum.viaromana.network.packets.TeleportRequestPacket;
 import net.rasanovum.viaromana.path.Node;
 import net.rasanovum.viaromana.storage.IPathStorage;
 import net.rasanovum.viaromana.variables.VariableAccess;

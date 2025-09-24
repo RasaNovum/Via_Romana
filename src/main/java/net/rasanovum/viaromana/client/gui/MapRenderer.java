@@ -9,7 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.client.MapClient;
-import net.rasanovum.viaromana.network.DestinationResponsePacket.NodeNetworkInfo;
+import net.rasanovum.viaromana.network.packets.DestinationResponsePacket.NodeNetworkInfo;
 
 import java.io.IOException;
 import java.util.List;

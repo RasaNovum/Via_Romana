@@ -9,9 +9,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.client.MapClient;
-import net.rasanovum.viaromana.network.DestinationResponsePacket;
-import net.rasanovum.viaromana.network.SignValidationC2S;
-import net.rasanovum.viaromana.network.TeleportRequestPacket;
+import net.rasanovum.viaromana.network.packets.DestinationResponsePacket;
+import net.rasanovum.viaromana.network.packets.SignValidationC2S;
+import net.rasanovum.viaromana.network.packets.TeleportRequestPacket;
 import net.rasanovum.viaromana.network.ViaRomanaModVariables;
 import net.rasanovum.viaromana.teleport.TeleportHelper;
 

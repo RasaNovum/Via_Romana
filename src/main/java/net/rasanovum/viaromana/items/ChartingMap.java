@@ -7,7 +7,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 import net.minecraft.server.level.ServerPlayer;
-import net.rasanovum.viaromana.network.OpenChartingScreenS2C;
+import net.rasanovum.viaromana.network.packets.OpenChartingScreenS2C;
 import net.rasanovum.viaromana.network.ViaRomanaModVariables;
 
 public class ChartingMap extends Item {
