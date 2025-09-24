@@ -94,7 +94,8 @@ loom {
 shadowJar {
 	configurations = [project.configurations.shadow]
 	archiveClassifier = "dev-shadow"
-	
+
+	// Using modified BRRP (MPL-2.0) with recipe mixins filtered to fix Sinytra Connector crash - https://github.com/SolidBlock-cn/BRRP	
 	dependencies {
 		include(dependency('pers.solid:brrp-fabric'))
 	}
