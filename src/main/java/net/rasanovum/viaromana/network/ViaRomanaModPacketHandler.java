@@ -49,10 +49,10 @@ public class ViaRomanaModPacketHandler {
 
     public static void registerC2SPackets() {
         ServerPlayNetworking.registerGlobalReceiver(ViaRomanaModVariables.PlayerVariablesSyncMessage.TYPE, ViaRomanaModPacketHandler::handlePlayerVariablesSyncC2S);
-        ServerPlayNetworking.registerGlobalReceiver(TeleportRequestPacket.TYPE, ViaRomanaModPacketHandler::handleTeleportRequestC2S);
-        ServerPlayNetworking.registerGlobalReceiver(LinkSignRequestPacket.TYPE, ViaRomanaModPacketHandler::handleLinkSignRequestC2S);
-        ServerPlayNetworking.registerGlobalReceiver(UnlinkSignRequestPacket.TYPE, ViaRomanaModPacketHandler::handleUnlinkSignRequestC2S);
-        ServerPlayNetworking.registerGlobalReceiver(DestinationRequestPacket.TYPE, ViaRomanaModPacketHandler::handleDestinationRequestC2S);
+        ServerPlayNetworking.registerGlobalReceiver(TeleportRequestC2S.TYPE, ViaRomanaModPacketHandler::handleTeleportRequestC2S);
+        ServerPlayNetworking.registerGlobalReceiver(LinkSignRequestC2S.TYPE, ViaRomanaModPacketHandler::handleLinkSignRequestC2S);
+        ServerPlayNetworking.registerGlobalReceiver(UnlinkSignRequestC2S.TYPE, ViaRomanaModPacketHandler::handleUnlinkSignRequestC2S);
+        ServerPlayNetworking.registerGlobalReceiver(DestinationRequestC2S.TYPE, ViaRomanaModPacketHandler::handleDestinationRequestC2S);
         ServerPlayNetworking.registerGlobalReceiver(SignValidationC2S.TYPE, ViaRomanaModPacketHandler::handleSignValidationC2S);
         ServerPlayNetworking.registerGlobalReceiver(MapRequestC2S.TYPE, ViaRomanaModPacketHandler::handleMapRequestC2S);
         ServerPlayNetworking.registerGlobalReceiver(ChartedPathC2S.TYPE, ViaRomanaModPacketHandler::handleChartedPathC2S);
@@ -88,17 +88,16 @@ public class ViaRomanaModPacketHandler {
                 }
             }
 
-            // Always persist and sync after graph mutation, regardless of cache state
             storage.setDirty();
             PathSyncUtils.syncPathGraphToAllPlayers(level);
         });
     }
     
-    private static void handleTeleportRequestC2S(TeleportRequestPacket packet, ServerPlayNetworking.Context context) {
+    private static void handleTeleportRequestC2S(TeleportRequestC2S packet, ServerPlayNetworking.Context context) {
         context.server().execute(() -> ServerTeleportHandler.handleTeleportRequest(packet, context.player()));
     }
     
-    private static void handleLinkSignRequestC2S(LinkSignRequestPacket packet, ServerPlayNetworking.Context context) {
+    private static void handleLinkSignRequestC2S(LinkSignRequestC2S packet, ServerPlayNetworking.Context context) {
         context.server().execute(() -> {
             ServerLevel level = context.player().serverLevel();
             LinkHandler.LinkData linkData = packet.linkData();
@@ -118,7 +117,7 @@ public class ViaRomanaModPacketHandler {
         });
     }
     
-    private static void handleUnlinkSignRequestC2S(UnlinkSignRequestPacket packet, ServerPlayNetworking.Context context) {
+    private static void handleUnlinkSignRequestC2S(UnlinkSignRequestC2S packet, ServerPlayNetworking.Context context) {
         context.server().execute(() -> {
             ServerLevel level = context.player().serverLevel();
             boolean success = LinkHandler.unlinkSignFromNode(level, packet.signPos()); // TODO: port to PathGraph?
@@ -161,7 +160,7 @@ public class ViaRomanaModPacketHandler {
         });
     }
     
-    private static void handleDestinationRequestC2S(DestinationRequestPacket packet, ServerPlayNetworking.Context context) {
+    private static void handleDestinationRequestC2S(DestinationRequestC2S packet, ServerPlayNetworking.Context context) {
         context.server().execute(() -> {
             ServerPlayer player = context.player();
             BlockPos sourceSignPos = packet.sourceSignPos();
@@ -177,7 +176,7 @@ public class ViaRomanaModPacketHandler {
             }
             
             if (sourceNodeOpt.isEmpty()) {
-                DestinationResponsePacket resp = new DestinationResponsePacket(
+                DestinationResponseS2C resp = new DestinationResponseS2C(
                     new ArrayList<>(), sourceSignPos, BlockPos.ZERO, new ArrayList<>(), java.util.UUID.randomUUID());
                 ViaRomanaModVariables.networkHandler.sendToPlayer(player, resp);
                 return;
@@ -187,7 +186,7 @@ public class ViaRomanaModPacketHandler {
             BlockPos sourceNodePos = BlockPos.of(sourceNode.getPos());
             
             List<Node> destinationNodes = graph.getCachedTeleportDestinationsFor(playerUUID, sourceNode);
-            List<DestinationResponsePacket.DestinationInfo> infos = new ArrayList<>();
+            List<DestinationResponseS2C.DestinationInfo> infos = new ArrayList<>();
             
             for (Node node : destinationNodes) {
                 BlockPos nodePos = node.getBlockPos();
@@ -195,10 +194,10 @@ public class ViaRomanaModPacketHandler {
                 double distance = Math.sqrt(sourceNodePos.distSqr(nodePos));
                 Node.Icon icon = node.getDestinationIcon().orElse(Node.Icon.SIGNPOST);
                 
-                infos.add(new DestinationResponsePacket.DestinationInfo(nodePos, name, distance, icon));
+                infos.add(new DestinationResponseS2C.DestinationInfo(nodePos, name, distance, icon));
             }
             
-            List<DestinationResponsePacket.NodeNetworkInfo> networkNodes = new ArrayList<>();
+            List<DestinationResponseS2C.NodeNetworkInfo> networkNodes = new ArrayList<>();
             
             sourceNodeOpt.ifPresent(startNode -> {
                 var network = graph.getNetwork(startNode);
@@ -207,21 +206,21 @@ public class ViaRomanaModPacketHandler {
                     for (long connectedPos : node.getConnectedNodes()) {
                         connections.add(BlockPos.of(connectedPos));
                     }
-                    networkNodes.add(new DestinationResponsePacket.NodeNetworkInfo(
+                    networkNodes.add(new DestinationResponseS2C.NodeNetworkInfo(
                         node.getBlockPos(),
                         connections
                     ));
                 }
             });
 
-            DestinationResponsePacket resp;
+            DestinationResponseS2C resp;
             {
                 java.util.UUID networkUuid = null;
                 var networkCache = graph.getNetworkCache(sourceNode);
                 if (networkCache != null) {
                     networkUuid = networkCache.id();
                 }
-                resp = new DestinationResponsePacket(infos, sourceSignPos, sourceNodePos, networkNodes, networkUuid != null ? networkUuid : java.util.UUID.randomUUID());
+                resp = new DestinationResponseS2C(infos, sourceSignPos, sourceNodePos, networkNodes, networkUuid != null ? networkUuid : java.util.UUID.randomUUID());
             }
             ViaRomanaModVariables.networkHandler.sendToPlayer(player, resp);
         });

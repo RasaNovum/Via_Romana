@@ -11,8 +11,8 @@ import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.client.data.ClientPathData;
 import net.rasanovum.viaromana.client.gui.elements.*;
 import net.rasanovum.viaromana.core.LinkHandler;
-import net.rasanovum.viaromana.network.packets.LinkSignRequestPacket;
-import net.rasanovum.viaromana.network.packets.UnlinkSignRequestPacket;
+import net.rasanovum.viaromana.network.packets.LinkSignRequestC2S;
+import net.rasanovum.viaromana.network.packets.UnlinkSignRequestC2S;
 import net.rasanovum.viaromana.network.ViaRomanaModVariables;
 import net.rasanovum.viaromana.path.Node;
 
@@ -139,7 +139,7 @@ public class LinkSignScreen extends Screen {
             Component.translatable("gui.viaromana.unlink_button"),
             Component.translatable("gui.viaromana.unlink_tooltip"),
                 (value) -> {
-                    ClientPlayNetworking.send(new UnlinkSignRequestPacket(this.signPos));
+                    ClientPlayNetworking.send(new UnlinkSignRequestC2S(this.signPos));
                     this.onClose();
                 },
                 ResourceLocation.parse("via_romana:textures/screens/element_unlink.png")
@@ -212,7 +212,7 @@ public class LinkSignScreen extends Screen {
             owner
         );
 
-        LinkSignRequestPacket packet = new LinkSignRequestPacket(linkData, this.isTempNode);
+        LinkSignRequestC2S packet = new LinkSignRequestC2S(linkData, this.isTempNode);
         if (ViaRomanaModVariables.networkHandler != null) {
             ViaRomanaModVariables.networkHandler.sendToServer(packet);
         } else {

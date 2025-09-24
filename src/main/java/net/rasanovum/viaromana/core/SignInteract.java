@@ -1,7 +1,7 @@
 package net.rasanovum.viaromana.core;
 
 import net.rasanovum.viaromana.variables.VariableAccess;
-import net.rasanovum.viaromana.network.packets.DestinationRequestPacket;
+import net.rasanovum.viaromana.network.packets.DestinationRequestC2S;
 import net.rasanovum.viaromana.network.ViaRomanaModVariables;
 
 import net.minecraft.world.level.LevelAccessor;
@@ -44,7 +44,7 @@ public class SignInteract {
                     lastClickTime = currentTime;
                     
                     if (world.isClientSide() && entity instanceof Player) {
-                        DestinationRequestPacket req = new DestinationRequestPacket(signPos);
+                        DestinationRequestC2S req = new DestinationRequestC2S(signPos);
                         ViaRomanaModVariables.networkHandler.sendToServer(req);
                         return true;
                     }

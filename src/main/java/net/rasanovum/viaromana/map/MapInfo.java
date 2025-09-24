@@ -3,7 +3,7 @@ package net.rasanovum.viaromana.map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.level.ChunkPos;
-import net.rasanovum.viaromana.network.packets.DestinationResponsePacket.NodeNetworkInfo;
+import net.rasanovum.viaromana.network.packets.DestinationResponseS2C.NodeNetworkInfo;
 
 import java.util.List;
 import java.util.ArrayList;

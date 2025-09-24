@@ -9,9 +9,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.client.MapClient;
-import net.rasanovum.viaromana.network.packets.DestinationResponsePacket;
+import net.rasanovum.viaromana.network.packets.DestinationResponseS2C;
 import net.rasanovum.viaromana.network.packets.SignValidationC2S;
-import net.rasanovum.viaromana.network.packets.TeleportRequestPacket;
+import net.rasanovum.viaromana.network.packets.TeleportRequestC2S;
 import net.rasanovum.viaromana.network.ViaRomanaModVariables;
 import net.rasanovum.viaromana.teleport.TeleportHelper;
 
@@ -24,14 +24,14 @@ public class TeleportMapScreen extends Screen {
     //region Fields & Constants
     private MapClient.MapTexture mapTexture;
     private MapRenderer mapRenderer;
-    private final List<DestinationResponsePacket.NodeNetworkInfo> networkNodes;
+    private final List<DestinationResponseS2C.NodeNetworkInfo> networkNodes;
 
     // Data
     private final BlockPos signPos;
     private final BlockPos sourceNodePos;
     private final java.util.UUID networkId;
     private final List<TeleportHelper.TeleportDestination> destinations;
-    private final Map<BlockPos, DestinationResponsePacket.NodeNetworkInfo> networkNodeMap;
+    private final Map<BlockPos, DestinationResponseS2C.NodeNetworkInfo> networkNodeMap;
 
     // Map Bounds
     private BlockPos minBounds, maxBounds;
@@ -39,7 +39,7 @@ public class TeleportMapScreen extends Screen {
     // Animation & State
     private float animationProgress = 0.0f;
     private final Set<BlockPos> animatedNodes = new HashSet<>();
-    private final List<DestinationResponsePacket.NodeNetworkInfo> nodesToAnimate = new ArrayList<>();
+    private final List<DestinationResponseS2C.NodeNetworkInfo> nodesToAnimate = new ArrayList<>();
     private final Map<BlockPos, Float> destinationFadeProgress = new HashMap<>();
     private final Set<BlockPos> validatedNodes = new HashSet<>();
     private final Set<BlockPos> destinationPositions;
@@ -57,7 +57,7 @@ public class TeleportMapScreen extends Screen {
     //endregion
 
     //region Initialization
-    public TeleportMapScreen(DestinationResponsePacket packet) {
+    public TeleportMapScreen(DestinationResponseS2C packet) {
         super(Component.literal("Teleport Network"));
         this.signPos = packet.signPos();
         this.sourceNodePos = packet.sourceNodePos();
@@ -162,7 +162,7 @@ public class TeleportMapScreen extends Screen {
                 .collect(Collectors.toSet());
 
         // Draw connections
-        for (DestinationResponsePacket.NodeNetworkInfo nodeInfo : networkNodeMap.values()) {
+        for (DestinationResponseS2C.NodeNetworkInfo nodeInfo : networkNodeMap.values()) {
             final BlockPos startPos = nodeInfo.position;
             final boolean isStartCompleted = animatedNodes.contains(startPos);
             final boolean isStartAnimating = currentlyAnimatingSources.contains(startPos);
@@ -198,7 +198,7 @@ public class TeleportMapScreen extends Screen {
         // Progress to the next animation wave if the current one is finished
         if (animationProgress >= 1.0f && !nodesToAnimate.isEmpty()) {
             Set<BlockPos> nextWavePositions = new HashSet<>();
-            for (DestinationResponsePacket.NodeNetworkInfo completedNode : nodesToAnimate) {
+            for (DestinationResponseS2C.NodeNetworkInfo completedNode : nodesToAnimate) {
                 animatedNodes.add(completedNode.position);
 
                 if (destinationPositions.contains(completedNode.position)) {
@@ -365,7 +365,7 @@ public class TeleportMapScreen extends Screen {
 
     public void selectDestination(TeleportHelper.TeleportDestination destination) {
         if (minecraft == null || minecraft.player == null) return;
-        TeleportRequestPacket packet = new TeleportRequestPacket(this.signPos, destination.position);
+        TeleportRequestC2S packet = new TeleportRequestC2S(this.signPos, destination.position);
 
         if (ViaRomanaModVariables.networkHandler != null) {
             ViaRomanaModVariables.networkHandler.sendToServer(packet);

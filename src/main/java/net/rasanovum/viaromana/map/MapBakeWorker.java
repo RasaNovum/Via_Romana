@@ -12,7 +12,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.material.MapColor;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.configuration.ViaRomanaConfig;
-import net.rasanovum.viaromana.network.packets.DestinationResponsePacket.NodeNetworkInfo;
+import net.rasanovum.viaromana.network.packets.DestinationResponseS2C.NodeNetworkInfo;
 import net.rasanovum.viaromana.path.PathGraph;
 import net.rasanovum.viaromana.surveyor.SurveyorUtil;
 

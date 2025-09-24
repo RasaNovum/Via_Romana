@@ -41,17 +41,17 @@ public class ViaRomana implements ModInitializer {
 
         // Register payload types
         PayloadTypeRegistry.playC2S().register(ViaRomanaModVariables.PlayerVariablesSyncMessage.TYPE, ViaRomanaModVariables.PlayerVariablesSyncMessage.STREAM_CODEC);
-        PayloadTypeRegistry.playC2S().register(TeleportRequestPacket.TYPE, TeleportRequestPacket.STREAM_CODEC);
-        PayloadTypeRegistry.playC2S().register(LinkSignRequestPacket.TYPE, LinkSignRequestPacket.STREAM_CODEC);
-        PayloadTypeRegistry.playC2S().register(UnlinkSignRequestPacket.TYPE, UnlinkSignRequestPacket.STREAM_CODEC);
-        PayloadTypeRegistry.playC2S().register(DestinationRequestPacket.TYPE, DestinationRequestPacket.STREAM_CODEC);
+        PayloadTypeRegistry.playC2S().register(TeleportRequestC2S.TYPE, TeleportRequestC2S.STREAM_CODEC);
+        PayloadTypeRegistry.playC2S().register(LinkSignRequestC2S.TYPE, LinkSignRequestC2S.STREAM_CODEC);
+        PayloadTypeRegistry.playC2S().register(UnlinkSignRequestC2S.TYPE, UnlinkSignRequestC2S.STREAM_CODEC);
+        PayloadTypeRegistry.playC2S().register(DestinationRequestC2S.TYPE, DestinationRequestC2S.STREAM_CODEC);
         PayloadTypeRegistry.playC2S().register(SignValidationC2S.TYPE, SignValidationC2S.STREAM_CODEC);
         PayloadTypeRegistry.playC2S().register(MapRequestC2S.TYPE, MapRequestC2S.STREAM_CODEC);
         PayloadTypeRegistry.playC2S().register(ChartedPathC2S.TYPE, ChartedPathC2S.STREAM_CODEC);
         PayloadTypeRegistry.playC2S().register(RoutedActionC2S.TYPE, RoutedActionC2S.STREAM_CODEC);
 
         PayloadTypeRegistry.playS2C().register(ViaRomanaModVariables.PlayerVariablesSyncMessage.TYPE, ViaRomanaModVariables.PlayerVariablesSyncMessage.STREAM_CODEC);
-        PayloadTypeRegistry.playS2C().register(DestinationResponsePacket.TYPE, DestinationResponsePacket.STREAM_CODEC);
+        PayloadTypeRegistry.playS2C().register(DestinationResponseS2C.TYPE, DestinationResponseS2C.STREAM_CODEC);
         PayloadTypeRegistry.playS2C().register(MapResponseS2C.TYPE, MapResponseS2C.STREAM_CODEC);
         PayloadTypeRegistry.playS2C().register(SignValidationS2C.TYPE, SignValidationS2C.STREAM_CODEC);
         PayloadTypeRegistry.playS2C().register(OpenChartingScreenS2C.TYPE, OpenChartingScreenS2C.STREAM_CODEC);

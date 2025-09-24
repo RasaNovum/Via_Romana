@@ -14,7 +14,7 @@ import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.client.data.ClientPathData;
 import net.rasanovum.viaromana.map.ServerMapCache;
 import net.rasanovum.viaromana.map.ServerMapUtils;
-import net.rasanovum.viaromana.network.packets.DestinationResponsePacket;
+import net.rasanovum.viaromana.network.packets.DestinationResponseS2C;
 import net.rasanovum.viaromana.storage.IPathStorage;
 import net.rasanovum.viaromana.surveyor.ViaRomanaLandmark;
 import org.jetbrains.annotations.NotNull;
@@ -61,9 +61,9 @@ public final class PathGraph {
             return new BlockPos(bounds.maxX, bounds.maxY, bounds.maxZ);
         }
 
-        public List<DestinationResponsePacket.NodeNetworkInfo> getNodesAsInfo() {
+        public List<DestinationResponseS2C.NodeNetworkInfo> getNodesAsInfo() {
             return nodePositions.stream()
-                    .map(pos -> new DestinationResponsePacket.NodeNetworkInfo(BlockPos.of(pos), List.of()))
+                    .map(pos -> new DestinationResponseS2C.NodeNetworkInfo(BlockPos.of(pos), List.of()))
                     .collect(Collectors.toList());
         }
     }

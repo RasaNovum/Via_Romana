@@ -11,18 +11,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public record DestinationResponsePacket(
+public record DestinationResponseS2C(
     List<DestinationInfo> destinations,
     BlockPos signPos,
     BlockPos sourceNodePos,
     List<NodeNetworkInfo> networkNodes,
     UUID networkId
 ) implements CustomPacketPayload {
-    public static final CustomPacketPayload.Type<DestinationResponsePacket> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.parse("via_romana:destination_response"));
+    public static final CustomPacketPayload.Type<DestinationResponseS2C> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.parse("via_romana:destination_response"));
 
-    public static final StreamCodec<FriendlyByteBuf, DestinationResponsePacket> STREAM_CODEC = new StreamCodec<>() {
+    public static final StreamCodec<FriendlyByteBuf, DestinationResponseS2C> STREAM_CODEC = new StreamCodec<>() {
         @Override
-        public DestinationResponsePacket decode(FriendlyByteBuf buffer) {
+        public DestinationResponseS2C decode(FriendlyByteBuf buffer) {
             BlockPos signPos = buffer.readBlockPos();
             BlockPos sourceNodePos = buffer.readBlockPos();
             UUID networkId = buffer.readUUID();
@@ -52,11 +52,11 @@ public record DestinationResponsePacket(
                 networkNodes.add(new NodeNetworkInfo(pos, connections));
             }
 
-            return new DestinationResponsePacket(destinations, signPos, sourceNodePos, networkNodes, networkId);
+            return new DestinationResponseS2C(destinations, signPos, sourceNodePos, networkNodes, networkId);
         }
 
         @Override
-        public void encode(FriendlyByteBuf buffer, DestinationResponsePacket packet) {
+        public void encode(FriendlyByteBuf buffer, DestinationResponseS2C packet) {
             buffer.writeBlockPos(packet.signPos);
             buffer.writeBlockPos(packet.sourceNodePos);
             buffer.writeUUID(packet.networkId);

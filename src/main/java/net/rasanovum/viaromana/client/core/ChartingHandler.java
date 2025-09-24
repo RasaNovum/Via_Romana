@@ -16,7 +16,7 @@ import net.rasanovum.viaromana.client.data.ClientPathData;
 import net.rasanovum.viaromana.configuration.ViaRomanaConfig;
 import net.rasanovum.viaromana.core.LinkHandler.LinkData;
 import net.rasanovum.viaromana.network.packets.ChartedPathC2S;
-import net.rasanovum.viaromana.network.packets.LinkSignRequestPacket;
+import net.rasanovum.viaromana.network.packets.LinkSignRequestC2S;
 import net.rasanovum.viaromana.network.ViaRomanaModVariables;
 import net.rasanovum.viaromana.path.Node;
 import net.rasanovum.viaromana.path.Node.NodeData;
@@ -105,7 +105,7 @@ public final class ChartingHandler {
 
         if (chartingLinks != null && !chartingLinks.isEmpty()) {
             for (LinkData link : chartingLinks) {
-                LinkSignRequestPacket linkPacket = new LinkSignRequestPacket(link, false);
+                LinkSignRequestC2S linkPacket = new LinkSignRequestC2S(link, false);
                 if (ViaRomanaModVariables.networkHandler != null) {
                     ViaRomanaModVariables.networkHandler.sendToServer(linkPacket);
                 } else {

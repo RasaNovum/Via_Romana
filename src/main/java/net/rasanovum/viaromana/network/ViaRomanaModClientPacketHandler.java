@@ -16,7 +16,7 @@ import net.rasanovum.viaromana.network.packets.*;
 public class ViaRomanaModClientPacketHandler {
 	public static void registerS2CPackets() {
 		ClientPlayNetworking.registerGlobalReceiver(ViaRomanaModVariables.PlayerVariablesSyncMessage.TYPE, ViaRomanaModClientPacketHandler::handlePlayerVariablesS2C);
-		ClientPlayNetworking.registerGlobalReceiver(DestinationResponsePacket.TYPE, ViaRomanaModClientPacketHandler::handleDestinationResponseS2C);
+		ClientPlayNetworking.registerGlobalReceiver(DestinationResponseS2C.TYPE, ViaRomanaModClientPacketHandler::handleDestinationResponseS2C);
 		ClientPlayNetworking.registerGlobalReceiver(MapResponseS2C.TYPE, ViaRomanaModClientPacketHandler::handleMapResponseS2C);
 		ClientPlayNetworking.registerGlobalReceiver(SignValidationS2C.TYPE, ViaRomanaModClientPacketHandler::handleSignValidationS2C);
 		ClientPlayNetworking.registerGlobalReceiver(OpenChartingScreenS2C.TYPE, ViaRomanaModClientPacketHandler::handleOpenChartingScreenS2C);
@@ -48,7 +48,7 @@ public class ViaRomanaModClientPacketHandler {
 		});
 	}
 
-	private static void handleDestinationResponseS2C(DestinationResponsePacket message, ClientPlayNetworking.Context context) {
+	private static void handleDestinationResponseS2C(DestinationResponseS2C message, ClientPlayNetworking.Context context) {
 		context.client().execute(() -> {
 			TeleportMapScreen screen = new TeleportMapScreen(message);
         	Minecraft.getInstance().setScreen(screen);

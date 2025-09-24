@@ -13,12 +13,12 @@ import java.util.UUID;
 /**
  * Packet sent from client to server to request linking a sign to a node.
  */
-public record LinkSignRequestPacket(LinkData linkData, boolean isTempNode) implements CustomPacketPayload {
-    public static final CustomPacketPayload.Type<LinkSignRequestPacket> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.parse("via_romana:link_sign_request"));
+public record LinkSignRequestC2S(LinkData linkData, boolean isTempNode) implements CustomPacketPayload {
+    public static final CustomPacketPayload.Type<LinkSignRequestC2S> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.parse("via_romana:link_sign_request"));
 
-    public static final StreamCodec<FriendlyByteBuf, LinkSignRequestPacket> STREAM_CODEC = new StreamCodec<>() {
+    public static final StreamCodec<FriendlyByteBuf, LinkSignRequestC2S> STREAM_CODEC = new StreamCodec<>() {
         @Override
-        public LinkSignRequestPacket decode(FriendlyByteBuf buffer) {
+        public LinkSignRequestC2S decode(FriendlyByteBuf buffer) {
             BlockPos nodePos = buffer.readBlockPos();
             BlockPos signPos = buffer.readBlockPos();
             Node.LinkType linkType = buffer.readEnum(Node.LinkType.class);
@@ -27,11 +27,11 @@ public record LinkSignRequestPacket(LinkData linkData, boolean isTempNode) imple
             Node.Icon icon = buffer.readEnum(Node.Icon.class);
             LinkData linkData = new LinkData(signPos, nodePos, linkType, icon, destinationName, owner);
             boolean isTempNode = buffer.readBoolean();
-            return new LinkSignRequestPacket(linkData, isTempNode);
+            return new LinkSignRequestC2S(linkData, isTempNode);
         }
 
         @Override
-        public void encode(FriendlyByteBuf buffer, LinkSignRequestPacket packet) {
+        public void encode(FriendlyByteBuf buffer, LinkSignRequestC2S packet) {
             buffer.writeBlockPos(packet.linkData.nodePos());
             buffer.writeBlockPos(packet.linkData.signPos());
             buffer.writeEnum(packet.linkData.linkType());
