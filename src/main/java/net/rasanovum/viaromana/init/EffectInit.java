@@ -1,6 +1,5 @@
 package net.rasanovum.viaromana.init;
 
-import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.effect.TravellersFatigueEffect;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.resources.ResourceLocation;

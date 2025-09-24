@@ -7,7 +7,6 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.blocks.WarpBlock;
 
 public class BlockInit {

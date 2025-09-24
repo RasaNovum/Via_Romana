@@ -7,7 +7,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.Registry;
 import net.minecraft.world.item.CreativeModeTabs;
-import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.items.ChartingMap;
 
 public class ItemInit {

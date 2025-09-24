@@ -2,6 +2,11 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "Stop Java Language Server",
+            "command": "java.clean.workspace",
+            "problemMatcher": []
+        },
+        {
             "label": "Build",
             "type": "shell",
             "command": ".\\gradlew build",

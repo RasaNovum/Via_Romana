@@ -1,6 +1,5 @@
 package net.rasanovum.viaromana.util;
 
-import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.configuration.ViaRomanaConfig;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;

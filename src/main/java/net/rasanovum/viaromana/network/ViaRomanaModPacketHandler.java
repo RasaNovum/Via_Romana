@@ -17,6 +17,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementProgress;
 import net.minecraft.resources.ResourceLocation;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
@@ -36,33 +37,11 @@ class FabricNetworkHandler implements NetworkHandler {
     
     @Override
     public void sendToServer(CustomPacketPayload message) {
-        net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking.send(message);
+        ClientPlayNetworking.send(message);
     }
 }
 
 public class ViaRomanaModPacketHandler {
-    public static final ResourceLocation PLAYER_VARIABLES_SYNC_C2S = ResourceLocation.parse("via_romana:player_variables_sync_c2s");
-    public static final ResourceLocation PLAYER_VARIABLES_SYNC_S2C = ResourceLocation.parse("via_romana:player_variables_sync_s2c");
-    public static final ResourceLocation GLOBAL_VARIABLES_SYNC_S2C = ResourceLocation.parse("via_romana:global_variables_sync_s2c");
-    public static final ResourceLocation TELEPORT_REQUEST_C2S = ResourceLocation.parse("via_romana:teleport_request_c2s");
-    public static final ResourceLocation LINK_SIGN_REQUEST_C2S = ResourceLocation.parse("via_romana:link_sign_request_c2s");
-    public static final ResourceLocation UNLINK_SIGN_REQUEST_C2S = ResourceLocation.parse("via_romana:unlink_sign_request_c2s");
-    public static final ResourceLocation DESTINATION_RESPONSE_S2C = ResourceLocation.parse("via_romana:destination_response_s2c");
-    public static final ResourceLocation OPEN_LINK_SIGN_SCREEN_S2C = ResourceLocation.parse("via_romana:open_link_sign_screen_s2c");
-    public static final ResourceLocation OPEN_CHARTING_SCREEN_S2C = ResourceLocation.parse("via_romana:open_charting_screen_s2c");
-    public static final ResourceLocation OPEN_EDIT_SCREEN_S2C = ResourceLocation.parse("via_romana:open_edit_screen_s2c");
-    public static final ResourceLocation PATH_GRAPH_SYNC_S2C = ResourceLocation.parse("via_romana:path_graph_sync_s2c");
-    public static final ResourceLocation MAP_REQUEST_C2S = ResourceLocation.parse("via_romana:map_request_c2s");
-    public static final ResourceLocation MAP_RESPONSE_S2C = ResourceLocation.parse("via_romana:map_response_s2c");
-    public static final ResourceLocation DESTINATION_REQUEST_C2S = ResourceLocation.parse("via_romana:destination_request_c2s");
-    public static final ResourceLocation SIGN_VALIDATION_C2S = ResourceLocation.parse("via_romana:sign_validation_c2s");
-    public static final ResourceLocation SIGN_VALIDATION_S2C = ResourceLocation.parse("via_romana:sign_validation_s2c");
-    public static final ResourceLocation ACTION_REQUEST_C2S = ResourceLocation.parse("via_romana:action_request_c2s");
-    public static final ResourceLocation CHARTED_PATH_C2S = ResourceLocation.parse("via_romana:charted_path_c2s");
-    public static final ResourceLocation CONFIG_SYNC_C2S = ResourceLocation.parse("via_romana:config_sync_c2s");
-    public static final ResourceLocation CONFIG_SYNC_S2C = ResourceLocation.parse("via_romana:config_sync_s2c");
-    public static final ResourceLocation OPEN_WARP_BLOCK_SCREEN_S2C = ResourceLocation.parse("via_romana:open_warp_block_screen_s2c");
-
     public static void initialize() {
         ViaRomanaModVariables.networkHandler = new FabricNetworkHandler();
         registerC2SPackets();
