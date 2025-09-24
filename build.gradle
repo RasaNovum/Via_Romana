@@ -35,8 +35,7 @@ dependencies {
 	include libs.midnightlib
 	modImplementation libs.brrp
 	include libs.brrp
-
-	// include(implementation(annotationProcessor("io.github.llamalad7:mixinextras-fabric:0.5.0")))
+	shadow(libs.brrp) { transitive = false }
 
 	modCompileOnly libs.supplementaries
 
@@ -95,6 +94,21 @@ loom {
 shadowJar {
 	configurations = [project.configurations.shadow]
 	archiveClassifier = "dev-shadow"
+	
+	dependencies {
+		include(dependency('pers.solid:brrp-fabric'))
+	}
+	
+	filesMatching('**/brrp-v1-recipes.mixins.json') {
+		filter { line ->
+			if (line.contains('"CookingRecipeJsonBuilderMixin"') ||
+				line.contains('"ShapedRecipeJsonBuilderMixin"') ||
+				line.contains('"ShapelessRecipeJsonBuilderMixin"')) {
+				return null
+			}
+			return line
+		}
+	}
 }
 
 remapJar {
