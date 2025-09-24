@@ -50,7 +50,7 @@ versionRange = "[${midnightlib},)"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.${supplementaries}]]
+[[dependencies.${modId}]]
 modId = "supplementaries"
 mandatory = false
 versionRange = "[${supplementaries},)"
