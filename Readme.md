@@ -25,10 +25,10 @@ If you have any questions that aren't [answered in our Wiki](https://github.com/
 
 - **[Fabric API](https://modrinth.com/mod/fabric-api)** - Core Fabric mod loader API
 
-#### Required Dependencies (Forge)
+#### Required Dependencies (NeoForge)
 
-- **[Sinytra Connector](https://modrinth.com/mod/connector)** - Allows Via Romana to run on Forge
-- **[Forgified Fabric API](https://modrinth.com/mod/forgified-fabric-api)** - Fabric API implementation for Forge
+- **[Sinytra Connector](https://modrinth.com/mod/connector)** - Allows Via Romana to run on NeoForge
+- **[Forgified Fabric API](https://modrinth.com/mod/forgified-fabric-api)** - Fabric API implementation for NeoForge
 
 ## License
 

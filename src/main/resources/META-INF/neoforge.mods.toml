@@ -15,44 +15,51 @@ logoFile = "assets/${modId}/icon.png"
 [properties]
 "connector:placeholder" = true
 
-[[dependencies.${modId}]]
-modId = "connectormod"
-mandatory = true
+[[dependencies.${ modId }]]
+modId = "connector"
+type = "required"
 versionRange = "*"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.${modId}]]
-modId = "forge"
-mandatory = true
-versionRange = "*"
+[[dependencies.${ modId }]]
+modId = "neoforge"
+type = "required"
+versionRange = "[${neoforge},)"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.${modId}]]
+[[dependencies.${ modId }]]
 modId = "minecraft"
-mandatory = true
+type = "required"
 versionRange = "[${mc},)"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.${modId}]]
+[[dependencies.${ modId }]]
 modId = "fabric_api"
-mandatory = true
-versionRange = "[${fapi},)"
+type = "required"
+versionRange = "[${forgeFapi},)"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.${modId}]]
+[[dependencies.${ modId }]]
 modId = "midnightlib"
-mandatory = true
-versionRange = "[${midnightlib},)"
+type = "required"
+versionRange = "[${forgeMidnightlib},)"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.${modId}]]
+[[dependencies.${ modId }]]
+modId = "brrp"
+type = "optional"
+versionRange = "[${brrp},)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.${ modId }]]
 modId = "supplementaries"
-mandatory = false
-versionRange = "[${supplementaries},)"
+type = "optional"
+versionRange = "[${forgeSupplementaries},)"
 ordering = "NONE"
 side = "BOTH"
