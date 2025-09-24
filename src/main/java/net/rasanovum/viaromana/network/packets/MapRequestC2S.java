@@ -11,8 +11,9 @@ import net.rasanovum.viaromana.network.packets.DestinationResponseS2C.NodeNetwor
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Packet for requesting a map texture for a specific world region.
+/*
+ * Request the server to generate or update a map for the specified network and area.
+ * The server will respond with a MapResponseS2C packet containing the map data.
  */
 public record MapRequestC2S(MapInfo mapInfo) implements CustomPacketPayload {
     public static final CustomPacketPayload.Type<MapRequestC2S> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.parse("via_romana:map_request_c2s"));
@@ -34,17 +35,15 @@ public record MapRequestC2S(MapInfo mapInfo) implements CustomPacketPayload {
         return TYPE;
     }
 
-    // Factory method for easier construction
     public static MapRequestC2S create(UUID networkId, BlockPos minBounds, BlockPos maxBounds, List<NodeNetworkInfo> networkNodes) {
         return new MapRequestC2S(MapInfo.request(networkId, minBounds, maxBounds, networkNodes));
     }
 
-    // Delegate getters to mapInfo
+    // Getters
     public UUID getNetworkId() { return mapInfo.networkId(); }
     public BlockPos getMinBounds() { return mapInfo.minBounds(); }
     public BlockPos getMaxBounds() { return mapInfo.maxBounds(); }
     public List<NodeNetworkInfo> getNetworkNodes() { return mapInfo.networkNodes(); }
 
-    // Expose the underlying MapInfo for more advanced usage
     public MapInfo getMapInfo() { return mapInfo; }
 }

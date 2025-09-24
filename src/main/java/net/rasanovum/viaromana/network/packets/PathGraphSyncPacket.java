@@ -11,7 +11,6 @@ import net.rasanovum.viaromana.ViaRomana;
 
 /**
  * Network packet for synchronizing PathGraph data from server to client.
- * This allows clients to render node beams for all paths while charting.
  */
 public record PathGraphSyncPacket(CompoundTag pathGraphData) implements CustomPacketPayload {
     public static final CustomPacketPayload.Type<PathGraphSyncPacket> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.parse("via_romana:path_graph_sync_s2c"));

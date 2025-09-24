@@ -6,6 +6,9 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
+/*
+ * Request the server to teleport the player from the origin sign position to the destination position.
+ */
 public record TeleportRequestC2S(BlockPos originSignPos, BlockPos destinationPos) implements CustomPacketPayload {
     public static final CustomPacketPayload.Type<TeleportRequestC2S> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.parse("viaromana:teleport_request_c2s"));
 

@@ -6,6 +6,9 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
+/*
+ * Instruct the client to open the warp block screen for the block at the given position.
+ */
 public record OpenWarpBlockScreenS2C(BlockPos blockPos) implements CustomPacketPayload {
     public static final CustomPacketPayload.Type<OpenWarpBlockScreenS2C> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.parse("via_romana:open_warp_block_screen_s2c"));
 

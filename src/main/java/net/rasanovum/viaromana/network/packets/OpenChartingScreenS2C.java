@@ -5,6 +5,9 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
+/*
+ * Instruct the client to open the charting screen.
+ */
 public record OpenChartingScreenS2C() implements CustomPacketPayload {
     public static final CustomPacketPayload.Type<OpenChartingScreenS2C> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.parse("via_romana:open_charting_screen_s2c"));
 

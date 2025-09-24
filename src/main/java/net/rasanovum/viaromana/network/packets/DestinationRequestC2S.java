@@ -6,6 +6,9 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
+/*
+ * Request the server to provide a list of available destinations for the network containing the sign at the given position.
+ */
 public record DestinationRequestC2S(BlockPos sourceSignPos) implements CustomPacketPayload {
     public static final CustomPacketPayload.Type<DestinationRequestC2S> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.parse("viaromana:destination_request_c2s"));
 

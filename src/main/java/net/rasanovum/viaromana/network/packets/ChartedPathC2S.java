@@ -12,7 +12,7 @@ import java.util.List;
 
 /**
  * Packet sent from client to server when a player finishes charting a path.
- * Contains all the temporary nodes that should be converted to permanent nodes
+ * Contains all the temporary nodes/links that should be made permanent
  * and connected as a path on the server-side PathGraph.
  */
 public record ChartedPathC2S(List<NodeData> chartedNodes) implements CustomPacketPayload {

@@ -7,10 +7,10 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
 /**
- * C2S action packet
+ * C2S action packet for path operations.
  */
 public record RoutedActionC2S(Operation op) implements CustomPacketPayload {
-    public enum Operation { SEVER_NEAREST_NODE, REMOVE_BRANCHES }
+    public enum Operation { SEVER_NEAREST_NODE, REMOVE_BRANCH }
 
     public static final CustomPacketPayload.Type<RoutedActionC2S> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.parse("viaromana:action_request_c2s"));
 

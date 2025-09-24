@@ -6,8 +6,8 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
-/**
- * Packet sent from client to server to request unlinking a sign from a node.
+/*
+ * Request the server to unlink the sign at the given position.
  */
 public record UnlinkSignRequestC2S(BlockPos signPos) implements CustomPacketPayload {
     public static final CustomPacketPayload.Type<UnlinkSignRequestC2S> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.parse("via_romana:unlink_sign_request"));

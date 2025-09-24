@@ -10,7 +10,7 @@ import net.minecraft.world.entity.player.Player;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.client.MapClient;
 import net.rasanovum.viaromana.network.packets.DestinationResponseS2C;
-import net.rasanovum.viaromana.network.packets.SignValidationC2S;
+import net.rasanovum.viaromana.network.packets.SignValidationRequestC2S;
 import net.rasanovum.viaromana.network.packets.TeleportRequestC2S;
 import net.rasanovum.viaromana.network.ViaRomanaModVariables;
 import net.rasanovum.viaromana.teleport.TeleportHelper;
@@ -379,7 +379,7 @@ public class TeleportMapScreen extends Screen {
     //region Networking
     private void validateNodeSign(BlockPos nodePos) {
         if (!validatedNodes.contains(nodePos)) {
-            SignValidationC2S packet = new SignValidationC2S(nodePos);
+            SignValidationRequestC2S packet = new SignValidationRequestC2S(nodePos);
             if (ViaRomanaModVariables.networkHandler != null) {
                 ViaRomanaModVariables.networkHandler.sendToServer(packet);
             }

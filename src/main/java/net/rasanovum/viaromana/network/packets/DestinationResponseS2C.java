@@ -11,6 +11,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+/*
+ * Response from the server containing the list of available destinations, sign position, source node position, network nodes, and network ID.
+ */
 public record DestinationResponseS2C(
     List<DestinationInfo> destinations,
     BlockPos signPos,

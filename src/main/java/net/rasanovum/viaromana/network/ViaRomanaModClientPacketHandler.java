@@ -18,7 +18,7 @@ public class ViaRomanaModClientPacketHandler {
 		ClientPlayNetworking.registerGlobalReceiver(ViaRomanaModVariables.PlayerVariablesSyncMessage.TYPE, ViaRomanaModClientPacketHandler::handlePlayerVariablesS2C);
 		ClientPlayNetworking.registerGlobalReceiver(DestinationResponseS2C.TYPE, ViaRomanaModClientPacketHandler::handleDestinationResponseS2C);
 		ClientPlayNetworking.registerGlobalReceiver(MapResponseS2C.TYPE, ViaRomanaModClientPacketHandler::handleMapResponseS2C);
-		ClientPlayNetworking.registerGlobalReceiver(SignValidationS2C.TYPE, ViaRomanaModClientPacketHandler::handleSignValidationS2C);
+		ClientPlayNetworking.registerGlobalReceiver(SignValidationResponseS2C.TYPE, ViaRomanaModClientPacketHandler::handleSignValidationS2C);
 		ClientPlayNetworking.registerGlobalReceiver(OpenChartingScreenS2C.TYPE, ViaRomanaModClientPacketHandler::handleOpenChartingScreenS2C);
 		ClientPlayNetworking.registerGlobalReceiver(PathGraphSyncPacket.TYPE, ViaRomanaModClientPacketHandler::handlePathGraphSyncS2C);
 		ClientPlayNetworking.registerGlobalReceiver(OpenWarpBlockScreenS2C.TYPE, ViaRomanaModClientPacketHandler::handleOpenWarpBlockScreenS2C);
@@ -63,7 +63,7 @@ public class ViaRomanaModClientPacketHandler {
 		});
 	}
 
-	private static void handleSignValidationS2C(SignValidationS2C message, ClientPlayNetworking.Context context) {
+	private static void handleSignValidationS2C(SignValidationResponseS2C message, ClientPlayNetworking.Context context) {
 		context.client().execute(() -> {
 			if (context.client().screen instanceof TeleportMapScreen teleportScreen) {
 				teleportScreen.handleSignValidation(message.nodePos(), message.isValid());

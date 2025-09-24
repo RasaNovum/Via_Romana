@@ -17,7 +17,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementProgress;
 import net.minecraft.resources.ResourceLocation;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
@@ -25,21 +24,6 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.UUID;
 import java.util.Optional;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-
-class FabricNetworkHandler implements NetworkHandler {
-    @Override
-    public void sendToPlayer(ServerPlayer player, CustomPacketPayload message) {
-        if (player == null) return;
-
-        ServerPlayNetworking.send(player, message);
-    }
-    
-    @Override
-    public void sendToServer(CustomPacketPayload message) {
-        ClientPlayNetworking.send(message);
-    }
-}
 
 public class ViaRomanaModPacketHandler {
     public static void initialize() {
@@ -53,7 +37,7 @@ public class ViaRomanaModPacketHandler {
         ServerPlayNetworking.registerGlobalReceiver(LinkSignRequestC2S.TYPE, ViaRomanaModPacketHandler::handleLinkSignRequestC2S);
         ServerPlayNetworking.registerGlobalReceiver(UnlinkSignRequestC2S.TYPE, ViaRomanaModPacketHandler::handleUnlinkSignRequestC2S);
         ServerPlayNetworking.registerGlobalReceiver(DestinationRequestC2S.TYPE, ViaRomanaModPacketHandler::handleDestinationRequestC2S);
-        ServerPlayNetworking.registerGlobalReceiver(SignValidationC2S.TYPE, ViaRomanaModPacketHandler::handleSignValidationC2S);
+        ServerPlayNetworking.registerGlobalReceiver(SignValidationRequestC2S.TYPE, ViaRomanaModPacketHandler::handleSignValidationRequestC2S);
         ServerPlayNetworking.registerGlobalReceiver(MapRequestC2S.TYPE, ViaRomanaModPacketHandler::handleMapRequestC2S);
         ServerPlayNetworking.registerGlobalReceiver(ChartedPathC2S.TYPE, ViaRomanaModPacketHandler::handleChartedPathC2S);
         ServerPlayNetworking.registerGlobalReceiver(RoutedActionC2S.TYPE, ViaRomanaModPacketHandler::handleActionRequestC2S);
@@ -80,10 +64,10 @@ public class ViaRomanaModPacketHandler {
             Node nearestNode = nearestOpt.get();
 
             switch (packet.op()) {
-                case SEVER_NEAREST_NODE -> {
+                case RoutedActionC2S.Operation.SEVER_NEAREST_NODE -> {
                     graph.removeNode(nearestNode);
                 }
-                case REMOVE_BRANCH -> {
+                case RoutedActionC2S.Operation.REMOVE_BRANCH -> {
                     graph.removeBranch(nearestNode);
                 }
             }
@@ -226,7 +210,7 @@ public class ViaRomanaModPacketHandler {
         });
     }
 
-    private static void handleSignValidationC2S(SignValidationC2S packet, ServerPlayNetworking.Context context) {
+    private static void handleSignValidationRequestC2S(SignValidationRequestC2S packet, ServerPlayNetworking.Context context) {
         context.server().execute(() -> {
             ServerPlayer player = context.player();
             ServerLevel level = player.serverLevel();
@@ -237,7 +221,7 @@ public class ViaRomanaModPacketHandler {
             Optional<Node> nodeOpt = graph.getNodeAt(nodePos);
 
             if (nodeOpt.isEmpty()) {
-                SignValidationS2C response = new SignValidationS2C(nodePos, false);
+                SignValidationResponseS2C response = new SignValidationResponseS2C(nodePos, false);
                 ViaRomanaModVariables.networkHandler.sendToPlayer(player, response);
                 return;
             }
@@ -257,7 +241,7 @@ public class ViaRomanaModPacketHandler {
                 PathSyncUtils.syncPathGraphToAllPlayers(level);
             }
 
-            SignValidationS2C response = new SignValidationS2C(nodePos, isSignValid);
+            SignValidationResponseS2C response = new SignValidationResponseS2C(nodePos, isSignValid);
             ViaRomanaModVariables.networkHandler.sendToPlayer(player, response);
         });
     }

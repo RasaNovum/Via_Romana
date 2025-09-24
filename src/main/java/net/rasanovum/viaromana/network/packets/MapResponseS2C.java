@@ -12,8 +12,8 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.UUID;
 
-/**
- * Packet for sending a map texture response.
+/*
+ * Response from the server containing the generated map data for the requested area and network.
  */
 public record MapResponseS2C(MapInfo mapInfo) implements CustomPacketPayload {
     public static final CustomPacketPayload.Type<MapResponseS2C> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.parse("via_romana:map_response_s2c"));
@@ -35,7 +35,6 @@ public record MapResponseS2C(MapInfo mapInfo) implements CustomPacketPayload {
         return TYPE;
     }
 
-    // Factory methods for easier construction
     public static MapResponseS2C create(UUID networkId, BlockPos minBounds, BlockPos maxBounds, byte[] pngData, int bakeScaleFactor) {
         return new MapResponseS2C(MapInfo.response(networkId, minBounds, maxBounds, new ArrayList<>(), pngData, bakeScaleFactor));
     }
@@ -44,7 +43,7 @@ public record MapResponseS2C(MapInfo mapInfo) implements CustomPacketPayload {
         return new MapResponseS2C(MapInfo.response(networkId, minBounds, maxBounds, networkNodes, pngData, bakeScaleFactor));
     }
 
-    // Delegate getters to mapInfo
+    // Getters
     public UUID getNetworkId() { return mapInfo.networkId(); }
     public BlockPos getMinBounds() { return mapInfo.minBounds(); }
     public BlockPos getMaxBounds() { return mapInfo.maxBounds(); }
@@ -52,6 +51,5 @@ public record MapResponseS2C(MapInfo mapInfo) implements CustomPacketPayload {
     public int getBakeScaleFactor() { return mapInfo.bakeScaleFactor(); }
     public List<NodeNetworkInfo> getNetworkNodes() { return mapInfo.networkNodes(); }
 
-    // Expose the underlying MapInfo for more advanced usage
     public MapInfo getMapInfo() { return mapInfo; }
 }

@@ -10,8 +10,8 @@ import net.rasanovum.viaromana.path.Node;
 
 import java.util.UUID;
 
-/**
- * Packet sent from client to server to request linking a sign to a node.
+/*
+ * Request the server to link a sign to a node with the provided link data.
  */
 public record LinkSignRequestC2S(LinkData linkData, boolean isTempNode) implements CustomPacketPayload {
     public static final CustomPacketPayload.Type<LinkSignRequestC2S> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.parse("via_romana:link_sign_request"));

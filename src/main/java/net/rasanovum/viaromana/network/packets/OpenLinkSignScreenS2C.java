@@ -5,6 +5,9 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
+/*
+ * Unused as mixin to open sign GUI is already client-side, but keeping for future use
+ */
 public record OpenLinkSignScreenS2C() implements CustomPacketPayload {
     public static final CustomPacketPayload.Type<OpenLinkSignScreenS2C> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.parse("via_romana:open_link_sign_screen_s2c"));
 
