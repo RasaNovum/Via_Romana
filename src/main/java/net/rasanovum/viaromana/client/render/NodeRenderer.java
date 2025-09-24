@@ -32,7 +32,7 @@ import org.joml.Matrix4f;
  * Client-side renderer for visualizing path nodes as textured beams.
  */
 public class NodeRenderer {
-    // --- Constants ---
+    // Constants
     private static final float BEAM_HEIGHT = 2.0f;
     private static final float BEAM_WIDTH = 0.6f;
     private static final float BEAM_FADE_FRACTION = 0.5f;
@@ -72,7 +72,7 @@ public class NodeRenderer {
 
     private record NodeRenderData(BlockPos pos, double distance, double adjustedY, int color) {}
 
-    // --- Public API ---
+    // Public API
     public static int getLightLevel(BlockPos pos) { return dynamicLightSources.getOrDefault(pos, 0); }
     public static float getCurrentVignetteIntensity() { return currentVignetteIntensity * globalRenderAlpha; }
     public static float getBeamHeight() { return BEAM_HEIGHT; }
@@ -83,7 +83,7 @@ public class NodeRenderer {
         return calculateDistanceToNodeBeamInternal(playerPos, nodePos, adjustedY);
     }
 
-    // render Main Render Loop
+    // Main Render Loop
     public static void renderNodeBeams(PoseStack poseStack, Level level, Player player, float partialTicks) {
         if (!(level instanceof ClientLevel clientLevel)) return;
 
@@ -151,7 +151,7 @@ public class NodeRenderer {
         animationTime += deltaTime;
     }
 
-    // Gathers all visible nodes and pre-calculates their expensive data.
+    // Pre-calculates visible node data
     private static List<NodeRenderData> gatherRenderData(ClientLevel level, Vec3 playerPos) {
         List<NodeRenderData> dataList = new ArrayList<>();
         double searchRadius = RENDER_DISTANCE + FADE_BUFFER_DISTANCE;
@@ -278,7 +278,7 @@ public class NodeRenderer {
         float x2 = halfWidth * CROSS_COS, z2 = halfWidth * CROSS_SIN;
 
         float vMin = vOffset;
-        float vMax = vMin + (BEAM_HEIGHT / 2.0f); // Adjust texture scale if needed
+        float vMax = vMin + (BEAM_HEIGHT / 2.0f);
 
         for (int i = 0; i < BEAM_SEGMENTS; i++) {
             float t0 = (float) i / BEAM_SEGMENTS, t1 = (float) (i + 1) / BEAM_SEGMENTS;
