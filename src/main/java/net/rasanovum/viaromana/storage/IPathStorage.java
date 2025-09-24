@@ -8,10 +8,6 @@ public interface IPathStorage {
     void setDirty();
 
     static IPathStorage get(Level level) {
-        return level.getServer().overworld().getDataStorage().computeIfAbsent(
-            PathStorageImpl::load, 
-            PathStorageImpl::new, 
-            "viaromana_paths"
-        );
+        return PathStorageImpl.get(level);
     }
 }

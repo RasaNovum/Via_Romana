@@ -7,8 +7,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 import net.minecraft.server.level.ServerPlayer;
-import net.rasanovum.viaromana.variables.VariableAccess;
-import net.rasanovum.viaromana.network.OpenChartingScreenPacket;
+import net.rasanovum.viaromana.network.OpenChartingScreenS2C;
 import net.rasanovum.viaromana.network.ViaRomanaModVariables;
 
 public class ChartingMap extends Item {
@@ -28,20 +27,17 @@ public class ChartingMap extends Item {
             // player.getCooldowns().addCooldown(this, 10);
             
             if (ViaRomanaModVariables.networkHandler != null) {
-                boolean isCharting = VariableAccess.playerVariables.isChartingPath(player);
-                ViaRomanaModVariables.networkHandler.sendToPlayer((ServerPlayer) player, new OpenChartingScreenPacket(isCharting));
+                ViaRomanaModVariables.networkHandler.sendToPlayer((ServerPlayer) player, new OpenChartingScreenS2C());
             }
         }
         
         return InteractionResultHolder.sidedSuccess(itemStack, level.isClientSide);
     }
 
-    @Override
     public boolean isFoil(ItemStack stack) {
         return false;
     }
     
-    @Override
     public int getUseDuration(ItemStack stack) {
         return 72000;
     }

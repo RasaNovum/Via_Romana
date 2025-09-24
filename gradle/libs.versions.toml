@@ -2,16 +2,15 @@
 loom = "1.7.+"
 minotaur = "2.+"
 
-mc = "1.20.1"
-fl = "0.15.7"
-yarn = "1.20.1+build.10"
-fapi = "0.92.0+1.20.1"
+mc = "1.21.1"
+fl = "0.15.11"
+yarn = "1.21.1+build.10"
+fapi = "0.116.6+1.21.1"
 
-surveyor = "0.6.26+1.20"
-cloth-config = "11.1.118"
-supplementaries = "1.20-3.1.38"
-brrp = "1.0.0-1.20.1"
-midnightlib = "1.4.1-fabric"
+surveyor = "0.6.26+1.21"
+supplementaries = "fabric_1.21-3.4.16"
+brrp = "1.0.4-1.21.1"
+midnightlib = "1.7.5+1.21.1-fabric"
 
 [plugins]
 loom = { id = "fabric-loom", version.ref = "loom" }
@@ -26,5 +25,4 @@ brrp = { group = "pers.solid", name = "brrp-fabric", version.ref = "brrp" }
 midnightlib = { group = "maven.modrinth", name = "midnightlib", version.ref = "midnightlib" }
 
 surveyor = { group = "folk.sisby", name = "surveyor", version.ref = "surveyor" }
-cloth-config = { group = "me.shedaniel.cloth", name = "cloth-config-fabric", version.ref = "cloth-config" }
 supplementaries = { group = "maven.modrinth", name = "supplementaries", version.ref = "supplementaries" } 

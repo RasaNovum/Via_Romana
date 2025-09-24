@@ -6,6 +6,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
+import net.minecraft.core.Holder;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -17,8 +18,8 @@ public abstract class PreventFatigueRemovalMixin {
     private MobEffectInstance viaRomana$storedFatigueEffect = null;
     
     @Inject(method = "removeEffect", at = @At("HEAD"), cancellable = true)
-    private void viaRomana$preventNonCommandRemoval(MobEffect effect, CallbackInfoReturnable<Boolean> cir) {
-        if (effect == EffectInit.TRAVELLERS_FATIGUE) {
+    private void viaRomana$preventNonCommandRemoval(Holder<MobEffect> effect, CallbackInfoReturnable<Boolean> cir) {
+        if (effect.value() == EffectInit.TRAVELLERS_FATIGUE) {
             StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
             for (StackTraceElement element : stackTrace) {
                 String className = element.getClassName();
@@ -38,7 +39,7 @@ public abstract class PreventFatigueRemovalMixin {
     @Inject(method = "removeAllEffects", at = @At("HEAD"))
     private void viaRomana$storeFatigueEffect(CallbackInfoReturnable<Boolean> cir) {
         LivingEntity self = (LivingEntity) (Object) this;
-        MobEffectInstance fatigueEffect = self.getEffect(EffectInit.TRAVELLERS_FATIGUE);
+        MobEffectInstance fatigueEffect = self.getEffect(Holder.direct(EffectInit.TRAVELLERS_FATIGUE));
         
         if (fatigueEffect != null) {
             StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
@@ -67,7 +68,7 @@ public abstract class PreventFatigueRemovalMixin {
     @Inject(method = "removeAllEffects", at = @At("RETURN"))
     private void viaRomana$restoreTravellerFatigue(CallbackInfoReturnable<Boolean> cir) {
         LivingEntity self = (LivingEntity) (Object) this;
-        if (cir.getReturnValue() && viaRomana$storedFatigueEffect != null && !self.hasEffect(EffectInit.TRAVELLERS_FATIGUE)) {
+        if (cir.getReturnValue() && viaRomana$storedFatigueEffect != null && !self.hasEffect(Holder.direct(EffectInit.TRAVELLERS_FATIGUE))) {
             self.addEffect(viaRomana$storedFatigueEffect);
             viaRomana$storedFatigueEffect = null;
         }

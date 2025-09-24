@@ -2,100 +2,88 @@ package net.rasanovum.viaromana.network;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.rasanovum.viaromana.path.Node;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class DestinationResponsePacket {
-    private final List<DestinationInfo> destinations;
-    private final BlockPos signPos;
-    private final BlockPos sourceNodePos;
-    private final List<NodeNetworkInfo> networkNodes;
-    private final UUID networkId;
-    
-    public DestinationResponsePacket(List<DestinationInfo> destinations, BlockPos signPos, BlockPos sourceNodePos, List<NodeNetworkInfo> networkNodes, UUID networkId) {
-        this.destinations = destinations;
-        this.signPos = signPos;
-        this.sourceNodePos = sourceNodePos;
-        this.networkNodes = networkNodes;
-        this.networkId = networkId;
-    }
-    
-    public DestinationResponsePacket(FriendlyByteBuf buffer) {
-        this.signPos = buffer.readBlockPos();
-        this.sourceNodePos = buffer.readBlockPos();
-        this.networkId = buffer.readUUID();
-        
-        int size = buffer.readInt();
-        this.destinations = new ArrayList<>(size);
-        for (int i = 0; i < size; i++) {
-            destinations.add(new DestinationInfo(
-                buffer.readBlockPos(),
-                buffer.readUtf(),
-                buffer.readDouble(),
-                Node.Icon.valueOf(buffer.readUtf())
-            ));
-        }
-        
-        int networkSize = buffer.readInt();
-        this.networkNodes = new ArrayList<>(networkSize);
-        for (int i = 0; i < networkSize; i++) {
-            BlockPos pos = buffer.readBlockPos();
-            
-            int connectionCount = buffer.readInt();
-            List<BlockPos> connections = new ArrayList<>(connectionCount);
-            for (int j = 0; j < connectionCount; j++) {
-                connections.add(buffer.readBlockPos());
-            }
-            
-            networkNodes.add(new NodeNetworkInfo(pos, connections));
-        }
-    }
-    
-    public void write(FriendlyByteBuf buffer) {
-        buffer.writeBlockPos(signPos);
-        buffer.writeBlockPos(sourceNodePos);
-        buffer.writeUUID(networkId);
+public record DestinationResponsePacket(
+    List<DestinationInfo> destinations,
+    BlockPos signPos,
+    BlockPos sourceNodePos,
+    List<NodeNetworkInfo> networkNodes,
+    UUID networkId
+) implements CustomPacketPayload {
+    public static final CustomPacketPayload.Type<DestinationResponsePacket> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.parse("via_romana:destination_response"));
 
-        buffer.writeInt(destinations.size());
-        for (DestinationInfo dest : destinations) {
-            buffer.writeBlockPos(dest.position);
-            buffer.writeUtf(dest.name);
-            buffer.writeDouble(dest.distance);
-            buffer.writeUtf(dest.icon.name());
+    public static final StreamCodec<FriendlyByteBuf, DestinationResponsePacket> STREAM_CODEC = new StreamCodec<>() {
+        @Override
+        public DestinationResponsePacket decode(FriendlyByteBuf buffer) {
+            BlockPos signPos = buffer.readBlockPos();
+            BlockPos sourceNodePos = buffer.readBlockPos();
+            UUID networkId = buffer.readUUID();
+
+            int size = buffer.readInt();
+            List<DestinationInfo> destinations = new ArrayList<>(size);
+            for (int i = 0; i < size; i++) {
+                destinations.add(new DestinationInfo(
+                    buffer.readBlockPos(),
+                    buffer.readUtf(),
+                    buffer.readDouble(),
+                    Node.Icon.valueOf(buffer.readUtf())
+                ));
+            }
+
+            int networkSize = buffer.readInt();
+            List<NodeNetworkInfo> networkNodes = new ArrayList<>(networkSize);
+            for (int i = 0; i < networkSize; i++) {
+                BlockPos pos = buffer.readBlockPos();
+
+                int connectionCount = buffer.readInt();
+                List<BlockPos> connections = new ArrayList<>(connectionCount);
+                for (int j = 0; j < connectionCount; j++) {
+                    connections.add(buffer.readBlockPos());
+                }
+
+                networkNodes.add(new NodeNetworkInfo(pos, connections));
+            }
+
+            return new DestinationResponsePacket(destinations, signPos, sourceNodePos, networkNodes, networkId);
         }
-        
-        buffer.writeInt(networkNodes.size());
-        for (NodeNetworkInfo node : networkNodes) {
-            buffer.writeBlockPos(node.position);
-            
-            buffer.writeInt(node.connections.size());
-            for (BlockPos connection : node.connections) {
-                buffer.writeBlockPos(connection);
+
+        @Override
+        public void encode(FriendlyByteBuf buffer, DestinationResponsePacket packet) {
+            buffer.writeBlockPos(packet.signPos);
+            buffer.writeBlockPos(packet.sourceNodePos);
+            buffer.writeUUID(packet.networkId);
+
+            buffer.writeInt(packet.destinations.size());
+            for (DestinationInfo dest : packet.destinations) {
+                buffer.writeBlockPos(dest.position);
+                buffer.writeUtf(dest.name);
+                buffer.writeDouble(dest.distance);
+                buffer.writeUtf(dest.icon.name());
+            }
+
+            buffer.writeInt(packet.networkNodes.size());
+            for (NodeNetworkInfo node : packet.networkNodes) {
+                buffer.writeBlockPos(node.position);
+
+                buffer.writeInt(node.connections.size());
+                for (BlockPos connection : node.connections) {
+                    buffer.writeBlockPos(connection);
+                }
             }
         }
-    }
-    
-    public List<DestinationInfo> getDestinations() {
-        return destinations;
-    }
-    
-    public List<NodeNetworkInfo> getNetworkNodes() {
-        return networkNodes;
-    }
-    
-    public BlockPos getSignPos() {
-        return signPos;
-    }
+    };
 
-    public BlockPos getSourceNodePos() {
-        return sourceNodePos;
-    }
-    
-    public UUID getNetworkId() {
-        return networkId;
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
     
     public static class DestinationInfo {

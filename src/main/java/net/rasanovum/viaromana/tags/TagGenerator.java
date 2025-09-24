@@ -1,12 +1,11 @@
 package net.rasanovum.viaromana.tags;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagBuilder;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.configuration.ViaRomanaConfig;
@@ -18,17 +17,21 @@ import net.minecraft.server.packs.PackType;
  */
 public class TagGenerator {
 
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-
     public static void generateAllTags(RuntimeResourcePack pack) {
         try {
             pack.clearResources(PackType.SERVER_DATA);
             
-            JsonObject pathBlockTag = generatePathBlockTagJson();
-            JsonObject warpBlockTag = generateWarpBlockTagJson();
+            // Create TagKey objects for the tags
+            TagKey<Block> pathBlockTagKey = TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("via_romana", "path_block"));
+            TagKey<Block> warpBlockTagKey = TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("via_romana", "warp_block"));
 
-            pack.addData(new ResourceLocation(ViaRomana.MODID, "tags/blocks/path_block.json"), GSON.toJson(pathBlockTag).getBytes());
-            pack.addData(new ResourceLocation(ViaRomana.MODID, "tags/blocks/warp_block.json"), GSON.toJson(warpBlockTag).getBytes());
+            // Generate TagBuilders
+            TagBuilder pathTagBuilder = generatePathBlockTagBuilder();
+            TagBuilder warpTagBuilder = generateWarpBlockTagBuilder();
+
+            // Add tags using the proper BRRP method
+            pack.addTag(pathBlockTagKey, pathTagBuilder);
+            pack.addTag(warpBlockTagKey, warpTagBuilder);
 
             ViaRomana.LOGGER.info("Successfully generated dynamic tags to runtime resource pack");
         } catch (Exception e) {
@@ -36,22 +39,30 @@ public class TagGenerator {
         }
     }
 
-    private static JsonObject generatePathBlockTagJson() {
-        JsonObject tagJson = new JsonObject();
-        tagJson.addProperty("replace", false);
-        JsonArray values = new JsonArray();
+    private static TagBuilder generatePathBlockTagBuilder() {
+        TagBuilder tagBuilder = TagBuilder.create();
 
         // Add explicit block IDs from config
         for (String blockId : ViaRomanaConfig.path_block_ids) {
             if (!blockId.isEmpty()) {
-                values.add(blockId);
+                try {
+                    ResourceLocation blockLocation = ResourceLocation.parse(blockId);
+                    tagBuilder.addElement(blockLocation);
+                } catch (Exception e) {
+                    ViaRomana.LOGGER.warn("Invalid block ID in config: {}", blockId);
+                }
             }
         }
 
         // Add tag references from config
         for (String tagString : ViaRomanaConfig.path_block_tags) {
             if (!tagString.isEmpty() && isModLoadedForTag(tagString)) {
-                values.add("#" + tagString);
+                try {
+                    ResourceLocation tagLocation = ResourceLocation.parse(tagString);
+                    tagBuilder.addTag(tagLocation);
+                } catch (Exception e) {
+                    ViaRomana.LOGGER.warn("Invalid tag reference in config: {}", tagString);
+                }
             }
         }
 
@@ -63,43 +74,53 @@ public class TagGenerator {
 
                 for (String searchString : ViaRomanaConfig.path_block_strings) {
                     if (!searchString.isEmpty() && blockIdString.contains(searchString.toLowerCase())) {
-                        values.add(blockIdString);
+                        tagBuilder.addElement(blockId);
                         break;
                     }
                 }
             }
         }
 
-        tagJson.add("values", values);
-        return tagJson;
+        return tagBuilder;
     }
 
-    private static JsonObject generateWarpBlockTagJson() {
-        JsonObject tagJson = new JsonObject();
-        tagJson.addProperty("replace", false);
-        JsonArray values = new JsonArray();
+
+
+    private static TagBuilder generateWarpBlockTagBuilder() {
+        TagBuilder tagBuilder = TagBuilder.create();
 
         // Add explicit block IDs from config
         for (String blockId : ViaRomanaConfig.warp_block_ids) {
             if (!blockId.isEmpty()) {
-                values.add(blockId);
+                try {
+                    ResourceLocation blockLocation = ResourceLocation.parse(blockId);
+                    tagBuilder.addElement(blockLocation);
+                } catch (Exception e) {
+                    ViaRomana.LOGGER.warn("Invalid warp block ID in config: {}", blockId);
+                }
             }
         }
 
         // Add tag references from config
         for (String tagString : ViaRomanaConfig.warp_block_tags) {
             if (!tagString.isEmpty() && isModLoadedForTag(tagString)) {
-                values.add("#" + tagString);
+                try {
+                    ResourceLocation tagLocation = ResourceLocation.parse(tagString);
+                    tagBuilder.addTag(tagLocation);
+                } catch (Exception e) {
+                    ViaRomana.LOGGER.warn("Invalid warp tag reference in config: {}", tagString);
+                }
             }
         }
 
-        tagJson.add("values", values);
-        return tagJson;
+        return tagBuilder;
     }
+
+
 
     private static boolean isModLoadedForTag(String tagString) {
         try {
-            ResourceLocation tagLocation = new ResourceLocation(tagString);
+            ResourceLocation tagLocation = ResourceLocation.parse(tagString);
             String modId = tagLocation.getNamespace();
             return "minecraft".equals(modId) || FabricLoader.getInstance().isModLoaded(modId);
         } catch (Exception e) {

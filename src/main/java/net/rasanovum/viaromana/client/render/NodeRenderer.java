@@ -26,13 +26,11 @@ import net.rasanovum.viaromana.variables.VariableAccess;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.joml.Matrix4f;
-
 /**
  * Client-side renderer for visualizing path nodes as textured beams.
  */
 public class NodeRenderer {
-    // --- Constants ---
+    // Constants
     private static final float BEAM_HEIGHT = 2.0f;
     private static final float BEAM_WIDTH = 0.6f;
     private static final float BEAM_FADE_FRACTION = 0.5f;
@@ -52,7 +50,7 @@ public class NodeRenderer {
     private static final float CROSS_SIN = (float) Math.sin(CROSS_ANGLE_RADIANS);
     private static final int DEFAULT_BEAM_COLOR = ColorUtil.rgbToHex(255, 255, 255);
     private static final int CHARTING_BEAM_COLOR = ColorUtil.rgbToHex(0, 255, 0);
-    private static final ResourceLocation BEAM_TEXTURE = new ResourceLocation("via_romana", "textures/effect/node_beam.png");
+    private static final ResourceLocation BEAM_TEXTURE = ResourceLocation.parse("via_romana:textures/effect/node_beam.png");
     private static final int SOUND_INTERVAL_TICKS = 40;
 
     private static int getPulseDistance() { return ViaRomanaConfig.node_utility_distance; }
@@ -72,7 +70,7 @@ public class NodeRenderer {
 
     private record NodeRenderData(BlockPos pos, double distance, double adjustedY, int color) {}
 
-    // --- Public API ---
+    // Public API
     public static int getLightLevel(BlockPos pos) { return dynamicLightSources.getOrDefault(pos, 0); }
     public static float getCurrentVignetteIntensity() { return currentVignetteIntensity * globalRenderAlpha; }
     public static float getBeamHeight() { return BEAM_HEIGHT; }
@@ -83,7 +81,7 @@ public class NodeRenderer {
         return calculateDistanceToNodeBeamInternal(playerPos, nodePos, adjustedY);
     }
 
-    // render Main Render Loop
+    // Main Render Loop
     public static void renderNodeBeams(PoseStack poseStack, Level level, Player player, float partialTicks) {
         if (!(level instanceof ClientLevel clientLevel)) return;
 
@@ -273,33 +271,42 @@ public class NodeRenderer {
     }
 
     private static void renderBeamGeometry(PoseStack poseStack, VertexConsumer consumer, float r, float g, float b, float a, float vOffset) {
+        PoseStack.Pose pose = poseStack.last();
         float halfWidth = BEAM_WIDTH / 2.0f;
         float x1 = halfWidth, z1 = 0;
         float x2 = halfWidth * CROSS_COS, z2 = halfWidth * CROSS_SIN;
 
         float vMin = vOffset;
-        float vMax = vMin + (BEAM_HEIGHT / 2.0f); // Adjust texture scale if needed
+        float vMax = vMin + (BEAM_HEIGHT / 2.0f);
+
+        int overlay = 655360;
+        int light = 15728880;
+        int rgb = ((int)(r * 255) << 16) | ((int)(g * 255) << 8) | (int)(b * 255);
 
         for (int i = 0; i < BEAM_SEGMENTS; i++) {
             float t0 = (float) i / BEAM_SEGMENTS, t1 = (float) (i + 1) / BEAM_SEGMENTS;
             float y0 = t0 * BEAM_HEIGHT, y1 = t1 * BEAM_HEIGHT;
             float a0 = a * fadeEnds(t0), a1 = a * fadeEnds(t1);
             float vt0 = Mth.lerp(t0, vMin, vMax), vt1 = Mth.lerp(t1, vMin, vMax);
-            renderSegment(poseStack.last().pose(), consumer, -x1, y0, -z1, x1, y1, z1, r, g, b, a0, a1, vt0, vt1);
-            renderSegment(poseStack.last().pose(), consumer, -x2, y0, -z2, x2, y1, z2, r, g, b, a0, a1, vt0, vt1);
+            
+            int color0 = ((int)(a0 * 255) << 24) | rgb;
+            int color1 = ((int)(a1 * 255) << 24) | rgb;
+            
+            renderSegment(pose, consumer, -x1, y0, -z1, x1, y1, z1, color0, color1, vt0, vt1, overlay, light);
+            renderSegment(pose, consumer, -x2, y0, -z2, x2, y1, z2, color0, color1, vt0, vt1, overlay, light);
         }
     }
 
-    private static void renderSegment(Matrix4f matrix, VertexConsumer consumer, float x1, float y0, float z1, float x2, float y1, float z2, float r, float g, float b, float a0, float a1, float v0, float v1) {
-        int light = 15728880, overlay = 655360;
-        consumer.vertex(matrix, x1, y0, z1).color(r, g, b, a0).uv(0, v0).overlayCoords(overlay).uv2(light).normal(1,0,0).endVertex();
-        consumer.vertex(matrix, x2, y0, z2).color(r, g, b, a0).uv(1, v0).overlayCoords(overlay).uv2(light).normal(1,0,0).endVertex();
-        consumer.vertex(matrix, x2, y1, z2).color(r, g, b, a1).uv(1, v1).overlayCoords(overlay).uv2(light).normal(1,0,0).endVertex();
-        consumer.vertex(matrix, x1, y1, z1).color(r, g, b, a1).uv(0, v1).overlayCoords(overlay).uv2(light).normal(1,0,0).endVertex();
-        consumer.vertex(matrix, x2, y0, z2).color(r, g, b, a0).uv(0, v0).overlayCoords(overlay).uv2(light).normal(-1,0,0).endVertex();
-        consumer.vertex(matrix, x1, y0, z1).color(r, g, b, a0).uv(1, v0).overlayCoords(overlay).uv2(light).normal(-1,0,0).endVertex();
-        consumer.vertex(matrix, x1, y1, z1).color(r, g, b, a1).uv(1, v1).overlayCoords(overlay).uv2(light).normal(-1,0,0).endVertex();
-        consumer.vertex(matrix, x2, y1, z2).color(r, g, b, a1).uv(0, v1).overlayCoords(overlay).uv2(light).normal(-1,0,0).endVertex();
+    private static void renderSegment(PoseStack.Pose pose, VertexConsumer consumer, float x1, float y0, float z1, float x2, float y1, float z2, int color0, int color1, float v0, float v1, int overlay, int light) {
+        consumer.addVertex(pose, x1, y0, z1).setColor(color0).setUv(0, v0).setOverlay(overlay).setLight(light).setNormal(1, 0, 0);
+        consumer.addVertex(pose, x2, y0, z2).setColor(color0).setUv(1, v0).setOverlay(overlay).setLight(light).setNormal(1, 0, 0);
+        consumer.addVertex(pose, x2, y1, z2).setColor(color1).setUv(1, v1).setOverlay(overlay).setLight(light).setNormal(1, 0, 0);
+        consumer.addVertex(pose, x1, y1, z1).setColor(color1).setUv(0, v1).setOverlay(overlay).setLight(light).setNormal(1, 0, 0);
+        
+        consumer.addVertex(pose, x2, y0, z2).setColor(color0).setUv(0, v0).setOverlay(overlay).setLight(light).setNormal(-1, 0, 0);
+        consumer.addVertex(pose, x1, y0, z1).setColor(color0).setUv(1, v0).setOverlay(overlay).setLight(light).setNormal(-1, 0, 0);
+        consumer.addVertex(pose, x1, y1, z1).setColor(color1).setUv(1, v1).setOverlay(overlay).setLight(light).setNormal(-1, 0, 0);
+        consumer.addVertex(pose, x2, y1, z2).setColor(color1).setUv(0, v1).setOverlay(overlay).setLight(light).setNormal(-1, 0, 0);
     }
     
     private static double calculateValueWithFade(double distance, double maxValue) {

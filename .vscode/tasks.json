@@ -75,6 +75,11 @@
                 "reveal": "always",
                 "panel": "shared"
             }
+        },
+        {
+            "label": "Kill Java Processes",
+            "type": "shell",
+            "command": "taskkill /F /IM java.exe"
         }
     ]
 }

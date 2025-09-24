@@ -7,7 +7,7 @@ import net.rasanovum.viaromana.ViaRomana;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 public class VignetteRenderer {
-    private static final ResourceLocation VIGNETTE_TEXTURE = new ResourceLocation("via_romana", "textures/screens/overlay_vignette.png");
+    private static final ResourceLocation VIGNETTE_TEXTURE = ResourceLocation.parse("via_romana:textures/screens/overlay_vignette.png");
 
     public static void renderVignette(GuiGraphics guiGraphics) {
         try {

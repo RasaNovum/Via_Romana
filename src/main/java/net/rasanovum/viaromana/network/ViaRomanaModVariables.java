@@ -8,8 +8,12 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.nbt.Tag;
 import net.minecraft.nbt.NbtIo;
+import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.BlockPos;
@@ -207,7 +211,7 @@ public class ViaRomanaModVariables {
                 file.renameTo(backupFile);
             }
 
-            NbtIo.writeCompressed(nbt, file);
+            NbtIo.writeCompressed(nbt, file.toPath());
 
         } catch (IOException e) {
             ViaRomana.LOGGER.error("Failed to save player variables NBT for " + fileName, e);
@@ -222,13 +226,13 @@ public class ViaRomanaModVariables {
 
         if (file.exists()) {
             try {
-                return NbtIo.readCompressed(file);
+                return NbtIo.readCompressed(file.toPath(), NbtAccounter.unlimitedHeap());
             } catch (IOException e) {
                 ViaRomana.LOGGER.error("Failed to load player variables NBT from " + file.getName() + ", trying backup.", e);
                 if (backupFile.exists()) {
                     try {
                         ViaRomana.LOGGER.warn("Attempting to load from backup file: {}", backupFile.getName());
-                        return NbtIo.readCompressed(backupFile);
+                        return NbtIo.readCompressed(backupFile.toPath(), NbtAccounter.unlimitedHeap());
                     } catch (IOException e2) {
                         ViaRomana.LOGGER.error("Failed to load player variables NBT from backup " + backupFile.getName() + " as well.", e2);
                     }
@@ -237,7 +241,7 @@ public class ViaRomanaModVariables {
         } else if (backupFile.exists()) {
             try {
                 ViaRomana.LOGGER.warn("Main file {} missing, attempting to load from backup file: {}", file.getName(), backupFile.getName());
-                return NbtIo.readCompressed(backupFile);
+                return NbtIo.readCompressed(backupFile.toPath(), NbtAccounter.unlimitedHeap());
             } catch (IOException e) {
                 ViaRomana.LOGGER.error("Failed to load player variables NBT from backup " + backupFile.getName(), e);
             }
@@ -245,19 +249,28 @@ public class ViaRomanaModVariables {
         return null;
     }
 
-    public static class PlayerVariablesSyncMessage {
-        public final CompoundTag dataTag;
+    public static record PlayerVariablesSyncMessage(CompoundTag dataTag) implements CustomPacketPayload {
+        public static final CustomPacketPayload.Type<PlayerVariablesSyncMessage> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.parse("via_romana:player_variables_sync"));
+
+        public static final StreamCodec<FriendlyByteBuf, PlayerVariablesSyncMessage> STREAM_CODEC = new StreamCodec<>() {
+            @Override
+            public PlayerVariablesSyncMessage decode(FriendlyByteBuf buffer) {
+                return new PlayerVariablesSyncMessage(buffer.readNbt());
+            }
+
+            @Override
+            public void encode(FriendlyByteBuf buffer, PlayerVariablesSyncMessage packet) {
+                buffer.writeNbt(packet.dataTag);
+            }
+        };
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
 
         public PlayerVariablesSyncMessage(PlayerVariables data) {
-            this.dataTag = data.writeNBT();
-        }
-
-        public PlayerVariablesSyncMessage(FriendlyByteBuf buffer) {
-            this.dataTag = buffer.readNbt();
-        }
-
-        public void write(FriendlyByteBuf buffer) {
-            buffer.writeNbt(dataTag);
+            this(data.writeNBT());
         }
 
         public static void handleClient(PlayerVariablesSyncMessage message) {

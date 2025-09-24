@@ -15,7 +15,7 @@ public class ItemInit {
     
     public static void load() {
         CHARTING_MAP = Registry.register(BuiltInRegistries.ITEM, 
-            new ResourceLocation(ViaRomana.MODID, "charting_map"), 
+            ResourceLocation.parse("via_romana:charting_map"), 
             new ChartingMap(new Item.Properties()));
         
         ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.TOOLS_AND_UTILITIES).register(content -> {

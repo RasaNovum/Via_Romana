@@ -1,16 +1,15 @@
 package net.rasanovum.viaromana.client.gui;
 
 import com.mojang.blaze3d.platform.NativeImage;
-import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
+import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.client.MapClient;
 import net.rasanovum.viaromana.network.DestinationResponsePacket.NodeNetworkInfo;
-import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.util.List;
@@ -19,10 +18,6 @@ import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class MapRenderer implements AutoCloseable {
-
-    private static final Logger LOGGER = LogUtils.getLogger();
-    private static final String MODID = "via_romana";
-
     // UI constants
     private static final int SCREEN_MARGIN = 40;
     private static final int BACKGROUND_TILE_SIZE = 32;
@@ -61,7 +56,7 @@ public class MapRenderer implements AutoCloseable {
     private static ResourceLocation[] createTileLocations(String prefix, int count) {
         var locations = new ResourceLocation[count];
         for (int i = 0; i < count; i++) {
-            locations[i] = new ResourceLocation(MODID, "textures/screens/background_tile/" + prefix + (i + 1) + ".png");
+            locations[i] = ResourceLocation.parse("via_romana:textures/screens/background_tile/" + prefix + (i + 1) + ".png");
         }
         return locations;
     }
@@ -112,7 +107,7 @@ public class MapRenderer implements AutoCloseable {
     }
     
     private NativeImage bakeBackgroundAndMap(NativeImage mapImage, float renderScale) {
-        LOGGER.debug("Baking new texture with render scale: {}", renderScale);
+        ViaRomana.LOGGER.debug("Baking new texture with render scale: {}", renderScale);
 
         int mapWidthPx = mapImage.getWidth();
         int mapHeightPx = mapImage.getHeight();
@@ -254,7 +249,7 @@ public class MapRenderer implements AutoCloseable {
                     }
                 }
             } catch (IOException e) {
-                LOGGER.error("Failed to load background tile texture: {}", loc, e);
+                ViaRomana.LOGGER.error("Failed to load background tile texture: {}", loc, e);
             }
             return null;
         });
@@ -315,7 +310,7 @@ public class MapRenderer implements AutoCloseable {
     }
 
     public static void clearCache() {
-        LOGGER.info("Clearing MapRenderer tile image cache ({} entries)", tileImageCache.size());
+        ViaRomana.LOGGER.info("Clearing MapRenderer tile image cache ({} entries)", tileImageCache.size());
         tileImageCache.values().forEach(NativeImage::close);
         tileImageCache.clear();
     }

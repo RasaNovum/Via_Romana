@@ -14,9 +14,7 @@ import net.minecraft.world.phys.Vec3;
 import net.rasanovum.viaromana.client.data.ClientPathData;
 import net.rasanovum.viaromana.core.LinkHandler;
 import net.rasanovum.viaromana.path.Node;
-// import net.rasanovum.viaromana.path.Node.NodeData;
 import net.rasanovum.viaromana.path.PathGraph;
-import org.joml.Matrix4f;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,23 +27,23 @@ import net.rasanovum.viaromana.core.LinkHandler.LinkData;
  */
 public final class NodeConnectionRenderer {
 
-    // --- General Constants ---
+    // General Constants
     private static final double RENDER_DISTANCE = 16.0;
     private static final double FADE_BUFFER_DISTANCE = 4.0;
     private static final float RIBBON_FADE_FRACTION = 0.25f;
     private static final int MIN_SEGMENTS = 4;
     private static final int MAX_SEGMENTS = 24;
 
-    // --- Dynamic Path Constants ---
+    // Dynamic Path Constants
     private static final float COHERENCE = 0.6f;
     private static final float WANDER_AMPLITUDE = 0.5f;
     private static final float POINT_DENSITY = 0.5f;
     private static final int SUB_SEGMENTS = 4;
     private static final float VERTICAL_WANDER_SCALE = 0.4f;
 
-    private static final ResourceLocation CONNECTION_TEXTURE = new ResourceLocation("via_romana", "textures/effect/connection_ribbon.png");
+    private static final ResourceLocation CONNECTION_TEXTURE = ResourceLocation.parse("via_romana:textures/effect/connection_ribbon.png");
 
-    // --- New Frame-Delta Animation Constants ---
+    // Animation Constants
     private record RibbonConfig(float baseAlpha, float width, float scrollSpeedSec, float crossAngleRadians, float r, float g, float b, VertexConsumer consumer) {}
     private record PathData(List<Vec3> points, List<Vec3> tangents) {}
     
@@ -60,12 +58,11 @@ public final class NodeConnectionRenderer {
         List<Node> nearby = ClientPathData.getInstance().getNearbyNodes(BlockPos.containing(playerPos), searchRadius, false);
         if (nearby.isEmpty()) return;
 
+        PoseStack.Pose pose = poseStack.last();
         RibbonConfig primaryConfig = new RibbonConfig(0.2f, 0.25f, 0.4f, (float)Math.toRadians(70.0), 1.0f, 1.0f, 1.0f, bufferSource.getBuffer(RenderType.beaconBeam(CONNECTION_TEXTURE, true)));
         RibbonConfig secondaryConfig = new RibbonConfig(0.2f, 0.30f, -0.3f, (float)Math.toRadians(70.0), 1.0f, 1.0f, 1.0f, bufferSource.getBuffer(RenderType.beaconBeam(CONNECTION_TEXTURE, true)));
         RibbonConfig signConfig = new RibbonConfig(0.3f, 0.20f, 0.16f, (float)Math.toRadians(70.0), 1.0f, 1.0f, 1.0f, bufferSource.getBuffer(RenderType.beaconBeam(CONNECTION_TEXTURE, true)));
         RibbonConfig tempSignConfig = new RibbonConfig(0.3f, 0.20f, 0.16f, (float)Math.toRadians(70.0), 0.0f, 1.0f, 0.0f, bufferSource.getBuffer(RenderType.beaconBeam(CONNECTION_TEXTURE, true)));
-
-        Matrix4f matrix = poseStack.last().pose();
 
         for (Node a : nearby) {
             Vec3 aCenter = Vec3.atCenterOf(BlockPos.of(a.getPos()));
@@ -76,7 +73,7 @@ public final class NodeConnectionRenderer {
                 graph.getNodeAt(BlockPos.of(bPacked)).ifPresent(b -> {
                     Vec3 bCenter = Vec3.atCenterOf(BlockPos.of(b.getPos()));
                     if (playerPos.distanceToSqr(aCenter.lerp(bCenter, 0.5)) <= searchRadius * searchRadius) {
-                        renderNodeConnection(matrix, level, playerPos, animationTime, aCenter, bCenter, primaryConfig, secondaryConfig, globalAlpha);
+                        renderNodeConnection(pose, level, playerPos, animationTime, aCenter, bCenter, primaryConfig, secondaryConfig, globalAlpha);
                     }
                 });
             }
@@ -86,7 +83,7 @@ public final class NodeConnectionRenderer {
                 if (LinkHandler.isSignBlock(level, signPos)) {
                     Vec3 signCenter = Vec3.atCenterOf(signPos);
                      if (playerPos.distanceToSqr(aCenter.lerp(signCenter, 0.5)) <= searchRadius * searchRadius) {
-                        renderSignConnection(matrix, level, playerPos, animationTime, aCenter, signCenter, signConfig, globalAlpha);
+                        renderSignConnection(pose, level, playerPos, animationTime, aCenter, signCenter, signConfig, globalAlpha);
                     }
                 }
             });
@@ -102,7 +99,7 @@ public final class NodeConnectionRenderer {
                 Vec3 nodeCenter = Vec3.atCenterOf(nodePos);
                 Vec3 signCenter = Vec3.atCenterOf(signPos);
                 if (playerPos.distanceToSqr(nodeCenter.lerp(signCenter, 0.5)) <= searchRadius * searchRadius) {
-                    renderSignConnection(matrix, level, playerPos, animationTime, nodeCenter, signCenter, tempSignConfig, globalAlpha);
+                    renderSignConnection(pose, level, playerPos, animationTime, nodeCenter, signCenter, tempSignConfig, globalAlpha);
                 }
             }
         }
@@ -110,7 +107,7 @@ public final class NodeConnectionRenderer {
         // TODO: Render temp nodes with connections
     }
 
-    private static void renderNodeConnection(Matrix4f matrix, ClientLevel level, Vec3 playerPos, float animationTime, Vec3 start, Vec3 end, RibbonConfig primary, RibbonConfig secondary, float globalAlpha) {
+    private static void renderNodeConnection(PoseStack.Pose pose, ClientLevel level, Vec3 playerPos, float animationTime, Vec3 start, Vec3 end, RibbonConfig primary, RibbonConfig secondary, float globalAlpha) {
         Vec3 clampedStart = new Vec3(start.x, RenderUtil.findSuitableYPosition(level, BlockPos.containing(start), 1.2f), start.z);
         Vec3 clampedEnd = new Vec3(end.x, RenderUtil.findSuitableYPosition(level, BlockPos.containing(end), 1.2f), end.z);
 
@@ -122,11 +119,11 @@ public final class NodeConnectionRenderer {
 
         PathData path = generateWanderingPath(clampedStart, clampedEnd, animationTime);
 
-        if (alpha1 > 0.01f) drawPath(matrix, path, animationTime, primary, alpha1);
-        if (alpha2 > 0.01f) drawPath(matrix, path, animationTime, secondary, alpha2);
+        if (alpha1 > 0.01f) drawPath(pose, path, animationTime, primary, alpha1);
+        if (alpha2 > 0.01f) drawPath(pose, path, animationTime, secondary, alpha2);
     }
 
-    private static void renderSignConnection(Matrix4f matrix, ClientLevel level, Vec3 playerPos, float animationTime, Vec3 start, Vec3 end, RibbonConfig config, float globalAlpha) {
+    private static void renderSignConnection(PoseStack.Pose pose, ClientLevel level, Vec3 playerPos, float animationTime, Vec3 start, Vec3 end, RibbonConfig config, float globalAlpha) {
         Vec3 clampedStart = start.with(Direction.Axis.Y, RenderUtil.findSuitableYPosition(level, BlockPos.containing(start), 1.2f));
         
         double midDist = playerPos.distanceTo(clampedStart.lerp(end, 0.5));
@@ -135,7 +132,7 @@ public final class NodeConnectionRenderer {
         if (alpha <= 0.01f) return;
         
         PathData path = generateSimpleArcPath(clampedStart, end, animationTime);
-        drawPath(matrix, path, animationTime, config, alpha);
+        drawPath(pose, path, animationTime, config, alpha);
     }
 
     private static PathData generateWanderingPath(Vec3 start, Vec3 end, float animationTime) {
@@ -215,7 +212,7 @@ public final class NodeConnectionRenderer {
         return controlPoints;
     }
 
-    private static void drawPath(Matrix4f matrix, PathData path, float animationTime, RibbonConfig config, float baseAlpha) {
+    private static void drawPath(PoseStack.Pose pose, PathData path, float animationTime, RibbonConfig config, float baseAlpha) {
         if (path.points().size() < 2) return;
         float vScroll = -(animationTime * config.scrollSpeedSec());
         double totalDist = path.points().get(0).distanceTo(path.points().get(path.points().size() -1));
@@ -226,38 +223,51 @@ public final class NodeConnectionRenderer {
             float alpha1 = baseAlpha * fadeEnds(t1);
             float v0 = t0 * (float) totalDist * 0.25f + vScroll;
             float v1 = t1 * (float) totalDist * 0.25f + vScroll;
-            renderCrossedQuads(matrix, config.consumer(), path.points().get(i), path.points().get(i+1), path.tangents().get(i), path.tangents().get(i+1), v0, v1, alpha0, alpha1, config.width(), config.crossAngleRadians(), config.r(), config.g(), config.b());
+            renderCrossedQuads(pose, config.consumer(), path.points().get(i), path.points().get(i+1), path.tangents().get(i), path.tangents().get(i+1), v0, v1, alpha0, alpha1, config.width(), config.crossAngleRadians(), config.r(), config.g(), config.b());
         }
     }
 
-    private static void renderCrossedQuads(Matrix4f matrix, VertexConsumer consumer, Vec3 p0, Vec3 p1, Vec3 tangent0, Vec3 tangent1, float v0, float v1, float alpha0, float alpha1, float width, float crossAngleRadians, float r, float g, float b) {
+    private static void renderCrossedQuads(PoseStack.Pose pose, VertexConsumer consumer, Vec3 p0, Vec3 p1, Vec3 tangent0, Vec3 tangent1, float v0, float v1, float alpha0, float alpha1, float width, float crossAngleRadians, float r, float g, float b) {
         Vec3 up = new Vec3(0, 1, 0);
         Vec3 offsetDir0 = up.subtract(tangent0.scale(up.dot(tangent0))).normalize().scale(width);
         Vec3 offsetDir1 = up.subtract(tangent1.scale(up.dot(tangent1))).normalize().scale(width);
         Vec3 normal0 = tangent0.cross(offsetDir0).normalize();
-        addDoubleSidedQuad(matrix, consumer, p0, p1, offsetDir0, offsetDir1, v0, v1, alpha0, alpha1, normal0, r, g, b);
+        addDoubleSidedQuad(pose, consumer, p0, p1, offsetDir0, offsetDir1, v0, v1, alpha0, alpha1, normal0, r, g, b);
         Vec3 rotatedOffset0 = rotateAroundAxis(offsetDir0, tangent0, crossAngleRadians);
         Vec3 rotatedOffset1 = rotateAroundAxis(offsetDir1, tangent1, crossAngleRadians);
         Vec3 rotatedNormal0 = tangent0.cross(rotatedOffset0).normalize();
-        addDoubleSidedQuad(matrix, consumer, p0, p1, rotatedOffset0, rotatedOffset1, v0, v1, alpha0, alpha1, rotatedNormal0, r, g, b);
+        addDoubleSidedQuad(pose, consumer, p0, p1, rotatedOffset0, rotatedOffset1, v0, v1, alpha0, alpha1, rotatedNormal0, r, g, b);
     }
 
-    private static void addDoubleSidedQuad(Matrix4f matrix, VertexConsumer c, Vec3 p0, Vec3 p1, Vec3 n0, Vec3 n1, float v0, float v1, float alpha0, float alpha1, Vec3 frontNormal, float r, float g, float b) {
+    private static void addDoubleSidedQuad(PoseStack.Pose pose, VertexConsumer c, Vec3 p0, Vec3 p1, Vec3 n0, Vec3 n1, float v0, float v1, float alpha0, float alpha1, Vec3 frontNormal, float r, float g, float b) {
         Vec3 e1s = p0.subtract(n0), e1e = p1.subtract(n1);
         Vec3 e2s = p0.add(n0), e2e = p1.add(n1);
-        put(c, matrix, e1s, r, g, b, alpha0, 0, v0, frontNormal);
-        put(c, matrix, e1e, r, g, b, alpha1, 0, v1, frontNormal);
-        put(c, matrix, e2e, r, g, b, alpha1, 1, v1, frontNormal);
-        put(c, matrix, e2s, r, g, b, alpha0, 1, v0, frontNormal);
+        int overlay = 0;
+        int light = 0xF000F0;
+        int rgb = ((int)(r * 255) << 16) | ((int)(g * 255) << 8) | (int)(b * 255);
+        int color0 = ((int)(alpha0 * 255) << 24) | rgb;
+        int color1 = ((int)(alpha1 * 255) << 24) | rgb;
+        
+        put(c, pose, e1s, color0, 0, v0, overlay, light, frontNormal);
+        put(c, pose, e1e, color1, 0, v1, overlay, light, frontNormal);
+        put(c, pose, e2e, color1, 1, v1, overlay, light, frontNormal);
+        put(c, pose, e2s, color0, 1, v0, overlay, light, frontNormal);
+        
         Vec3 backNormal = frontNormal.scale(-1);
-        put(c, matrix, e2s, r, g, b, alpha0, 0, v0, backNormal);
-        put(c, matrix, e2e, r, g, b, alpha1, 0, v1, backNormal);
-        put(c, matrix, e1e, r, g, b, alpha1, 1, v1, backNormal);
-        put(c, matrix, e1s, r, g, b, alpha0, 1, v0, backNormal);
+        
+        put(c, pose, e2s, color0, 0, v0, overlay, light, backNormal);
+        put(c, pose, e2e, color1, 0, v1, overlay, light, backNormal);
+        put(c, pose, e1e, color1, 1, v1, overlay, light, backNormal);
+        put(c, pose, e1s, color0, 1, v0, overlay, light, backNormal);
     }
     
-    private static void put(VertexConsumer c, Matrix4f m, Vec3 pos, float r, float g, float b, float a, float u, float v, Vec3 normal) {
-        c.vertex(m, (float)pos.x, (float)pos.y, (float)pos.z).color(r, g, b, a).uv(u, v).overlayCoords(0).uv2(0xF000F0).normal((float)normal.x, (float)normal.y, (float)normal.z).endVertex();
+    private static void put(VertexConsumer c, PoseStack.Pose pose, Vec3 pos, int color, float u, float v, int overlay, int light, Vec3 normal) {
+        c.addVertex(pose, (float)pos.x, (float)pos.y, (float)pos.z)
+         .setColor(color)
+         .setUv(u, v)
+         .setOverlay(overlay)
+         .setLight(light)
+         .setNormal((float)normal.x, (float)normal.y, (float)normal.z);
     }
 
     private static Vec3 rotateAroundAxis(Vec3 v, Vec3 axis, float angle) {

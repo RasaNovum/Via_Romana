@@ -17,10 +17,9 @@ import net.rasanovum.viaromana.items.ChartingMap;
 import net.rasanovum.viaromana.util.PathUtils;
 import net.rasanovum.viaromana.variables.VariableAccess;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Matrix4f;
 
 public class InvalidBlockRenderer {
-    private static final ResourceLocation BARRIER_TEXTURE = new ResourceLocation("textures/item/barrier.png");
+    private static final ResourceLocation BARRIER_TEXTURE = ResourceLocation.parse("minecraft:textures/item/barrier.png");
     private static final float ALPHA = (float) ViaRomanaConfig.invalid_block_overlay_opacity;
     private static final int FADE_BUFFER = 3;
     private static final int REGION_SIZE = ViaRomanaConfig.infrastructure_check_radius + FADE_BUFFER;
@@ -77,9 +76,9 @@ public class InvalidBlockRenderer {
 
                     poseStack.pushPose();
                     poseStack.translate(pos.getX(), pos.getY(), pos.getZ());
-                    Matrix4f matrix = poseStack.last().pose();
+                    PoseStack.Pose blockPose = poseStack.last();
 
-                    renderTopFace(matrix, consumer, 0, 1, topY, 0, 1, fadeAlpha);
+                    renderTopFace(blockPose, consumer, 0, 1, topY, 0, 1, fadeAlpha);
 
                     poseStack.popPose();
                 }
@@ -90,14 +89,16 @@ public class InvalidBlockRenderer {
         bufferSource.endBatch(RenderType.entityTranslucentCull(BARRIER_TEXTURE));
     }
 
-    private static void renderTopFace(Matrix4f matrix, VertexConsumer consumer, float minX, float maxX, float y, float minZ, float maxZ, float alpha) {
+    private static void renderTopFace(PoseStack.Pose pose, VertexConsumer consumer, float minX, float maxX, float y, float minZ, float maxZ, float alpha) {
         int light = 15728880;
         int overlay = 655360;
         float yOffset = y + 0.0625f;
 
-        consumer.vertex(matrix, minX, yOffset, minZ).color(1.0f, 1.0f, 1.0f, alpha).uv(0, 0).overlayCoords(overlay).uv2(light).normal(0, 1, 0).endVertex();
-        consumer.vertex(matrix, minX, yOffset, maxZ).color(1.0f, 1.0f, 1.0f, alpha).uv(0, 1).overlayCoords(overlay).uv2(light).normal(0, 1, 0).endVertex();
-        consumer.vertex(matrix, maxX, yOffset, maxZ).color(1.0f, 1.0f, 1.0f, alpha).uv(1, 1).overlayCoords(overlay).uv2(light).normal(0, 1, 0).endVertex();
-        consumer.vertex(matrix, maxX, yOffset, minZ).color(1.0f, 1.0f, 1.0f, alpha).uv(1, 0).overlayCoords(overlay).uv2(light).normal(0, 1, 0).endVertex();
+        int color = ((int)(alpha * 255) << 24) | ((int)(1.0f * 255) << 16) | ((int)(1.0f * 255) << 8) | (int)(1.0f * 255);
+        
+        consumer.addVertex(pose, minX, yOffset, minZ).setColor(color).setUv(0, 0).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+        consumer.addVertex(pose, minX, yOffset, maxZ).setColor(color).setUv(0, 1).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+        consumer.addVertex(pose, maxX, yOffset, maxZ).setColor(color).setUv(1, 1).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+        consumer.addVertex(pose, maxX, yOffset, minZ).setColor(color).setUv(1, 0).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
     }
 }

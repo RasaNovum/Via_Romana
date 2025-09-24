@@ -13,124 +13,54 @@ import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.configuration.ViaRomanaConfig;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.advancements.Advancement;
+import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementProgress;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.server.network.ServerGamePacketListenerImpl;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.UUID;
 import java.util.Optional;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
 class FabricNetworkHandler implements NetworkHandler {
     @Override
-    public void sendToPlayer(ServerPlayer player, Object message) {
+    public void sendToPlayer(ServerPlayer player, CustomPacketPayload message) {
         if (player == null) return;
 
-        ResourceLocation packetId = null;
-        FriendlyByteBuf buf = PacketByteBufs.create();
-        if (message instanceof ViaRomanaModVariables.PlayerVariablesSyncMessage syncMessage) {
-            packetId = ViaRomanaModPacketHandler.PLAYER_VARIABLES_SYNC_S2C;
-            syncMessage.write(buf);
-        } else if (message instanceof DestinationResponsePacket destinationMessage) {
-            packetId = ViaRomanaModPacketHandler.DESTINATION_RESPONSE_S2C;
-            destinationMessage.write(buf);
-        } else if (message instanceof OpenLinkScreenPacket linkSignScreenMessage) {
-            packetId = ViaRomanaModPacketHandler.OPEN_LINK_SIGN_SCREEN_S2C;
-            linkSignScreenMessage.write(buf);
-        } else if (message instanceof OpenChartingScreenPacket chartingScreenMessage) {
-            packetId = ViaRomanaModPacketHandler.OPEN_CHARTING_SCREEN_S2C;
-            chartingScreenMessage.write(buf);
-        } else if (message instanceof PathGraphSyncPacket pathGraphMessage) {
-            packetId = ViaRomanaModPacketHandler.PATH_GRAPH_SYNC_S2C;
-            pathGraphMessage.write(buf);
-        } else if (message instanceof MapResponseS2C mapResponseMessage) {
-            packetId = ViaRomanaModPacketHandler.MAP_RESPONSE_S2C;
-            mapResponseMessage.write(buf);
-        } else if (message instanceof SignValidationS2C signValidationMessage) {
-            packetId = ViaRomanaModPacketHandler.SIGN_VALIDATION_S2C;
-            signValidationMessage.write(buf);
-        } else if (message instanceof OpenWarpBlockScreenS2CPacket warpBlockScreenMessage) {
-            packetId = ViaRomanaModPacketHandler.OPEN_WARP_BLOCK_SCREEN_S2C;
-            warpBlockScreenMessage.write(buf);
-        } else {
-            ViaRomana.LOGGER.error("Attempted to send unknown message type via FabricNetworkHandler.sendToPlayer: {}", message.getClass().getName());
-            return;
-        }
-
-        if (packetId != null) {
-            ServerPlayNetworking.send(player, packetId, buf);
-        } else {
-             ViaRomana.LOGGER.error("Packet ID was null when trying to send message of type {} to {}", message.getClass().getName(), player.getName().getString());
-        }
+        ServerPlayNetworking.send(player, message);
     }
     
     @Override
-    public void sendToServer(Object message) {
-        ResourceLocation packetId = null;
-        FriendlyByteBuf buf = PacketByteBufs.create();
-        
-        if (message instanceof DestinationRequestPacket destReq) {
-            packetId = ViaRomanaModPacketHandler.DESTINATION_REQUEST_C2S;
-            destReq.write(buf);
-        } else if (message instanceof TeleportRequestPacket teleportMessage) {
-            packetId = ViaRomanaModPacketHandler.TELEPORT_REQUEST_C2S;
-            teleportMessage.write(buf);
-        } else if (message instanceof LinkSignRequestPacket linkSignMessage) {
-            packetId = ViaRomanaModPacketHandler.LINK_SIGN_REQUEST_C2S;
-            linkSignMessage.write(buf);
-        } else if (message instanceof MapRequestC2S mapRequestMessage) {
-            packetId = ViaRomanaModPacketHandler.MAP_REQUEST_C2S;
-            mapRequestMessage.write(buf);
-        } else if (message instanceof RoutedActionC2S action) {
-            packetId = ViaRomanaModPacketHandler.ACTION_REQUEST_C2S;
-            action.write(buf);
-        } else if (message instanceof ChartedPathC2S chartedPathMessage) {
-            packetId = ViaRomanaModPacketHandler.CHARTED_PATH_C2S;
-            chartedPathMessage.write(buf);
-        } else if (message instanceof SignValidationC2S signValidationMessage) {
-            packetId = ViaRomanaModPacketHandler.SIGN_VALIDATION_C2S;
-            signValidationMessage.write(buf);
-        } else {
-            ViaRomana.LOGGER.error("Attempted to send unknown message type via FabricNetworkHandler.sendToServer: {}", message.getClass().getName());
-            return;
-        }
-        
-        if (packetId != null) {
-            net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking.send(packetId, buf);
-        }
+    public void sendToServer(CustomPacketPayload message) {
+        net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking.send(message);
     }
 }
 
 public class ViaRomanaModPacketHandler {
-    public static final ResourceLocation PLAYER_VARIABLES_SYNC_C2S = new ResourceLocation(ViaRomana.MODID, "player_variables_sync_c2s");
-    public static final ResourceLocation PLAYER_VARIABLES_SYNC_S2C = new ResourceLocation(ViaRomana.MODID, "player_variables_sync_s2c");
-    public static final ResourceLocation GLOBAL_VARIABLES_SYNC_S2C = new ResourceLocation(ViaRomana.MODID, "global_variables_sync_s2c");
-    public static final ResourceLocation TELEPORT_REQUEST_C2S = new ResourceLocation(ViaRomana.MODID, "teleport_request_c2s");
-    public static final ResourceLocation LINK_SIGN_REQUEST_C2S = new ResourceLocation(ViaRomana.MODID, "link_sign_request_c2s");
-    public static final ResourceLocation UNLINK_SIGN_REQUEST_C2S = new ResourceLocation(ViaRomana.MODID, "unlink_sign_request_c2s");
-    public static final ResourceLocation DESTINATION_RESPONSE_S2C = new ResourceLocation(ViaRomana.MODID, "destination_response_s2c");
-    public static final ResourceLocation OPEN_LINK_SIGN_SCREEN_S2C = new ResourceLocation(ViaRomana.MODID, "open_link_sign_screen_s2c");
-    public static final ResourceLocation OPEN_CHARTING_SCREEN_S2C = new ResourceLocation(ViaRomana.MODID, "open_charting_screen_s2c");
-    public static final ResourceLocation OPEN_EDIT_SCREEN_S2C = new ResourceLocation(ViaRomana.MODID, "open_edit_screen_s2c");
-    public static final ResourceLocation PATH_GRAPH_SYNC_S2C = new ResourceLocation(ViaRomana.MODID, "path_graph_sync_s2c");
-    public static final ResourceLocation MAP_REQUEST_C2S = new ResourceLocation(ViaRomana.MODID, "map_request_c2s");
-    public static final ResourceLocation MAP_RESPONSE_S2C = new ResourceLocation(ViaRomana.MODID, "map_response_s2c");
-    public static final ResourceLocation DESTINATION_REQUEST_C2S = new ResourceLocation(ViaRomana.MODID, "destination_request_c2s");
-    public static final ResourceLocation SIGN_VALIDATION_C2S = new ResourceLocation(ViaRomana.MODID, "sign_validation_c2s");
-    public static final ResourceLocation SIGN_VALIDATION_S2C = new ResourceLocation(ViaRomana.MODID, "sign_validation_s2c");
-    public static final ResourceLocation ACTION_REQUEST_C2S = new ResourceLocation(ViaRomana.MODID, "action_request_c2s");
-    public static final ResourceLocation CHARTED_PATH_C2S = new ResourceLocation(ViaRomana.MODID, "charted_path_c2s");
-    public static final ResourceLocation CONFIG_SYNC_C2S = new ResourceLocation(ViaRomana.MODID, "config_sync_c2s");
-    public static final ResourceLocation CONFIG_SYNC_S2C = new ResourceLocation(ViaRomana.MODID, "config_sync_s2c");
-    public static final ResourceLocation OPEN_WARP_BLOCK_SCREEN_S2C = new ResourceLocation(ViaRomana.MODID, "open_warp_block_screen_s2c");
+    public static final ResourceLocation PLAYER_VARIABLES_SYNC_C2S = ResourceLocation.parse("via_romana:player_variables_sync_c2s");
+    public static final ResourceLocation PLAYER_VARIABLES_SYNC_S2C = ResourceLocation.parse("via_romana:player_variables_sync_s2c");
+    public static final ResourceLocation GLOBAL_VARIABLES_SYNC_S2C = ResourceLocation.parse("via_romana:global_variables_sync_s2c");
+    public static final ResourceLocation TELEPORT_REQUEST_C2S = ResourceLocation.parse("via_romana:teleport_request_c2s");
+    public static final ResourceLocation LINK_SIGN_REQUEST_C2S = ResourceLocation.parse("via_romana:link_sign_request_c2s");
+    public static final ResourceLocation UNLINK_SIGN_REQUEST_C2S = ResourceLocation.parse("via_romana:unlink_sign_request_c2s");
+    public static final ResourceLocation DESTINATION_RESPONSE_S2C = ResourceLocation.parse("via_romana:destination_response_s2c");
+    public static final ResourceLocation OPEN_LINK_SIGN_SCREEN_S2C = ResourceLocation.parse("via_romana:open_link_sign_screen_s2c");
+    public static final ResourceLocation OPEN_CHARTING_SCREEN_S2C = ResourceLocation.parse("via_romana:open_charting_screen_s2c");
+    public static final ResourceLocation OPEN_EDIT_SCREEN_S2C = ResourceLocation.parse("via_romana:open_edit_screen_s2c");
+    public static final ResourceLocation PATH_GRAPH_SYNC_S2C = ResourceLocation.parse("via_romana:path_graph_sync_s2c");
+    public static final ResourceLocation MAP_REQUEST_C2S = ResourceLocation.parse("via_romana:map_request_c2s");
+    public static final ResourceLocation MAP_RESPONSE_S2C = ResourceLocation.parse("via_romana:map_response_s2c");
+    public static final ResourceLocation DESTINATION_REQUEST_C2S = ResourceLocation.parse("via_romana:destination_request_c2s");
+    public static final ResourceLocation SIGN_VALIDATION_C2S = ResourceLocation.parse("via_romana:sign_validation_c2s");
+    public static final ResourceLocation SIGN_VALIDATION_S2C = ResourceLocation.parse("via_romana:sign_validation_s2c");
+    public static final ResourceLocation ACTION_REQUEST_C2S = ResourceLocation.parse("via_romana:action_request_c2s");
+    public static final ResourceLocation CHARTED_PATH_C2S = ResourceLocation.parse("via_romana:charted_path_c2s");
+    public static final ResourceLocation CONFIG_SYNC_C2S = ResourceLocation.parse("via_romana:config_sync_c2s");
+    public static final ResourceLocation CONFIG_SYNC_S2C = ResourceLocation.parse("via_romana:config_sync_s2c");
+    public static final ResourceLocation OPEN_WARP_BLOCK_SCREEN_S2C = ResourceLocation.parse("via_romana:open_warp_block_screen_s2c");
 
     public static void initialize() {
         ViaRomanaModVariables.networkHandler = new FabricNetworkHandler();
@@ -138,25 +68,24 @@ public class ViaRomanaModPacketHandler {
     }
 
     public static void registerC2SPackets() {
-        ServerPlayNetworking.registerGlobalReceiver(PLAYER_VARIABLES_SYNC_C2S, ViaRomanaModPacketHandler::handlePlayerVariablesSyncC2S);
-        ServerPlayNetworking.registerGlobalReceiver(TELEPORT_REQUEST_C2S, ViaRomanaModPacketHandler::handleTeleportRequestC2S);
-        ServerPlayNetworking.registerGlobalReceiver(LINK_SIGN_REQUEST_C2S, ViaRomanaModPacketHandler::handleLinkSignRequestC2S);
-        ServerPlayNetworking.registerGlobalReceiver(UNLINK_SIGN_REQUEST_C2S, ViaRomanaModPacketHandler::handleUnlinkSignRequestC2S);
-        ServerPlayNetworking.registerGlobalReceiver(DESTINATION_REQUEST_C2S, ViaRomanaModPacketHandler::handleDestinationRequestC2S);
-        ServerPlayNetworking.registerGlobalReceiver(SIGN_VALIDATION_C2S, ViaRomanaModPacketHandler::handleSignValidationC2S);
-        ServerPlayNetworking.registerGlobalReceiver(MAP_REQUEST_C2S, ViaRomanaModPacketHandler::handleMapRequestC2S);
-        ServerPlayNetworking.registerGlobalReceiver(CHARTED_PATH_C2S, ViaRomanaModPacketHandler::handleChartedPathC2S);
-        ServerPlayNetworking.registerGlobalReceiver(ACTION_REQUEST_C2S, ViaRomanaModPacketHandler::handleActionRequestC2S);
+        ServerPlayNetworking.registerGlobalReceiver(ViaRomanaModVariables.PlayerVariablesSyncMessage.TYPE, ViaRomanaModPacketHandler::handlePlayerVariablesSyncC2S);
+        ServerPlayNetworking.registerGlobalReceiver(TeleportRequestPacket.TYPE, ViaRomanaModPacketHandler::handleTeleportRequestC2S);
+        ServerPlayNetworking.registerGlobalReceiver(LinkSignRequestPacket.TYPE, ViaRomanaModPacketHandler::handleLinkSignRequestC2S);
+        ServerPlayNetworking.registerGlobalReceiver(UnlinkSignRequestPacket.TYPE, ViaRomanaModPacketHandler::handleUnlinkSignRequestC2S);
+        ServerPlayNetworking.registerGlobalReceiver(DestinationRequestPacket.TYPE, ViaRomanaModPacketHandler::handleDestinationRequestC2S);
+        ServerPlayNetworking.registerGlobalReceiver(SignValidationC2S.TYPE, ViaRomanaModPacketHandler::handleSignValidationC2S);
+        ServerPlayNetworking.registerGlobalReceiver(MapRequestC2S.TYPE, ViaRomanaModPacketHandler::handleMapRequestC2S);
+        ServerPlayNetworking.registerGlobalReceiver(ChartedPathC2S.TYPE, ViaRomanaModPacketHandler::handleChartedPathC2S);
+        ServerPlayNetworking.registerGlobalReceiver(RoutedActionC2S.TYPE, ViaRomanaModPacketHandler::handleActionRequestC2S);
     }
 
-    private static void handlePlayerVariablesSyncC2S(MinecraftServer server, ServerPlayer player, ServerGamePacketListenerImpl handler, FriendlyByteBuf buf, PacketSender responseSender) {
-        ViaRomanaModVariables.PlayerVariablesSyncMessage message = new ViaRomanaModVariables.PlayerVariablesSyncMessage(buf);
-        server.execute(() -> ViaRomanaModVariables.PlayerVariablesSyncMessage.handleServer(message, player));
+    private static void handlePlayerVariablesSyncC2S(ViaRomanaModVariables.PlayerVariablesSyncMessage packet, ServerPlayNetworking.Context context) {
+        context.server().execute(() -> ViaRomanaModVariables.PlayerVariablesSyncMessage.handleServer(packet, context.player()));
     }
 
-    private static void handleActionRequestC2S(MinecraftServer server, ServerPlayer player, ServerGamePacketListenerImpl handler, FriendlyByteBuf buf, PacketSender responseSender) {
-        RoutedActionC2S message = new RoutedActionC2S(buf);
-        server.execute(() -> {
+    private static void handleActionRequestC2S(RoutedActionC2S packet, ServerPlayNetworking.Context context) {
+        context.server().execute(() -> {
+            ServerPlayer player = context.player();
             ServerLevel level = player.serverLevel();
             var storage = IPathStorage.get(level);
             var graph = storage.graph();
@@ -164,13 +93,13 @@ public class ViaRomanaModPacketHandler {
             Optional<Node> nearestOpt = graph.getNearestNode(player.blockPosition(), ViaRomanaConfig.node_utility_distance, node -> true);
 
             if (nearestOpt.isEmpty()) {
-                ViaRomana.LOGGER.warn("No nearby node found for action {} by player {}", message.op(), player.getName().getString());
+                ViaRomana.LOGGER.warn("No nearby node found for action {} by player {}", packet.op(), player.getName().getString());
                 return;
             }
 
             Node nearestNode = nearestOpt.get();
 
-            switch (message.op()) {
+            switch (packet.op()) {
                 case SEVER_NEAREST_NODE -> {
                     graph.removeNode(nearestNode);
                 }
@@ -185,17 +114,15 @@ public class ViaRomanaModPacketHandler {
         });
     }
     
-    private static void handleTeleportRequestC2S(MinecraftServer server, ServerPlayer player, ServerGamePacketListenerImpl handler, FriendlyByteBuf buf, PacketSender responseSender) {
-        TeleportRequestPacket message = new TeleportRequestPacket(buf);
-        server.execute(() -> ServerTeleportHandler.handleTeleportRequest(message, player));
+    private static void handleTeleportRequestC2S(TeleportRequestPacket packet, ServerPlayNetworking.Context context) {
+        context.server().execute(() -> ServerTeleportHandler.handleTeleportRequest(packet, context.player()));
     }
     
-    private static void handleLinkSignRequestC2S(MinecraftServer server, ServerPlayer player, ServerGamePacketListenerImpl handler, FriendlyByteBuf buf, PacketSender responseSender) {
-        LinkSignRequestPacket message = new LinkSignRequestPacket(buf);
-        server.execute(() -> {
-            ServerLevel level = player.serverLevel();
-            LinkHandler.LinkData linkData = message.getLinkData();
-            Boolean isTempNode = message.isTempNode();
+    private static void handleLinkSignRequestC2S(LinkSignRequestPacket packet, ServerPlayNetworking.Context context) {
+        context.server().execute(() -> {
+            ServerLevel level = context.player().serverLevel();
+            LinkHandler.LinkData linkData = packet.linkData();
+            boolean isTempNode = packet.isTempNode();
 
             if (!LinkHandler.isSignBlock(level, linkData.signPos())) {
                 ViaRomana.LOGGER.warn("Link request for non-existent sign at {}", linkData.signPos());
@@ -211,13 +138,12 @@ public class ViaRomanaModPacketHandler {
         });
     }
     
-    private static void handleUnlinkSignRequestC2S(MinecraftServer server, ServerPlayer player, ServerGamePacketListenerImpl handler, FriendlyByteBuf buf, PacketSender responseSender) {
-        final BlockPos signPos = buf.readBlockPos();
-        server.execute(() -> {
-            ServerLevel level = player.serverLevel();
-            boolean success = LinkHandler.unlinkSignFromNode(level, signPos); // TODO: port to PathGraph?
+    private static void handleUnlinkSignRequestC2S(UnlinkSignRequestPacket packet, ServerPlayNetworking.Context context) {
+        context.server().execute(() -> {
+            ServerLevel level = context.player().serverLevel();
+            boolean success = LinkHandler.unlinkSignFromNode(level, packet.signPos()); // TODO: port to PathGraph?
             if (!success) {
-                ViaRomana.LOGGER.warn("Failed to unlink sign at {}", signPos);
+                ViaRomana.LOGGER.warn("Failed to unlink sign at {}", packet.signPos());
             }
         });
     }
@@ -225,41 +151,40 @@ public class ViaRomanaModPacketHandler {
     /**
      * Handles a map request from a client by baking the map asynchronously and sending it back.
      */
-    private static void handleMapRequestC2S(MinecraftServer server, ServerPlayer player, ServerGamePacketListenerImpl handler, FriendlyByteBuf buf, PacketSender responseSender) {
-        MapRequestC2S message = new MapRequestC2S(buf);
-        java.util.UUID networkId = message.getNetworkId();
+    private static void handleMapRequestC2S(MapRequestC2S packet, ServerPlayNetworking.Context context) {
+        java.util.UUID networkId = packet.getNetworkId();
 
-        server.execute(() -> {
+        context.server().execute(() -> {
             // Get the network cache to access bounds
-            PathGraph graph = IPathStorage.get(player.level()).graph();
+            PathGraph graph = IPathStorage.get(context.player().level()).graph();
             PathGraph.NetworkCache network = graph != null ? graph.getNetworkCache(networkId) : null;
-            
+
             if (network == null) {
                 ViaRomana.LOGGER.warn("Could not find network with ID {} for map request", networkId);
                 return;
             }
-            
+
             ServerMapCache.getMapData(networkId).ifPresentOrElse(result -> {
-                MapResponseS2C response = new MapResponseS2C(result.networkId(), result.minBounds(), result.maxBounds(), result.networkNodes(), result.pngData(), result.bakeScaleFactor());
+                MapResponseS2C response = MapResponseS2C.create(result.networkId(), result.minBounds(), result.maxBounds(), result.networkNodes(), result.pngData(), result.bakeScaleFactor());
                 if (ViaRomanaModVariables.networkHandler != null) {
-                    ViaRomanaModVariables.networkHandler.sendToPlayer(player, response);
+                    ViaRomanaModVariables.networkHandler.sendToPlayer(context.player(), response);
                 }
             }, () -> {
-                ServerLevel level = player.serverLevel();
+                ServerLevel level = context.player().serverLevel();
                 ServerMapCache.generateMapIfNeeded(networkId, level).thenAcceptAsync(produced -> {
                     if (produced != null && ViaRomanaModVariables.networkHandler != null) {
-                        MapResponseS2C response = new MapResponseS2C(produced.networkId(), produced.minBounds(), produced.maxBounds(), produced.networkNodes(), produced.pngData(), produced.bakeScaleFactor());
-                        ViaRomanaModVariables.networkHandler.sendToPlayer(player, response);
+                        MapResponseS2C response = MapResponseS2C.create(produced.networkId(), produced.minBounds(), produced.maxBounds(), produced.networkNodes(), produced.pngData(), produced.bakeScaleFactor());
+                        ViaRomanaModVariables.networkHandler.sendToPlayer(context.player(), response);
                     }
-                }, server);
+                }, context.server());
             });
         });
     }
     
-    private static void handleDestinationRequestC2S(MinecraftServer server, ServerPlayer player, ServerGamePacketListenerImpl handler, FriendlyByteBuf buf, PacketSender responseSender) {
-        DestinationRequestPacket message = new DestinationRequestPacket(buf);
-        server.execute(() -> {
-            BlockPos sourceSignPos = message.getSourceSignPos();
+    private static void handleDestinationRequestC2S(DestinationRequestPacket packet, ServerPlayNetworking.Context context) {
+        context.server().execute(() -> {
+            ServerPlayer player = context.player();
+            BlockPos sourceSignPos = packet.sourceSignPos();
             Level level = player.level();
             UUID playerUUID = player.getUUID();
             
@@ -312,7 +237,7 @@ public class ViaRomanaModPacketHandler {
             DestinationResponsePacket resp;
             {
                 java.util.UUID networkUuid = null;
-                var networkCache = graph.getNetworkCache(sourceNode); // compute via start node
+                var networkCache = graph.getNetworkCache(sourceNode);
                 if (networkCache != null) {
                     networkUuid = networkCache.id();
                 }
@@ -322,11 +247,11 @@ public class ViaRomanaModPacketHandler {
         });
     }
 
-    private static void handleSignValidationC2S(MinecraftServer server, ServerPlayer player, ServerGamePacketListenerImpl handler, FriendlyByteBuf buf, PacketSender responseSender) {
-        SignValidationC2S message = new SignValidationC2S(buf);
-        server.execute(() -> {
+    private static void handleSignValidationC2S(SignValidationC2S packet, ServerPlayNetworking.Context context) {
+        context.server().execute(() -> {
+            ServerPlayer player = context.player();
             ServerLevel level = player.serverLevel();
-            BlockPos nodePos = message.getNodePos();
+            BlockPos nodePos = packet.nodePos();
             
             IPathStorage storage = IPathStorage.get(level);
             PathGraph graph = storage.graph();
@@ -358,37 +283,36 @@ public class ViaRomanaModPacketHandler {
         });
     }
 
-    private static void handleChartedPathC2S(MinecraftServer server, ServerPlayer player, ServerGamePacketListenerImpl handler, FriendlyByteBuf buf, PacketSender responseSender) {
-        ChartedPathC2S message = new ChartedPathC2S(buf);
-        server.execute(() -> {
-            ServerLevel level = player.serverLevel();
+    private static void handleChartedPathC2S(ChartedPathC2S packet, ServerPlayNetworking.Context context) {
+        context.server().execute(() -> {
+            ServerLevel level = context.player().serverLevel();
             IPathStorage storage = IPathStorage.get(level);
-            
-            List<NodeData> chartingNodes = message.getChartedNodes();
-            
+
+            List<NodeData> chartingNodes = packet.getChartedNodes();
+
             if (chartingNodes.isEmpty()) {
-                ViaRomana.LOGGER.warn("Received empty charted path from player {}", player.getName().getString());
+                ViaRomana.LOGGER.warn("Received empty charted path from player {}", context.player().getName().getString());
                 return;
             }
 
             try {
                 storage.graph().createConnectedPath(chartingNodes);
                 storage.setDirty();
-                
+
                 PathSyncUtils.syncPathGraphToAllPlayers(level);
 
-                awardAdvancementIfNeeded(player, "via_romana:a_strand_type_game");
+                awardAdvancementIfNeeded(context.player(), "via_romana:a_strand_type_game");
 
-                ViaRomana.LOGGER.debug("Created charted path with {} nodes for player {}", chartingNodes.size(), player.getName().getString());
+                ViaRomana.LOGGER.debug("Created charted path with {} nodes for player {}", chartingNodes.size(), context.player().getName().getString());
             } catch (Exception e) {
-                ViaRomana.LOGGER.error("Failed to create charted path for player {}: {}", player.getName().getString(), e.getMessage());
+                ViaRomana.LOGGER.error("Failed to create charted path for player {}: {}", context.player().getName().getString(), e.getMessage());
             }
         });
     }
 
     private static void awardAdvancementIfNeeded(ServerPlayer player, String id) {
         try {
-            Advancement advancement = player.server.getAdvancements().getAdvancement(new ResourceLocation(id));
+            AdvancementHolder advancement = player.server.getAdvancements().get(ResourceLocation.parse(id));
             if (advancement != null) {
                 AdvancementProgress advancementProgress = player.getAdvancements().getOrStartProgress(advancement);
                 if (!advancementProgress.isDone()) {

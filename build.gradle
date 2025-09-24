@@ -22,12 +22,11 @@ dependencies {
 
 	mappings loom.layered() {
 		officialMojangMappings()
-		parchment("org.parchmentmc.data:parchment-1.20.1:2023.09.03@zip")
+		parchment("org.parchmentmc.data:parchment-1.21.1:2024.11.17@zip")
 	}
 
 	modImplementation libs.fl
 	modImplementation libs.fapi
-	modImplementation libs.cloth.config
 
 	modImplementation libs.midnightlib
 	include libs.midnightlib
@@ -58,7 +57,6 @@ processResources {
 		fl            : libs.versions.fl.get(),
 		fapi          : libs.versions.fapi.get(),
 		surveyor      : libs.versions.surveyor.get(),
-		cloth_config  : libs.versions.cloth.config.get(),
 		midnightlib   : libs.versions.midnightlib.get(),
 		supplementaries: libs.versions.supplementaries.get()
 	]
@@ -88,13 +86,13 @@ loom {
 
 tasks.withType(JavaCompile).configureEach {
 	it.options.encoding = "UTF-8"
-	it.options.release = 17
+	it.options.release = 21
 }
 
 java {
 	withSourcesJar()
-	sourceCompatibility = JavaVersion.VERSION_17
-	targetCompatibility = JavaVersion.VERSION_17
+	sourceCompatibility = JavaVersion.VERSION_21
+	targetCompatibility = JavaVersion.VERSION_21
 }
 
 sourceSets {

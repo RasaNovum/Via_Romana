@@ -30,12 +30,12 @@ public class ServerTeleportHandler {
         ServerLevel level = player.serverLevel();
         IPathStorage storage = IPathStorage.get(level);
 
-        if (storage == null || !validateOriginSign(level, packet.getOriginSignPos())) {
+        if (storage == null || !validateOriginSign(level, packet.originSignPos())) {
             // ViaRomanaLandmarkManager.removeDestinationLandmark(level, packet.getDestinationPos());
             return;
         }
 
-        storage.graph().getNodeAt(packet.getDestinationPos()).ifPresent(targetNode -> {
+        storage.graph().getNodeAt(packet.destinationPos()).ifPresent(targetNode -> {
             VariableAccess.playerVariables.setLastNodePos(player, targetNode.getBlockPos());
             VariableAccess.playerVariables.setFadeAmount(player, 0);
             VariableAccess.playerVariables.setFadeIncrease(player, true);

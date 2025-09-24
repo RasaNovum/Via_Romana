@@ -1,11 +1,9 @@
 package net.rasanovum.viaromana.client.gui;
 
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
@@ -14,7 +12,7 @@ import net.rasanovum.viaromana.client.data.ClientPathData;
 import net.rasanovum.viaromana.client.gui.elements.*;
 import net.rasanovum.viaromana.core.LinkHandler;
 import net.rasanovum.viaromana.network.LinkSignRequestPacket;
-import net.rasanovum.viaromana.network.ViaRomanaModPacketHandler;
+import net.rasanovum.viaromana.network.UnlinkSignRequestPacket;
 import net.rasanovum.viaromana.network.ViaRomanaModVariables;
 import net.rasanovum.viaromana.path.Node;
 
@@ -28,7 +26,7 @@ public class LinkSignScreen extends Screen {
     private static final int BACKGROUND_HEIGHT = 256;
     private static final int USABLE_WIDTH = 230;
     private static final int USABLE_HEIGHT = 160;
-    private static final ResourceLocation BACKGROUND_TEXTURE = new ResourceLocation("via_romana", "textures/screens/background_map.png");
+    private static final ResourceLocation BACKGROUND_TEXTURE = ResourceLocation.parse("via_romana:textures/screens/background_map.png");
     // endregion
 
     // region UI State
@@ -141,12 +139,10 @@ public class LinkSignScreen extends Screen {
             Component.translatable("gui.viaromana.unlink_button"),
             Component.translatable("gui.viaromana.unlink_tooltip"),
                 (value) -> {
-                    FriendlyByteBuf buf = PacketByteBufs.create();
-                    buf.writeBlockPos(this.signPos);
-                    ClientPlayNetworking.send(ViaRomanaModPacketHandler.UNLINK_SIGN_REQUEST_C2S, buf);
+                    ClientPlayNetworking.send(new UnlinkSignRequestPacket(this.signPos));
                     this.onClose();
                 },
-                new ResourceLocation("via_romana", "textures/screens/element_unlink.png")
+                ResourceLocation.parse("via_romana:textures/screens/element_unlink.png")
             );
             this.addRenderableWidget(this.unlinkButton);
         }
@@ -158,12 +154,12 @@ public class LinkSignScreen extends Screen {
     @Override
     public void tick() {
         super.tick();
-        this.destinationNameField.tick();
+        // this.destinationNameField.tick();
     }
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        super.renderBackground(guiGraphics);
+        super.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
         
         int panelX = (this.width - BACKGROUND_WIDTH) / 2;
         int panelY = (this.height - BACKGROUND_HEIGHT) / 2;

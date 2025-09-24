@@ -2,6 +2,7 @@ package net.rasanovum.viaromana.map;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
@@ -224,7 +225,7 @@ public final class ServerMapCache {
             try (InputStream pngStream = Files.newInputStream(pngPath);
                 InputStream metaStream = Files.newInputStream(metaPath)) {
                 png = pngStream.readAllBytes();
-                tag = NbtIo.readCompressed(metaStream);
+                tag = NbtIo.readCompressed(metaStream, new NbtAccounter(Long.MAX_VALUE, Integer.MAX_VALUE));
             } catch (NoSuchFileException e) {
                 return Optional.empty();
             }

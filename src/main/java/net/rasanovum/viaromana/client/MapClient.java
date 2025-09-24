@@ -55,7 +55,7 @@ public class MapClient {
         pendingRequest = future;
         
         if (ViaRomanaModVariables.networkHandler != null) {
-            MapRequestC2S packet = new MapRequestC2S(networkId, minBounds, maxBounds, networkNodes);
+            MapRequestC2S packet = MapRequestC2S.create(networkId, minBounds, maxBounds, networkNodes);
             ViaRomanaModVariables.networkHandler.sendToServer(packet);
         } else {
             future.complete(null);

@@ -37,7 +37,7 @@ public class FadeRenderer {
             RenderSystem.enableBlend();
             RenderSystem.defaultBlendFunc();
             RenderSystem.setShaderColor(0, 0, 0, alpha);
-            ResourceLocation blackTexture = new ResourceLocation("via_romana:textures/screens/black.png");
+            ResourceLocation blackTexture = ResourceLocation.parse("via_romana:textures/screens/black.png");
             guiGraphics.blit(blackTexture, 0, 0, 0, 0, screenWidth, screenHeight, screenWidth, screenHeight);
             RenderSystem.setShaderColor(1, 1, 1, 1);
         }

@@ -23,7 +23,7 @@ import java.util.Optional;
  */
 public record ViaRomanaLandmark(BlockPos pos, Component name, DyeColor color) implements Landmark<ViaRomanaLandmark> {
     public static final LandmarkType<ViaRomanaLandmark> TYPE = new SimpleLandmarkType<>(
-        new ResourceLocation(ViaRomana.MODID, "destination_landmark"),
+        ResourceLocation.parse("via_romana:destination_landmark"),
         pos -> RecordCodecBuilder.create(instance -> instance.group(
             Codec.STRING.optionalFieldOf("name").forGetter(landmark -> 
                 Optional.ofNullable(landmark.name()).map(Component::getString)),

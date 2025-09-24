@@ -58,7 +58,7 @@ public final class ChartingHandler {
         if (!(level instanceof Level lvl)) return;
 
         var pos  = BlockPos.containing(entity.getX(), entity.getY(), entity.getZ());
-        var snd  = BuiltInRegistries.SOUND_EVENT.get(new ResourceLocation("ui.cartography_table.take_result"));
+        var snd  = BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse("minecraft:ui.cartography_table.take_result"));
 
         if (lvl.isClientSide()) {
             lvl.playLocalSound(entity.getX(), entity.getY(), entity.getZ(), snd, SoundSource.PLAYERS, 1, 1, false);

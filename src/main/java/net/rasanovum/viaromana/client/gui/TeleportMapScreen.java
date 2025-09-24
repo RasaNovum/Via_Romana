@@ -59,16 +59,16 @@ public class TeleportMapScreen extends Screen {
     //region Initialization
     public TeleportMapScreen(DestinationResponsePacket packet) {
         super(Component.literal("Teleport Network"));
-        this.signPos = packet.getSignPos();
-        this.sourceNodePos = packet.getSourceNodePos();
-        this.networkId = packet.getNetworkId();
-        this.networkNodes = new ArrayList<>(packet.getNetworkNodes());
+        this.signPos = packet.signPos();
+        this.sourceNodePos = packet.sourceNodePos();
+        this.networkId = packet.networkId();
+        this.networkNodes = new ArrayList<>(packet.networkNodes());
 
-        this.destinations = packet.getDestinations().stream()
+        this.destinations = packet.destinations().stream()
             .map(dest -> new TeleportHelper.TeleportDestination(dest.position, dest.name, dest.distance, dest.icon))
             .collect(Collectors.toList());
 
-        this.networkNodeMap = packet.getNetworkNodes().stream()
+        this.networkNodeMap = packet.networkNodes().stream()
             .collect(Collectors.toMap(info -> info.position, info -> info));
 
         this.destinationPositions = this.destinations.stream()
@@ -129,7 +129,7 @@ public class TeleportMapScreen extends Screen {
     //region Main Render Loop
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-        super.renderBackground(guiGraphics);
+        super.renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
 
         if (this.mapTexture == null || this.minecraft == null || this.minecraft.player == null || this.mapRenderer == null) return;
         
@@ -252,7 +252,7 @@ public class TeleportMapScreen extends Screen {
                             .map(hovered -> hovered.position.equals(dest.position))
                             .orElse(false);
 
-                    ResourceLocation markerTexture = new ResourceLocation("via_romana", "textures/screens/marker_" + dest.icon.toString().toLowerCase() + ".png");
+                    ResourceLocation markerTexture = ResourceLocation.parse("via_romana:textures/screens/marker_" + dest.icon.toString().toLowerCase() + ".png");
                     int x = screenPos.x - MARKER_SIZE / 2;
                     int y = screenPos.y - MARKER_SIZE / 2;
 
@@ -283,7 +283,7 @@ public class TeleportMapScreen extends Screen {
         worldToScreen(player.blockPosition()).ifPresent(screenPos -> {
             int x = screenPos.x - PLAYER_MARKER_SIZE / 2;
             int y = screenPos.y - PLAYER_MARKER_SIZE / 2;
-            ResourceLocation skin = this.minecraft.getSkinManager().getInsecureSkinLocation(player.getGameProfile());
+            ResourceLocation skin = this.minecraft.getSkinManager().getInsecureSkin(player.getGameProfile()).texture();
 
             guiGraphics.pose().pushPose();
             RenderSystem.enableBlend();

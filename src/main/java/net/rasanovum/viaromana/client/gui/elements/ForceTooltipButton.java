@@ -15,8 +15,8 @@ public class ForceTooltipButton extends Button {
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
-        super.render(graphics, mouseX, mouseY, partialTicks);
+    public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+        super.renderWidget(graphics, mouseX, mouseY, partialTicks);
 
         if (this.isHoveredOrFocused()) {
             graphics.renderTooltip(Minecraft.getInstance().font, this.tooltip, mouseX, mouseY);

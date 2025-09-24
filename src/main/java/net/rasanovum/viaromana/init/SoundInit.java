@@ -14,7 +14,7 @@ public class SoundInit {
     public static final SoundEvent NODE_PULSE = register("ambient.node_pulse");
     
     private static SoundEvent register(String name) {
-        ResourceLocation id = new ResourceLocation(ViaRomana.MODID, name);
+        ResourceLocation id = ResourceLocation.parse("via_romana:" + name);
         return Registry.register(BuiltInRegistries.SOUND_EVENT, id, SoundEvent.createVariableRangeEvent(id));
     }
     

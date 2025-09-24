@@ -2,7 +2,6 @@ package net.rasanovum.viaromana.client.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.language.I18n;
@@ -18,7 +17,6 @@ import net.rasanovum.viaromana.client.gui.elements.MapActionButton;
 import net.rasanovum.viaromana.client.gui.elements.MapSquareButton;
 import net.rasanovum.viaromana.configuration.ViaRomanaConfig;
 import net.rasanovum.viaromana.network.RoutedActionC2S;
-import net.rasanovum.viaromana.network.ViaRomanaModPacketHandler;
 import net.rasanovum.viaromana.util.PathUtils;
 import net.rasanovum.viaromana.variables.VariableAccess;
 
@@ -36,39 +34,39 @@ public class ChartingScreen extends Screen {
     private static final int LARGE_BUTTON_SIZE = 80;
 
     private static final class Textures {
-        static final ResourceLocation BACKGROUND = new ResourceLocation("via_romana", "textures/screens/background_map.png");
-        static final ResourceLocation CHARTING_OVERLAY = new ResourceLocation("via_romana", "textures/screens/background_map_charting.png");
-        static final ResourceLocation MAP_CANCEL = new ResourceLocation("via_romana", "textures/screens/element_cancel.png");
-        static final ResourceLocation MAP_TUTORIAL = new ResourceLocation("via_romana", "textures/screens/element_tutorial.png");
-        static final ResourceLocation MAP_TUTORIAL_BACK = new ResourceLocation("via_romana", "textures/screens/element_tutorial_back.png");
-        static final ResourceLocation MAP_TUTORIAL_NEXT = new ResourceLocation("via_romana", "textures/screens/element_tutorial_next.png");
-        static final ResourceLocation MAP_TUTORIAL_RETURN = new ResourceLocation("via_romana", "textures/screens/element_return.png");
-        static final ResourceLocation CHART_START_TILE = new ResourceLocation("via_romana", "textures/screens/chart_start_tile.png");
-        static final ResourceLocation CHART_START_FRAME = new ResourceLocation("via_romana", "textures/screens/chart_start_frame.png");
-        static final ResourceLocation CHART_FINISH_TILE = new ResourceLocation("via_romana", "textures/screens/chart_finish_tile.png");
-        static final ResourceLocation CHART_FINISH_FRAME = new ResourceLocation("via_romana", "textures/screens/chart_finish_frame.png");
-        static final ResourceLocation SEVER_PATH_TILE = new ResourceLocation("via_romana", "textures/screens/chart_sever_tile.png");
-        static final ResourceLocation SEVER_PATH_FRAME = new ResourceLocation("via_romana", "textures/screens/chart_sever_frame.png");
-        static final ResourceLocation DELETE_BRANCH_TILE = new ResourceLocation("via_romana", "textures/screens/chart_delete_branch_tile.png");
-        static final ResourceLocation DELETE_BRANCH_FRAME = new ResourceLocation("via_romana", "textures/screens/chart_delete_branch_frame.png");
-        static final ResourceLocation SEAL_APPROVE = new ResourceLocation("via_romana", "textures/screens/seal_approve.png");
-        static final ResourceLocation SEAL_CANCEL = new ResourceLocation("via_romana", "textures/screens/seal_cancel.png");
-        static final ResourceLocation TUTORIAL_1 = new ResourceLocation("via_romana", "textures/screens/tutorial_1.png");
-        static final ResourceLocation TUTORIAL_2 = new ResourceLocation("via_romana", "textures/screens/tutorial_2.png");
-        static final ResourceLocation TUTORIAL_3 = new ResourceLocation("via_romana", "textures/screens/tutorial_3.png");
-        static final ResourceLocation TUTORIAL_4 = new ResourceLocation("via_romana", "textures/screens/tutorial_4.png");
-        static final ResourceLocation TUTORIAL_5 = new ResourceLocation("via_romana", "textures/screens/tutorial_5.png");
-        static final ResourceLocation TUTORIAL_6 = new ResourceLocation("via_romana", "textures/screens/tutorial_6.png");
-        static final ResourceLocation TUTORIAL_7 = new ResourceLocation("via_romana", "textures/screens/tutorial_7.png");
-        static final ResourceLocation TUTORIAL_8 = new ResourceLocation("via_romana", "textures/screens/tutorial_8.png");
+        static final ResourceLocation BACKGROUND = ResourceLocation.parse("via_romana:textures/screens/background_map.png");
+        static final ResourceLocation CHARTING_OVERLAY = ResourceLocation.parse("via_romana:textures/screens/background_map_charting.png");
+        static final ResourceLocation MAP_CANCEL = ResourceLocation.parse("via_romana:textures/screens/element_cancel.png");
+        static final ResourceLocation MAP_TUTORIAL = ResourceLocation.parse("via_romana:textures/screens/element_tutorial.png");
+        static final ResourceLocation MAP_TUTORIAL_BACK = ResourceLocation.parse("via_romana:textures/screens/element_tutorial_back.png");
+        static final ResourceLocation MAP_TUTORIAL_NEXT = ResourceLocation.parse("via_romana:textures/screens/element_tutorial_next.png");
+        static final ResourceLocation MAP_TUTORIAL_RETURN = ResourceLocation.parse("via_romana:textures/screens/element_return.png");
+        static final ResourceLocation CHART_START_TILE = ResourceLocation.parse("via_romana:textures/screens/chart_start_tile.png");
+        static final ResourceLocation CHART_START_FRAME = ResourceLocation.parse("via_romana:textures/screens/chart_start_frame.png");
+        static final ResourceLocation CHART_FINISH_TILE = ResourceLocation.parse("via_romana:textures/screens/chart_finish_tile.png");
+        static final ResourceLocation CHART_FINISH_FRAME = ResourceLocation.parse("via_romana:textures/screens/chart_finish_frame.png");
+        static final ResourceLocation SEVER_PATH_TILE = ResourceLocation.parse("via_romana:textures/screens/chart_sever_tile.png");
+        static final ResourceLocation SEVER_PATH_FRAME = ResourceLocation.parse("via_romana:textures/screens/chart_sever_frame.png");
+        static final ResourceLocation DELETE_BRANCH_TILE = ResourceLocation.parse("via_romana:textures/screens/chart_delete_branch_tile.png");
+        static final ResourceLocation DELETE_BRANCH_FRAME = ResourceLocation.parse("via_romana:textures/screens/chart_delete_branch_frame.png");
+        static final ResourceLocation SEAL_APPROVE = ResourceLocation.parse("via_romana:textures/screens/seal_approve.png");
+        static final ResourceLocation SEAL_CANCEL = ResourceLocation.parse("via_romana:textures/screens/seal_cancel.png");
+        static final ResourceLocation TUTORIAL_1 = ResourceLocation.parse("via_romana:textures/screens/tutorial_1.png");
+        static final ResourceLocation TUTORIAL_2 = ResourceLocation.parse("via_romana:textures/screens/tutorial_2.png");
+        static final ResourceLocation TUTORIAL_3 = ResourceLocation.parse("via_romana:textures/screens/tutorial_3.png");
+        static final ResourceLocation TUTORIAL_4 = ResourceLocation.parse("via_romana:textures/screens/tutorial_4.png");
+        static final ResourceLocation TUTORIAL_5 = ResourceLocation.parse("via_romana:textures/screens/tutorial_5.png");
+        static final ResourceLocation TUTORIAL_6 = ResourceLocation.parse("via_romana:textures/screens/tutorial_6.png");
+        static final ResourceLocation TUTORIAL_7 = ResourceLocation.parse("via_romana:textures/screens/tutorial_7.png");
+        static final ResourceLocation TUTORIAL_8 = ResourceLocation.parse("via_romana:textures/screens/tutorial_8.png");
     }
 
     private static final class Sounds {
-        static final ResourceLocation SEVER_PATH = new ResourceLocation("minecraft", "entity.sheep.shear");
-        static final ResourceLocation DELETE_BRANCH_PROMPT = new ResourceLocation("minecraft", "item.flintandsteel.use");
-        static final ResourceLocation DELETE_BRANCH_CONFIRM = new ResourceLocation("minecraft", "block.fire.ambient");
-        static final ResourceLocation DELETE_BRANCH_CANCEL = new ResourceLocation("minecraft", "block.fire.extinguish");
-        static final ResourceLocation START_CHARTING = new ResourceLocation("minecraft", "item.book.page_turn");
+        static final ResourceLocation SEVER_PATH = ResourceLocation.parse("minecraft:entity.sheep.shear");
+        static final ResourceLocation DELETE_BRANCH_PROMPT = ResourceLocation.parse("minecraft:item.flintandsteel.use");
+        static final ResourceLocation DELETE_BRANCH_CONFIRM = ResourceLocation.parse("minecraft:block.fire.ambient");
+        static final ResourceLocation DELETE_BRANCH_CANCEL = ResourceLocation.parse("minecraft:block.fire.extinguish");
+        static final ResourceLocation START_CHARTING = ResourceLocation.parse("minecraft:item.book.page_turn");
     }
     // endregion
 
@@ -101,21 +99,32 @@ public class ChartingScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         renderBackgroundTexture(guiGraphics);
+    }
 
-        if (this.currentScreenState == ScreenState.DELETE_APPROVAL) {
-            super.renderBackground(guiGraphics);
-        }
-
-        renderHeader(guiGraphics);
+    @Override
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
 
         super.render(guiGraphics, mouseX, mouseY, partialTick);
+
+        renderHeader(guiGraphics);
 
         if (this.currentScreenState == ScreenState.TUTORIAL) {
             renderTutorialContent(guiGraphics);
         } else if (this.currentScreenState == ScreenState.DELETE_APPROVAL) {
+            this.minecraft.gameRenderer.processBlurEffect(partialTick);
+            this.minecraft.getMainRenderTarget().bindWrite(false);
+            
+            guiGraphics.fillGradient(0, 0, this.width, this.height, 0x80000000, 0x80000000);
+            
             renderApprovalText(guiGraphics);
+            
+            withSealButtonsVisible(() -> {
+                sealApproveButton.render(guiGraphics, mouseX, mouseY, partialTick);
+                sealCancelButton.render(guiGraphics, mouseX, mouseY, partialTick);
+            });
         }
         
         if (this.currentScreenState == ScreenState.TUTORIAL) {
@@ -124,10 +133,12 @@ public class ChartingScreen extends Screen {
     }
 
     private void renderBackgroundTexture(GuiGraphics guiGraphics) {
+        RenderSystem.enableBlend();
         guiGraphics.blit(Textures.BACKGROUND, panelX, panelY, 0, 0, BACKGROUND_WIDTH, BACKGROUND_HEIGHT, BACKGROUND_WIDTH, BACKGROUND_HEIGHT);
         if (this.currentScreenState == ScreenState.CHARTING) {
             guiGraphics.blit(Textures.CHARTING_OVERLAY, panelX, panelY, 0, 0, BACKGROUND_WIDTH, BACKGROUND_HEIGHT, BACKGROUND_WIDTH, BACKGROUND_HEIGHT);
         }
+        RenderSystem.disableBlend();
     }
 
     private void renderHeader(GuiGraphics guiGraphics) {
@@ -314,7 +325,29 @@ public class ChartingScreen extends Screen {
     }
 
     @Override
+    public void mouseMoved(double mouseX, double mouseY) {
+        if (this.currentScreenState == ScreenState.DELETE_APPROVAL) {
+            withSealButtonsVisible(() -> {
+                sealApproveButton.mouseMoved(mouseX, mouseY);
+                sealCancelButton.mouseMoved(mouseX, mouseY);
+            });
+        }
+        super.mouseMoved(mouseX, mouseY);
+    }
+
+    @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (this.currentScreenState == ScreenState.DELETE_APPROVAL && button == 0) {
+            final boolean[] handled = {false};
+            withSealButtonsVisible(() -> {
+                if (sealApproveButton.mouseClicked(mouseX, mouseY, button) || 
+                    sealCancelButton.mouseClicked(mouseX, mouseY, button)) {
+                    handled[0] = true;
+                }
+            });
+            if (handled[0]) return true;
+        }
+        
         if (button == 1) { // Right click
             Objects.requireNonNull(minecraft).setScreen(null);
             return true;
@@ -323,10 +356,25 @@ public class ChartingScreen extends Screen {
     }
 
     private void sendRoutedAction(RoutedActionC2S.Operation operation) {
-        var buf = PacketByteBufs.create();
-        new RoutedActionC2S(operation).write(buf);
-        ClientPlayNetworking.send(ViaRomanaModPacketHandler.ACTION_REQUEST_C2S, buf);
+        RoutedActionC2S packet = new RoutedActionC2S(operation);
+        ClientPlayNetworking.send(packet);
         Objects.requireNonNull(minecraft).setScreen(null);
+    }
+    
+    /**
+     * Temporarily makes seal buttons visible, executes the action, then restores visibility.
+     */
+    private void withSealButtonsVisible(Runnable action) {
+        boolean wasApproveVisible = sealApproveButton.visible;
+        boolean wasCancelVisible = sealCancelButton.visible;
+        
+        sealApproveButton.visible = true;
+        sealCancelButton.visible = true;
+        
+        action.run();
+        
+        sealApproveButton.visible = wasApproveVisible;
+        sealCancelButton.visible = wasCancelVisible;
     }
     // endregion
 
@@ -372,8 +420,8 @@ public class ChartingScreen extends Screen {
         deleteBranchButton.visible = !isTutorial;
         chartStartButton.visible = isIdle || isApproving;
         chartFinishButton.visible = isCharting;
-        sealApproveButton.visible = isApproving;
-        sealCancelButton.visible = isApproving;
+        sealApproveButton.visible = false;
+        sealCancelButton.visible = false;
         cancelChartingButton.visible = isCharting;
         exitTutorialButton.visible = isTutorial;
         tutorialButton.visible = isIdle;

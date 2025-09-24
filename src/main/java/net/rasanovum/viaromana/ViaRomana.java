@@ -7,6 +7,7 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.resources.ResourceLocation;
 import net.rasanovum.viaromana.command.ViaRomanaCommands;
@@ -15,8 +16,7 @@ import net.rasanovum.viaromana.core.DimensionHandler;
 import net.rasanovum.viaromana.core.ResetVariables;
 import net.rasanovum.viaromana.init.*;
 import net.rasanovum.viaromana.map.ServerMapCache;
-import net.rasanovum.viaromana.network.ViaRomanaModPacketHandler;
-import net.rasanovum.viaromana.network.ViaRomanaModVariables;
+import net.rasanovum.viaromana.network.*;
 import net.rasanovum.viaromana.surveyor.ViaRomanaLandmarkManager;
 import net.rasanovum.viaromana.tags.TagGenerator;
 
@@ -29,7 +29,7 @@ public class ViaRomana implements ModInitializer {
     public static final Logger LOGGER = LogManager.getLogger();
     public static final String MODID = "via_romana";
 
-    public static final RuntimeResourcePack RUNTIME_PACK = RuntimeResourcePack.create(new ResourceLocation(MODID, "runtime_pack"));
+    public static final RuntimeResourcePack RUNTIME_PACK = RuntimeResourcePack.create(ResourceLocation.parse("via_romana:runtime_pack"));
 
     @Override
     public void onInitialize() {
@@ -37,6 +37,25 @@ public class ViaRomana implements ModInitializer {
 
         MidnightConfig.init(MODID, ViaRomanaConfig.class);
         WorldSummary.enableTerrain();
+
+        // Register payload types
+        PayloadTypeRegistry.playC2S().register(ViaRomanaModVariables.PlayerVariablesSyncMessage.TYPE, ViaRomanaModVariables.PlayerVariablesSyncMessage.STREAM_CODEC);
+        PayloadTypeRegistry.playC2S().register(TeleportRequestPacket.TYPE, TeleportRequestPacket.STREAM_CODEC);
+        PayloadTypeRegistry.playC2S().register(LinkSignRequestPacket.TYPE, LinkSignRequestPacket.STREAM_CODEC);
+        PayloadTypeRegistry.playC2S().register(UnlinkSignRequestPacket.TYPE, UnlinkSignRequestPacket.STREAM_CODEC);
+        PayloadTypeRegistry.playC2S().register(DestinationRequestPacket.TYPE, DestinationRequestPacket.STREAM_CODEC);
+        PayloadTypeRegistry.playC2S().register(SignValidationC2S.TYPE, SignValidationC2S.STREAM_CODEC);
+        PayloadTypeRegistry.playC2S().register(MapRequestC2S.TYPE, MapRequestC2S.STREAM_CODEC);
+        PayloadTypeRegistry.playC2S().register(ChartedPathC2S.TYPE, ChartedPathC2S.STREAM_CODEC);
+        PayloadTypeRegistry.playC2S().register(RoutedActionC2S.TYPE, RoutedActionC2S.STREAM_CODEC);
+
+        PayloadTypeRegistry.playS2C().register(ViaRomanaModVariables.PlayerVariablesSyncMessage.TYPE, ViaRomanaModVariables.PlayerVariablesSyncMessage.STREAM_CODEC);
+        PayloadTypeRegistry.playS2C().register(DestinationResponsePacket.TYPE, DestinationResponsePacket.STREAM_CODEC);
+        PayloadTypeRegistry.playS2C().register(MapResponseS2C.TYPE, MapResponseS2C.STREAM_CODEC);
+        PayloadTypeRegistry.playS2C().register(SignValidationS2C.TYPE, SignValidationS2C.STREAM_CODEC);
+        PayloadTypeRegistry.playS2C().register(OpenChartingScreenS2C.TYPE, OpenChartingScreenS2C.STREAM_CODEC);
+        PayloadTypeRegistry.playS2C().register(PathGraphSyncPacket.TYPE, PathGraphSyncPacket.STREAM_CODEC);
+        PayloadTypeRegistry.playS2C().register(OpenWarpBlockScreenS2C.TYPE, OpenWarpBlockScreenS2C.STREAM_CODEC);
 
         BlockInit.load();
         EffectInit.load();

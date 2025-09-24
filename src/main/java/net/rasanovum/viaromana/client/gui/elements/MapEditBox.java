@@ -21,13 +21,8 @@ public class MapEditBox extends EditBox {
     }
     
     @Override
-    public void tick() {
-        super.tick();
-        this.frame++;
-    }
-
-    @Override
     public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        this.frame++;
         if (!this.isVisible()) {
             return;
         }

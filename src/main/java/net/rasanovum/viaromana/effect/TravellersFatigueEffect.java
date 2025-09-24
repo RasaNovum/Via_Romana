@@ -12,14 +12,4 @@ public class TravellersFatigueEffect extends MobEffect {
 	public String getDescriptionId() {
 		return "effect.via_romana.travellers_fatigue";
 	}
-
-	@Override
-	public boolean isInstantenous() {
-		return false;
-	}
-
-	@Override
-	public boolean isDurationEffectTick(int duration, int amplifier) {
-		return true;
-	}
 }

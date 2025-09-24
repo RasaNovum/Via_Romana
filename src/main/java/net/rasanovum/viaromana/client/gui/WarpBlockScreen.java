@@ -11,7 +11,7 @@ import net.minecraft.resources.ResourceLocation;
  * Screen that opens when right-clicking a warp block, made for modpack developers
  */
 public class WarpBlockScreen extends Screen {
-    private static final ResourceLocation WARP_BLOCK_TEXTURE = new ResourceLocation("via_romana", "textures/screens/warp_block_texture.png");
+    private static final ResourceLocation WARP_BLOCK_TEXTURE = ResourceLocation.parse("via_romana:textures/screens/warp_block_texture.png");
     private final BlockPos blockPos;
 
     public WarpBlockScreen(BlockPos blockPos) {
@@ -38,7 +38,7 @@ public class WarpBlockScreen extends Screen {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(guiGraphics);
+        this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
 
         Component title = this.getTitle();
         int titleWidth = this.font.width(title);

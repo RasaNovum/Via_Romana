@@ -28,7 +28,7 @@ public class LinkHandler {
      */
     public static boolean isSignBlock(LevelAccessor world, BlockPos blockPos) {
         BlockState targetBlock = world.getBlockState(blockPos);
-        if (targetBlock.is(TagKey.create(Registries.BLOCK, new ResourceLocation("via_romana", "warp_block")))) return true;
+        if (targetBlock.is(TagKey.create(Registries.BLOCK, ResourceLocation.parse("via_romana:warp_block")))) return true;
         return false;
     }
 

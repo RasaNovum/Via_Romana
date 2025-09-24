@@ -16,14 +16,15 @@ public class RenderInit {
 	public static void load() {
 		HudRenderCallback.EVENT.register((matrices, tickDelta) -> {
 			VignetteRenderer.renderVignette(matrices);
-			FadeRenderer.render(matrices, tickDelta);
+			FadeRenderer.render(matrices, tickDelta.getGameTimeDeltaTicks());
 		});
 		
 		WorldRenderEvents.LAST.register((context) -> {
 			Minecraft mc = Minecraft.getInstance();
 			if (mc.player != null && mc.level != null) {
-				NodeRenderer.renderNodeBeams(context.matrixStack(), mc.level, mc.player, context.tickDelta());
-				InvalidBlockRenderer.renderInfrastructureBlocks(context.matrixStack(), mc.level, mc.player, context.tickDelta());
+				float tickDelta = mc.getTimer().getGameTimeDeltaTicks();
+				NodeRenderer.renderNodeBeams(context.matrixStack(), mc.level, mc.player, tickDelta);
+				InvalidBlockRenderer.renderInfrastructureBlocks(context.matrixStack(), mc.level, mc.player, tickDelta);
 			}
 		});
 	}

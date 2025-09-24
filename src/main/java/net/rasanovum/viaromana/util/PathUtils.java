@@ -28,7 +28,7 @@ public class PathUtils {
 
         BlockState blockState = world.getBlockState(targetBlock);
 
-        if (blockState.is(TagKey.create(Registries.BLOCK, new ResourceLocation("via_romana", "path_block")))) return true;
+        if (blockState.is(TagKey.create(Registries.BLOCK, ResourceLocation.parse("via_romana:path_block")))) return true;
 
         return false;
     }

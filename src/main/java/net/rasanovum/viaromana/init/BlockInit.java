@@ -18,7 +18,7 @@ public class BlockInit {
     }
 
     private static void registerBlock(String name, Block block) {
-        ResourceLocation id = new ResourceLocation(ViaRomana.MODID, name);
+        ResourceLocation id = ResourceLocation.parse("via_romana:" + name);
         Registry.register(BuiltInRegistries.BLOCK, id, block);
         Registry.register(BuiltInRegistries.ITEM, id, new BlockItem(block, new Item.Properties()));
     }

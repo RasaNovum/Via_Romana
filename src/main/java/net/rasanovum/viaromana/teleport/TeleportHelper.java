@@ -96,8 +96,8 @@ public class TeleportHelper {
         
         BlockState blockState = world.getBlockState(soundSource);
         ResourceLocation soundId = BuiltInRegistries.SOUND_EVENT.getKey(blockState.getSoundType().getStepSound());
-        
-        if (soundId == null) soundId = new ResourceLocation("block.grass.step");
+
+        if (soundId == null) soundId = ResourceLocation.parse("minecraft:block.grass.step");
 
         if (!level.isClientSide()) {
             level.playSound(null, soundSource, BuiltInRegistries.SOUND_EVENT.get(soundId), SoundSource.BLOCKS, 0.2f, 1f);

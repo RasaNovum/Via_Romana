@@ -2,6 +2,9 @@ package net.rasanovum.viaromana.network;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.rasanovum.viaromana.path.Node.NodeData;
 
 import java.util.ArrayList;
@@ -12,31 +15,42 @@ import java.util.List;
  * Contains all the temporary nodes that should be converted to permanent nodes
  * and connected as a path on the server-side PathGraph.
  */
-public class ChartedPathC2S {
-    private final List<NodeData> chartedNodes;
+public record ChartedPathC2S(List<NodeData> chartedNodes) implements CustomPacketPayload {
+    public static final CustomPacketPayload.Type<ChartedPathC2S> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.parse("via_romana:charted_path_c2s"));
+
+    public static final StreamCodec<FriendlyByteBuf, ChartedPathC2S> STREAM_CODEC = new StreamCodec<>() {
+        @Override
+        public ChartedPathC2S decode(FriendlyByteBuf buffer) {
+            int nodeCount = buffer.readInt();
+            List<NodeData> chartedNodes = new ArrayList<>(nodeCount);
+
+            for (int i = 0; i < nodeCount; i++) {
+                BlockPos pos = buffer.readBlockPos();
+                float quality = buffer.readFloat();
+                chartedNodes.add(new NodeData(pos, quality));
+            }
+
+            return new ChartedPathC2S(chartedNodes);
+        }
+
+        @Override
+        public void encode(FriendlyByteBuf buffer, ChartedPathC2S packet) {
+            buffer.writeInt(packet.chartedNodes.size());
+
+            for (NodeData nodeData : packet.chartedNodes) {
+                buffer.writeBlockPos(nodeData.pos());
+                buffer.writeFloat(nodeData.quality());
+            }
+        }
+    };
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
 
     public ChartedPathC2S(List<NodeData> chartedNodes) {
-        this.chartedNodes = chartedNodes != null ? new ArrayList<>(chartedNodes) : new ArrayList<>();
-    }
-
-    public ChartedPathC2S(FriendlyByteBuf buffer) {
-        int nodeCount = buffer.readInt();
-        this.chartedNodes = new ArrayList<>(nodeCount);
-        
-        for (int i = 0; i < nodeCount; i++) {
-            BlockPos pos = buffer.readBlockPos();
-            float quality = buffer.readFloat();
-            this.chartedNodes.add(new NodeData(pos, quality));
-        }
-    }
-
-    public void write(FriendlyByteBuf buffer) {
-        buffer.writeInt(chartedNodes.size());
-        
-        for (NodeData nodeData : chartedNodes) {
-            buffer.writeBlockPos(nodeData.pos());
-            buffer.writeFloat(nodeData.quality());
-        }
+        this.chartedNodes = chartedNodes != null ? List.copyOf(chartedNodes) : List.of();
     }
 
     public List<NodeData> getChartedNodes() {

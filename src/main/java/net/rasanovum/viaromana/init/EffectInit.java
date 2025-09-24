@@ -11,6 +11,6 @@ public class EffectInit {
 	public static MobEffect TRAVELLERS_FATIGUE;
 
 	public static void load() {
-		TRAVELLERS_FATIGUE = Registry.register(BuiltInRegistries.MOB_EFFECT, new ResourceLocation(ViaRomana.MODID, "travellers_fatigue"), new TravellersFatigueEffect());
+		TRAVELLERS_FATIGUE = Registry.register(BuiltInRegistries.MOB_EFFECT, ResourceLocation.parse("via_romana:travellers_fatigue"), new TravellersFatigueEffect());
 	}
 }

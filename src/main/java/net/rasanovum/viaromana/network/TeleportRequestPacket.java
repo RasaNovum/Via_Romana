@@ -2,31 +2,21 @@ package net.rasanovum.viaromana.network;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 
-public class TeleportRequestPacket {
-    private final BlockPos originSignPos;
-    private final BlockPos destinationPos;
+public record TeleportRequestPacket(BlockPos originSignPos, BlockPos destinationPos) implements CustomPacketPayload {
+    public static final CustomPacketPayload.Type<TeleportRequestPacket> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.parse("viaromana:teleport_request_c2s"));
 
-    public TeleportRequestPacket(BlockPos originSignPos, BlockPos destinationPos) {
-        this.originSignPos = originSignPos;
-        this.destinationPos = destinationPos;
-    }
+    public static final StreamCodec<FriendlyByteBuf, TeleportRequestPacket> STREAM_CODEC = StreamCodec.composite(
+        BlockPos.STREAM_CODEC, TeleportRequestPacket::originSignPos,
+        BlockPos.STREAM_CODEC, TeleportRequestPacket::destinationPos,
+        TeleportRequestPacket::new
+    );
 
-    public TeleportRequestPacket(FriendlyByteBuf buffer) {
-        this.originSignPos = buffer.readBlockPos();
-        this.destinationPos = buffer.readBlockPos();
-    }
-
-    public void write(FriendlyByteBuf buffer) {
-        buffer.writeBlockPos(originSignPos);
-        buffer.writeBlockPos(destinationPos);
-    }
-
-    public BlockPos getOriginSignPos() {
-        return originSignPos;
-    }
-
-    public BlockPos getDestinationPos() {
-        return destinationPos;
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }
