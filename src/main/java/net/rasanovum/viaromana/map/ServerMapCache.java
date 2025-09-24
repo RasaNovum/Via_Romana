@@ -246,6 +246,8 @@ public final class ServerMapCache {
 
     public static void invalidate(UUID networkId) {
         dirtyNetworks.remove(networkId);
+        cache.remove(networkId);
+        modifiedForSaving.remove(networkId);
 
         try {
             Path mapDir = getMapDirectory();
