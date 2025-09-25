@@ -13,7 +13,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.rasanovum.viaromana.CommonConfig;
-import net.rasanovum.viaromana.client.ClientConfig;
 import net.rasanovum.viaromana.items.ChartingMap;
 import net.rasanovum.viaromana.util.PathUtils;
 import net.rasanovum.viaromana.variables.VariableAccess;
@@ -24,7 +23,7 @@ public class InvalidBlockRenderer {
     private static final int FADE_BUFFER = 3;
 
     private static float getAlpha() {
-        return (float) ClientConfig.invalid_block_overlay_opacity;
+        return (float) CommonConfig.invalid_block_overlay_opacity;
     }
 
     private static int getRegionSize() {

@@ -10,7 +10,7 @@ import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
-import net.rasanovum.viaromana.ViaRomana;
+// import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.client.core.PathRecord;
 import net.rasanovum.viaromana.client.data.ClientPathData;
 import net.rasanovum.viaromana.client.gui.elements.MapActionButton;
@@ -578,11 +578,11 @@ public class ChartingScreen extends Screen {
         return new MapActionButton(usableX + USABLE_WIDTH - btnWidth - PADDING + 10, usableY + USABLE_HEIGHT - btnHeight - PADDING, btnWidth, btnHeight,
             Component.translatable("gui.viaromana.tutorial_title"), Component.translatable("gui.viaromana.tutorial_tooltip"),
             button -> {
-                if (!VariableAccess.playerVariables.hasReceivedTutorial(this.minecraft.player)) {
-                    VariableAccess.playerVariables.setReceivedTutorial(this.minecraft.player, true);
-                    VariableAccess.playerVariables.syncAndSave(this.minecraft.player);
-                    ViaRomana.LOGGER.info("Player {} has completed the tutorial.", this.minecraft.player.getName().getString());
-                }
+                // if (!VariableAccess.playerVariables.hasReceivedTutorial(this.minecraft.player)) {
+                //     VariableAccess.playerVariables.setReceivedTutorial(this.minecraft.player, true);
+                //     VariableAccess.playerVariables.syncAndSave(this.minecraft.player);
+                //     ViaRomana.LOGGER.info("Player {} has completed the tutorial.", this.minecraft.player.getName().getString());
+                // }
 
                 setState(ScreenState.TUTORIAL);
             },
