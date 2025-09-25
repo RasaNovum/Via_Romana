@@ -51,13 +51,6 @@ ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.${ modId }]]
-modId = "brrp"
-type = "optional"
-versionRange = "[${brrp},)"
-ordering = "NONE"
-side = "BOTH"
-
-[[dependencies.${ modId }]]
 modId = "supplementaries"
 type = "optional"
 versionRange = "[${forgeSupplementaries},)"

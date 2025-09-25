@@ -5,7 +5,12 @@ plugins {
 	alias libs.plugins.minotaur
 }
 
-version = "$baseVersion+$compatibleVersions"
+// True for Fabric jar, False for NeoForge jar, scuffed but we ball
+ext.fabric = true
+
+if (fabric) version = "$baseVersion+$compatibleVersions-fabric"
+else version = "$baseVersion+$compatibleVersions-neoforge"
+
 archivesBaseName = project.slug
 
 repositories {
@@ -31,11 +36,13 @@ dependencies {
 
 	modImplementation libs.surveyor
 	include libs.surveyor
+
 	modImplementation libs.midnightlib
-	include libs.midnightlib
+	if (fabric) include libs.midnightlib
+
 	modImplementation libs.brrp
-	include libs.brrp
-	shadow(libs.brrp) { transitive = false }
+	if (fabric) include libs.brrp
+	if (!fabric) shadow(libs.brrp) { transitive = false }
 
 	modCompileOnly libs.supplementaries
 
@@ -69,7 +76,7 @@ processResources {
 	]
 	inputs.properties(meta)
 	filesMatching("*.mod.json") { expand(meta) }
-	filesMatching("META-INF/*neoforge.mods.toml") { expand(meta) }
+	if (!fabric) filesMatching("META-INF/*neoforge.mods.toml") { expand(meta) }
 }
 
 loom {
@@ -100,15 +107,43 @@ shadowJar {
 		include(dependency('pers.solid:brrp-fabric'))
 	}
 	
-	filesMatching('**/brrp-v1-recipes.mixins.json') {
-		filter { line ->
-			if (line.contains('"CookingRecipeJsonBuilderMixin"') ||
-				line.contains('"ShapedRecipeJsonBuilderMixin"') ||
-				line.contains('"ShapelessRecipeJsonBuilderMixin"')) {
-				return null
-			}
-			return line
+	doLast {
+		def jarFile = archiveFile.get().asFile
+		def tempDir = File.createTempDir()
+		
+		copy {
+			from zipTree(jarFile)
+			into tempDir
 		}
+		
+		// Modify the mixins.json
+		def mixinsFile = new File(tempDir, 'brrp-v1-recipes.mixins.json')
+		if (mixinsFile.exists()) {
+			def originalContent = mixinsFile.text
+			def modifiedContent = originalContent
+				.replaceAll(/\s*"CookingRecipeJsonBuilderMixin",?\s*\n?/, '')
+				.replaceAll(/\s*"ShapedRecipeJsonBuilderMixin",?\s*\n?/, '')
+				.replaceAll(/\s*"ShapelessRecipeJsonBuilderMixin",?\s*\n?/, '')
+			mixinsFile.text = modifiedContent
+		}
+		
+		// Modify the refmap.json
+		def refmapFile = new File(tempDir, 'brrp-v1-common-refmap.json')
+		if (refmapFile.exists()) {
+			def originalContent = refmapFile.text
+			def modifiedContent = originalContent
+				.replaceAll(/"pers\/solid\/brrp\/v1\/recipe\/mixin\/CookingRecipeJsonBuilderMixin"\s*:\s*\{[^}]*\},?\s*\n?/, '')
+				.replaceAll(/"pers\/solid\/brrp\/v1\/recipe\/mixin\/ShapedRecipeJsonBuilderMixin"\s*:\s*\{[^}]*\},?\s*\n?/, '')
+				.replaceAll(/"pers\/solid\/brrp\/v1\/recipe\/mixin\/ShapelessRecipeJsonBuilderMixin"\s*:\s*\{[^}]*\},?\s*\n?/, '')
+			refmapFile.text = modifiedContent
+		}
+		
+		delete jarFile
+		ant.jar(destfile: jarFile) {
+			fileset(dir: tempDir)
+		}
+		
+		delete tempDir
 	}
 }
 

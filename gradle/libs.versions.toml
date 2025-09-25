@@ -14,7 +14,7 @@ supplementaries = "fabric_1.21-3.4.16"
 forgeSupplementaries = "forge_1.21-3.4.16"
 brrp = "1.0.4-1.21.1"
 midnightlib = "1.7.5+1.21.1-fabric"
-forgeMidnightlib = "1.7.5"
+forgeMidnightlib = "1.7.5+1.21.1-neoforge"
 
 [plugins]
 loom = { id = "fabric-loom", version.ref = "loom" }
@@ -27,6 +27,6 @@ yarn = { group = "net.fabricmc", name = "yarn", version.ref = "yarn" }
 fapi = { group = "net.fabricmc.fabric-api", name = "fabric-api", version.ref = "fapi" }
 brrp = { group = "pers.solid", name = "brrp-fabric", version.ref = "brrp" }
 midnightlib = { group = "maven.modrinth", name = "midnightlib", version.ref = "midnightlib" }
-
+forgeMidnightlib = { group = "maven.modrinth", name = "midnightlib", version.ref = "forgeMidnightlib" }
 surveyor = { group = "folk.sisby", name = "surveyor", version.ref = "surveyor" }
 supplementaries = { group = "maven.modrinth", name = "supplementaries", version.ref = "supplementaries" } 
