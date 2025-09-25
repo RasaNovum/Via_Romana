@@ -27,7 +27,6 @@ import pers.solid.brrp.v1.fabric.api.RRPCallback;
 public class ViaRomana implements ModInitializer {
     public static final Logger LOGGER = LogManager.getLogger();
     public static final String MODID = "via_romana";
-
     public static final RuntimeResourcePack RUNTIME_PACK = RuntimeResourcePack.create(new ResourceLocation(MODID, "runtime_pack"));
 
     @Override

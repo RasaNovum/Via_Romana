@@ -64,11 +64,15 @@ public class ViaRomanaCommands {
     private static int clearCache(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         CommandSourceStack source = context.getSource();
 
-        ClientPathData.getInstance().clearData();
+        if (source.getLevel().isClientSide()) {
+            ClientPathData.getInstance().clearData();
+            MapRenderer.clearCache();
+        }
+        
         PathSyncUtils.syncPathGraphToPlayer(source.getPlayerOrException());
-        VariableAccess.playerVariables.setReceivedTutorial(source.getPlayerOrException(), false);
         ServerMapCache.clear();
-        MapRenderer.clearCache();
+
+        // VariableAccess.playerVariables.setReceivedTutorial(source.getPlayerOrException(), false);
 
         source.sendSuccess(() -> Component.literal("Cleared all Via Romana caches"), true);
         return 1;
@@ -81,7 +85,7 @@ public class ViaRomanaCommands {
         CommandSourceStack source = context.getSource();
         ServerMapCache.clear();
         ServerMapCache.deleteAllMapsFromDisk();
-        MapRenderer.clearCache();
+        if (source.getLevel().isClientSide()) MapRenderer.clearCache();
         source.sendSuccess(() -> Component.literal("Cleared Via Romana map cache"), true);
         return 1;
     }
