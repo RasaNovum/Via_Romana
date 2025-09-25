@@ -14,7 +14,6 @@ import net.minecraft.world.phys.Vec3;
 import net.rasanovum.viaromana.client.data.ClientPathData;
 import net.rasanovum.viaromana.core.LinkHandler;
 import net.rasanovum.viaromana.path.Node;
-// import net.rasanovum.viaromana.path.Node.NodeData;
 import net.rasanovum.viaromana.path.PathGraph;
 import org.joml.Matrix4f;
 
@@ -29,14 +28,14 @@ import net.rasanovum.viaromana.core.LinkHandler.LinkData;
  */
 public final class NodeConnectionRenderer {
 
-    // --- General Constants ---
+    // General Constants
     private static final double RENDER_DISTANCE = 16.0;
     private static final double FADE_BUFFER_DISTANCE = 4.0;
     private static final float RIBBON_FADE_FRACTION = 0.25f;
     private static final int MIN_SEGMENTS = 4;
     private static final int MAX_SEGMENTS = 24;
 
-    // --- Dynamic Path Constants ---
+    // Dynamic Path Constants
     private static final float COHERENCE = 0.6f;
     private static final float WANDER_AMPLITUDE = 0.5f;
     private static final float POINT_DENSITY = 0.5f;
@@ -56,7 +55,7 @@ public final class NodeConnectionRenderer {
         return shadersInUse ? RenderType.entityTranslucentEmissive(CONNECTION_TEXTURE, true) : RenderType.beaconBeam(CONNECTION_TEXTURE, true);
     }
 
-    // --- New Frame-Delta Animation Constants ---
+    // Animation Constants
     private record RibbonConfig(float baseAlpha, float width, float scrollSpeedSec, float crossAngleRadians, float r, float g, float b, VertexConsumer consumer) {}
     private record PathData(List<Vec3> points, List<Vec3> tangents) {}
     

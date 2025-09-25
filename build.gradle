@@ -41,8 +41,7 @@ dependencies {
 	include libs.brrp
 
 	modCompileOnly libs.supplementaries
-	modCompileOnly libs.iris
-	// modCompileOnly libs.oculus
+	// modCompileOnly libs.iris
 
 	modImplementation "com.google.code.gson:gson:2.10.1"
 }

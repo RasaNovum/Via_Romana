@@ -13,7 +13,6 @@ brrp = "1.0.0-1.20.1"
 midnightlib = "1.4.1-fabric"
 forgeMidnightlib = "1.4.2-forge"
 iris = "1.7.6+1.20.1"
-oculus = "1.20.1-1.8.0"
 
 [plugins]
 loom = { id = "fabric-loom", version.ref = "loom" }
@@ -31,4 +30,3 @@ forgeMidnightlib  = { group = "maven.modrinth", name = "midnightlib", version.re
 surveyor = { group = "folk.sisby", name = "surveyor", version.ref = "surveyor" }
 supplementaries = { group = "maven.modrinth", name = "supplementaries", version.ref = "supplementaries" }
 iris = { group = "maven.modrinth", name = "iris", version.ref = "iris" }
-oculus = { group = "maven.modrinth", name = "oculus", version.ref = "oculus" }
