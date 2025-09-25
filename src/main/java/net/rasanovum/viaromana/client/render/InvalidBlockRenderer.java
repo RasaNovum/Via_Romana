@@ -31,7 +31,7 @@ public class InvalidBlockRenderer {
     }
 
     public static void renderInfrastructureBlocks(PoseStack poseStack, Level level, Player player, float tickDelta) {
-        boolean shouldRender = getAlpha() == 0 || VariableAccess.playerVariables.isChartingPath(player) || player.getMainHandItem().getItem() instanceof ChartingMap || player.getOffhandItem().getItem() instanceof ChartingMap;
+        boolean shouldRender = getAlpha() > 0.0f && (VariableAccess.playerVariables.isChartingPath(player) || player.getMainHandItem().getItem() instanceof ChartingMap || player.getOffhandItem().getItem() instanceof ChartingMap);
 
         if (!shouldRender) return;
 
