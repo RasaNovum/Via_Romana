@@ -9,12 +9,12 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.rasanovum.viaromana.ViaRomana;
+import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.client.data.ClientPathData;
 import net.rasanovum.viaromana.path.Node;
 import net.rasanovum.viaromana.client.gui.LinkSignScreen;
 import net.rasanovum.viaromana.client.gui.WarpBlockScreen;
 import net.rasanovum.viaromana.client.gui.elements.ForceTooltipButton;
-import net.rasanovum.viaromana.configuration.ViaRomanaConfig;
 import net.rasanovum.viaromana.core.LinkHandler;
 import net.rasanovum.viaromana.core.LinkHandler.LinkData;
 import net.rasanovum.viaromana.mixins.client.AbstractSignEditScreenAccessor;
@@ -87,7 +87,7 @@ public class SignEditHelper {
                 tooltip = "gui.viaromana.no_access_tooltip";
             }
         } else {
-            Optional<Node> nearestNode = clientPathData.getNearestNode(signPos, ViaRomanaConfig.node_utility_distance * 2, true, node -> !node.isLinked(), node -> !clientPathData.isNodeSignLinked(node.getBlockPos(), null));
+            Optional<Node> nearestNode = clientPathData.getNearestNode(signPos, CommonConfig.node_utility_distance * 2, true, node -> !node.isLinked(), node -> !clientPathData.isNodeSignLinked(node.getBlockPos(), null));
             boolean isNearNode = nearestNode.isPresent();
             buttonText = "gui.viaromana.add_to_path";
 

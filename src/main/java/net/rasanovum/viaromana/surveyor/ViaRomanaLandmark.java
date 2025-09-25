@@ -11,7 +11,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.DyeColor;
 import net.rasanovum.viaromana.ViaRomana;
-import net.rasanovum.viaromana.configuration.ViaRomanaConfig;
+import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.path.Node;
 import net.rasanovum.viaromana.path.PathGraph;
 import net.rasanovum.viaromana.storage.IPathStorage;
@@ -47,7 +47,7 @@ public record ViaRomanaLandmark(BlockPos pos, Component name, DyeColor color) im
             .orElse(Component.literal("Via Romana Destination"));
 
         DyeColor color;
-        if (ViaRomanaConfig.enable_surveyor_landmark_coloring) {
+        if (CommonConfig.enable_surveyor_landmark_coloring) {
             IPathStorage storage = IPathStorage.get(level);
             PathGraph graph = storage.graph();
 

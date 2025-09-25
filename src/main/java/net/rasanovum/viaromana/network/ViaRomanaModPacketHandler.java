@@ -10,7 +10,7 @@ import net.rasanovum.viaromana.path.Node;
 import net.rasanovum.viaromana.path.Node.NodeData;
 import net.rasanovum.viaromana.path.PathGraph;
 import net.rasanovum.viaromana.ViaRomana;
-import net.rasanovum.viaromana.configuration.ViaRomanaConfig;
+import net.rasanovum.viaromana.CommonConfig;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.MinecraftServer;
@@ -161,7 +161,7 @@ public class ViaRomanaModPacketHandler {
             var storage = IPathStorage.get(level);
             var graph = storage.graph();
 
-            Optional<Node> nearestOpt = graph.getNearestNode(player.blockPosition(), ViaRomanaConfig.node_utility_distance, node -> true);
+            Optional<Node> nearestOpt = graph.getNearestNode(player.blockPosition(), CommonConfig.node_utility_distance, node -> true);
 
             if (nearestOpt.isEmpty()) {
                 ViaRomana.LOGGER.warn("No nearby node found for action {} by player {}", message.op(), player.getName().getString());

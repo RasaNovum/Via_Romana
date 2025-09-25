@@ -30,7 +30,8 @@
 	"depends": {
 		"minecraft": ">=${mc}",
 		"fabricloader": ">=${fl}",
-		"fabric-api": ">=${fapi}"
+		"fabric-api": ">=${fapi}",
+		"midnightlib": "*"
 	},
 	"suggests": {
 		"supplementaries": ">=${supplementaries}"

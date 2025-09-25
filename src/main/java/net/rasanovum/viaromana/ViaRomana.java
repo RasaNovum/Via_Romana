@@ -10,7 +10,6 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.resources.ResourceLocation;
 import net.rasanovum.viaromana.command.ViaRomanaCommands;
-import net.rasanovum.viaromana.configuration.ViaRomanaConfig;
 import net.rasanovum.viaromana.core.DimensionHandler;
 import net.rasanovum.viaromana.core.ResetVariables;
 import net.rasanovum.viaromana.init.*;
@@ -35,7 +34,7 @@ public class ViaRomana implements ModInitializer {
     public void onInitialize() {
         LOGGER.info("Initializing ViaRomanaMod");
 
-        MidnightConfig.init(MODID, ViaRomanaConfig.class);
+        MidnightConfig.init(MODID, CommonConfig.class);
         WorldSummary.enableTerrain();
 
         BlockInit.load();
@@ -83,7 +82,7 @@ public class ViaRomana implements ModInitializer {
         ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> {
             if (success) {
                 try {
-                    MidnightConfig.init(MODID, ViaRomanaConfig.class);
+                    MidnightConfig.init(MODID, CommonConfig.class);
                     LOGGER.info("Via Romana config reloaded and synced to players.");
                 } catch (Exception e) {
                     LOGGER.error("Failed to reload MidnightConfig", e);

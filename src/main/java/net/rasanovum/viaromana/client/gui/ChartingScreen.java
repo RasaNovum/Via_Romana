@@ -12,11 +12,11 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
 import net.rasanovum.viaromana.ViaRomana;
+import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.client.core.PathRecord;
 import net.rasanovum.viaromana.client.data.ClientPathData;
 import net.rasanovum.viaromana.client.gui.elements.MapActionButton;
 import net.rasanovum.viaromana.client.gui.elements.MapSquareButton;
-import net.rasanovum.viaromana.configuration.ViaRomanaConfig;
 import net.rasanovum.viaromana.network.RoutedActionC2S;
 import net.rasanovum.viaromana.network.ViaRomanaModPacketHandler;
 import net.rasanovum.viaromana.util.PathUtils;
@@ -282,7 +282,7 @@ public class ChartingScreen extends Screen {
                 HoverEvent hoverEvent = new HoverEvent(HoverEvent.Action.SHOW_TEXT, tooltipText);
                 Component infrastructureTerm = Component.translatable("gui.viaromana.tutorial_infrastructure_term")
                         .setStyle(Style.EMPTY.withHoverEvent(hoverEvent).withUnderlined(true));
-                int requiredAmount = (int) Math.ceil((ViaRomanaConfig.infrastructure_check_radius * 2 + 1) * ViaRomanaConfig.path_quality_threshold);
+                int requiredAmount = (int) Math.ceil((CommonConfig.infrastructure_check_radius * 2 + 1) * CommonConfig.path_quality_threshold);
 
                 yield tooltipFromPlaceholder(I18n.get("gui.viaromana.tutorial_page_2", requiredAmount), infrastructureTerm);
             }
@@ -333,14 +333,14 @@ public class ChartingScreen extends Screen {
     // region Pre-condition Checks
     private void updateNearNodeStatus() {
         if (minecraft == null || minecraft.player == null) return;
-        double utilityDistance = ViaRomanaConfig.node_utility_distance;
+        double utilityDistance = CommonConfig.node_utility_distance;
         isNearNode = ClientPathData.getInstance().getNearestNode(minecraft.player.blockPosition(), utilityDistance, false).isPresent();
     }
 
     private void updateInfrastructureStatus() {
         if (minecraft == null || minecraft.player == null || minecraft.level == null) return;
         this.currentInfrastructureQuality = PathUtils.calculateInfrastructureQuality(minecraft.level, minecraft.player);
-        float threshold = ViaRomanaConfig.path_quality_threshold;
+        float threshold = CommonConfig.path_quality_threshold;
         this.hasGoodInfrastructure = this.currentInfrastructureQuality >= threshold;
     }
     // endregion
@@ -396,7 +396,7 @@ public class ChartingScreen extends Screen {
             severPathButton.setTooltips(Component.translatable("gui.viaromana.sever_path_tooltip"), Component.translatable("gui.viaromana.sever_path_disabled_charting"));
             deleteBranchButton.setTooltips(Component.translatable("gui.viaromana.delete_branch_tooltip"), Component.translatable("gui.viaromana.delete_branch_disabled_charting"));
         } else if (!isNearNode) {
-            double utilityDistance = ViaRomanaConfig.node_utility_distance;
+            double utilityDistance = CommonConfig.node_utility_distance;
             Component tooltip = Component.translatable("gui.viaromana.node_distance_tooltip", utilityDistance);
             severPathButton.setTooltips(Component.translatable("gui.viaromana.sever_path_tooltip"), tooltip);
             deleteBranchButton.setTooltips(Component.translatable("gui.viaromana.delete_branch_tooltip"), tooltip);
@@ -406,7 +406,7 @@ public class ChartingScreen extends Screen {
         }
 
         if (!hasGoodInfrastructure) {
-            float threshold = ViaRomanaConfig.path_quality_threshold;
+            float threshold = CommonConfig.path_quality_threshold;
             int requiredBlocks = (int) Math.ceil(threshold * 9.0);
             int currentBlocks = Math.round(this.currentInfrastructureQuality * 9.0f);
             chartStartButton.setTooltips(

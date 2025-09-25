@@ -4,7 +4,12 @@ plugins {
 	alias libs.plugins.minotaur
 }
 
-version = "$baseVersion+$branch"
+// True for Fabric jar, False for Forge jar, scuffed but we ball
+ext.fabric = false
+
+if (fabric) version = "$baseVersion+$compatibleVersions-fabric"
+else version = "$baseVersion+$compatibleVersions-forge"
+
 archivesBaseName = project.slug
 
 repositories {
@@ -27,10 +32,9 @@ dependencies {
 
 	modImplementation libs.fl
 	modImplementation libs.fapi
-	modImplementation libs.cloth.config
 
 	modImplementation libs.midnightlib
-	include libs.midnightlib
+	if (fabric) include libs.midnightlib
 	modImplementation libs.surveyor
 	include libs.surveyor
 	modImplementation libs.brrp
@@ -58,13 +62,14 @@ processResources {
 		fl            : libs.versions.fl.get(),
 		fapi          : libs.versions.fapi.get(),
 		surveyor      : libs.versions.surveyor.get(),
-		cloth_config  : libs.versions.cloth.config.get(),
-		midnightlib   : libs.versions.midnightlib.get(),
-		supplementaries: libs.versions.supplementaries.get()
+		brrp          : libs.versions.brrp.get(),
+		midnightlib   		: libs.versions.midnightlib.get(),
+		forgeMidnightlib	: libs.versions.forgeMidnightlib.get(),
+		supplementaries		: libs.versions.supplementaries.get()
 	]
 	inputs.properties(meta)
 	filesMatching("*.mod.json") { expand(meta) }
-	filesMatching("META-INF/*mods.toml") { expand(meta) }
+	if (!fabric) filesMatching("META-INF/*mods.toml") { expand(meta) }
 }
 
 loom {

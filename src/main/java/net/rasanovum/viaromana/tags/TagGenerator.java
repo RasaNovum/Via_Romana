@@ -9,7 +9,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.rasanovum.viaromana.ViaRomana;
-import net.rasanovum.viaromana.configuration.ViaRomanaConfig;
+import net.rasanovum.viaromana.CommonConfig;
 import pers.solid.brrp.v1.api.RuntimeResourcePack;
 import net.minecraft.server.packs.PackType;
 
@@ -42,26 +42,26 @@ public class TagGenerator {
         JsonArray values = new JsonArray();
 
         // Add explicit block IDs from config
-        for (String blockId : ViaRomanaConfig.path_block_ids) {
+        for (String blockId : CommonConfig.path_block_ids) {
             if (!blockId.isEmpty()) {
                 values.add(blockId);
             }
         }
 
         // Add tag references from config
-        for (String tagString : ViaRomanaConfig.path_block_tags) {
+        for (String tagString : CommonConfig.path_block_tags) {
             if (!tagString.isEmpty() && isModLoadedForTag(tagString)) {
                 values.add("#" + tagString);
             }
         }
 
         // Add blocks from string matching in config
-        if (!ViaRomanaConfig.path_block_strings.isEmpty()) {
+        if (!CommonConfig.path_block_strings.isEmpty()) {
             for (Block block : BuiltInRegistries.BLOCK) {
                 ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(block);
                 String blockIdString = blockId.toString();
 
-                for (String searchString : ViaRomanaConfig.path_block_strings) {
+                for (String searchString : CommonConfig.path_block_strings) {
                     if (!searchString.isEmpty() && blockIdString.contains(searchString.toLowerCase())) {
                         values.add(blockIdString);
                         break;
@@ -80,14 +80,14 @@ public class TagGenerator {
         JsonArray values = new JsonArray();
 
         // Add explicit block IDs from config
-        for (String blockId : ViaRomanaConfig.warp_block_ids) {
+        for (String blockId : CommonConfig.warp_block_ids) {
             if (!blockId.isEmpty()) {
                 values.add(blockId);
             }
         }
 
         // Add tag references from config
-        for (String tagString : ViaRomanaConfig.warp_block_tags) {
+        for (String tagString : CommonConfig.warp_block_tags) {
             if (!tagString.isEmpty() && isModLoadedForTag(tagString)) {
                 values.add("#" + tagString);
             }
