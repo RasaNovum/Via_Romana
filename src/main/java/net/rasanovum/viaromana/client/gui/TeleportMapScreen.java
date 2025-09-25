@@ -7,6 +7,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
+import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.client.MapClient;
 import net.rasanovum.viaromana.network.packets.DestinationResponseS2C;
@@ -47,7 +48,7 @@ public class TeleportMapScreen extends Screen {
     // Constants
     private static final int MARKER_SIZE = 16;
     private static final int PLAYER_MARKER_SIZE = 8;
-    private static final float ANIM_SPEED = 2.0f;
+    private static float getAnimationSpeed() { return CommonConfig.spline_animation_speed; }
     private static final float MARKER_FADE_SPEED = 0.05f;
     private static final int DIRECTION_INDICATOR_BUFFER = 2;
     private static final float DIRECTION_ANGLE_RANGE = 45.0f;
@@ -161,7 +162,7 @@ public class TeleportMapScreen extends Screen {
 
         // Update animation progress
         if (!nodesToAnimate.isEmpty()) {
-            animationProgress = Math.min(1.0f, animationProgress + partialTicks * ANIM_SPEED);
+            animationProgress = Math.min(1.0f, animationProgress + partialTicks * getAnimationSpeed());
         }
 
         Set<BlockPos> currentlyAnimatingSources = nodesToAnimate.stream()
