@@ -30,7 +30,7 @@ public class CommonConfig extends MidnightConfig {
     @Entry(category = MANAGEMENT) public static List<String> invalid_dimensions = Lists.newArrayList();
     @Entry(category = MANAGEMENT) public static List<String> path_block_ids = Lists.newArrayList("minecraft:dirt_path", "minecraft:packed_mud", "minecraft:coarse_dirt", "minecraft:rooted_dirt");
     @Entry(category = MANAGEMENT) public static List<String> path_block_tags = Lists.newArrayList("minecraft:slabs", "minecraft:stairs", "minecraft:walls", "minecraft:wool", "minecraft:wool_carpets", "minecraft:planks", "minecraft:logs", "minecraft:rails", "minecraft:fences", "minecraft:fence_gates", "minecraft:buttons", "minecraft:pressure_plates");
-    @Entry(category = MANAGEMENT) public static List<String> path_block_strings = Lists.newArrayList("sandstone", "polished", "cobble", "brick", "smooth", "basalt", "path", "road");
+    @Entry(category = MANAGEMENT) public static List<String> path_block_strings = Lists.newArrayList("sandstone", "polished", "cobble", "brick", "smooth", "basalt", "path", "road", "concrete", "terracotta", "tile");
     @Entry(category = MANAGEMENT) public static List<String> warp_block_ids = Lists.newArrayList("via_romana:warp_block");
     @Entry(category = MANAGEMENT) public static List<String> warp_block_tags = Lists.newArrayList("minecraft:all_signs");
 
