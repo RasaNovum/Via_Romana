@@ -1,7 +1,7 @@
 package net.rasanovum.viaromana.core;
 
 import net.rasanovum.viaromana.client.HudMessageManager;
-import net.rasanovum.viaromana.configuration.ViaRomanaConfig;
+import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.variables.VariableAccess;
 
 import net.minecraft.world.level.LevelAccessor;
@@ -33,7 +33,7 @@ public class DimensionHandler {
 		// 	return serverLevel.dimensionTypeRegistration().is(CHARTABLE_DIMENSIONS);
 		// }
 		
-		List<String> invalidDimensions = ViaRomanaConfig.invalid_dimensions;
+		List<String> invalidDimensions = CommonConfig.invalid_dimensions;
 		
 		for (String invalidDimension : invalidDimensions) {
 			if (entity.level().dimension().toString().contains(invalidDimension)) {

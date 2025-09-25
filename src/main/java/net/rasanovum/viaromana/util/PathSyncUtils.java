@@ -6,7 +6,7 @@ import net.rasanovum.viaromana.storage.IPathStorage;
 import net.rasanovum.viaromana.network.packets.PathGraphSyncPacket;
 import net.rasanovum.viaromana.path.PathGraph;
 import net.rasanovum.viaromana.ViaRomana;
-import net.rasanovum.viaromana.configuration.ViaRomanaConfig;
+import net.rasanovum.viaromana.CommonConfig;
 
 /**
  * Utility class for synchronizing PathGraph data from server to clients.
@@ -22,7 +22,7 @@ public class PathSyncUtils {
             if (storage == null) return;
             PathGraph graph = storage.graph();
 
-            if (ViaRomanaConfig.enable_surveyor_landmark && ViaRomanaConfig.enable_surveyor_landmark_coloring) {
+            if (CommonConfig.enable_surveyor_landmark && CommonConfig.enable_surveyor_landmark_coloring) {
                 try {
                     graph.updateAllNetworkColors(level);
                 } catch (NullPointerException e) {

@@ -11,7 +11,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.material.MapColor;
 import net.rasanovum.viaromana.ViaRomana;
-import net.rasanovum.viaromana.configuration.ViaRomanaConfig;
+import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.network.packets.DestinationResponseS2C.NodeNetworkInfo;
 import net.rasanovum.viaromana.path.PathGraph;
 import net.rasanovum.viaromana.surveyor.SurveyorUtil;
@@ -168,7 +168,7 @@ public class MapBakeWorker {
 
     private int calculateScaleFactor(int width, int height) {
         int maxDim = Math.max(width, height);
-        int MAX_DIM = ViaRomanaConfig.maximum_map_dimension;
+        int MAX_DIM = CommonConfig.maximum_map_dimension;
         if (maxDim <= MAX_DIM) return 1;
         int requiredScale = (int) Math.ceil((double) maxDim / MAX_DIM);
         return Integer.highestOneBit(requiredScale - 1) << 1;

@@ -17,7 +17,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.rasanovum.viaromana.configuration.ViaRomanaConfig;
+import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.core.LinkHandler;
 import net.rasanovum.viaromana.network.packets.TeleportRequestC2S;
 import net.rasanovum.viaromana.path.Node;
@@ -204,6 +204,6 @@ public class ServerTeleportHandler {
 
     private static boolean isValidTeleportEntity(Entity entity) {
         String entityType = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()).toString();
-        return !ViaRomanaConfig.invalid_entities.contains(entityType);
+        return !CommonConfig.invalid_entities.contains(entityType);
     }
 }

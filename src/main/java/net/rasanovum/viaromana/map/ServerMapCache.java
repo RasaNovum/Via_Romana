@@ -11,7 +11,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.LevelResource;
 import net.rasanovum.viaromana.ViaRomana;
-import net.rasanovum.viaromana.configuration.ViaRomanaConfig;
+import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.path.PathGraph;
 import net.rasanovum.viaromana.surveyor.SurveyorUtil;
 
@@ -62,19 +62,19 @@ public final class ServerMapCache {
 
         scheduler.scheduleAtFixedRate(
                 () -> runSafe(ServerMapCache::processAllDirtyNetworks, "Error during scheduled map reprocessing"),
-                ViaRomanaConfig.map_refresh_interval,
-                ViaRomanaConfig.map_refresh_interval,
+                CommonConfig.map_refresh_interval,
+                CommonConfig.map_refresh_interval,
                 TimeUnit.SECONDS
         );
-        ViaRomana.LOGGER.debug("Scheduled map reprocessing every {} seconds.", ViaRomanaConfig.map_refresh_interval);
+        ViaRomana.LOGGER.debug("Scheduled map reprocessing every {} seconds.", CommonConfig.map_refresh_interval);
 
         scheduler.scheduleAtFixedRate(
                 () -> runSafe(() -> saveAllToDisk(false), "Error during scheduled map cache saving"),
-                ViaRomanaConfig.map_save_interval,
-                ViaRomanaConfig.map_save_interval,
+                CommonConfig.map_save_interval,
+                CommonConfig.map_save_interval,
                 TimeUnit.MINUTES
         );
-        ViaRomana.LOGGER.debug("Scheduled map saving every {} minutes.", ViaRomanaConfig.map_save_interval);
+        ViaRomana.LOGGER.debug("Scheduled map saving every {} minutes.", CommonConfig.map_save_interval);
     }
 
     public static void shutdown() {

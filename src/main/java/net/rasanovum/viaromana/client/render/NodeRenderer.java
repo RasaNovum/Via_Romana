@@ -17,7 +17,7 @@ import net.minecraft.world.level.lighting.LevelLightEngine;
 import net.minecraft.world.phys.Vec3;
 import net.rasanovum.viaromana.client.ColorUtil;
 import net.rasanovum.viaromana.client.data.ClientPathData;
-import net.rasanovum.viaromana.configuration.ViaRomanaConfig;
+import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.items.ChartingMap;
 import net.rasanovum.viaromana.path.Node;
 import net.rasanovum.viaromana.path.PathGraph;
@@ -53,7 +53,7 @@ public class NodeRenderer {
     private static final ResourceLocation BEAM_TEXTURE = ResourceLocation.parse("via_romana:textures/effect/node_beam.png");
     private static final int SOUND_INTERVAL_TICKS = 40;
 
-    private static int getPulseDistance() { return ViaRomanaConfig.node_utility_distance; }
+    private static int getPulseDistance() { return CommonConfig.node_utility_distance; }
 
     private static final float ANIMATION_SPEED_SEC = -1.0f;
 

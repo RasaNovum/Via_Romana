@@ -13,7 +13,7 @@ import net.rasanovum.viaromana.util.PathUtils;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.client.HudMessageManager;
 import net.rasanovum.viaromana.client.data.ClientPathData;
-import net.rasanovum.viaromana.configuration.ViaRomanaConfig;
+import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.core.LinkHandler.LinkData;
 import net.rasanovum.viaromana.network.packets.ChartedPathC2S;
 import net.rasanovum.viaromana.network.packets.LinkSignRequestC2S;
@@ -34,19 +34,19 @@ public final class ChartingHandler {
         float nodeDistance = PathUtils.calculateNodeDistance(entity);
         float infrastructureQuality = PathUtils.calculateInfrastructureQuality(level, entity);
 
-        if (nodeDistance > ViaRomanaConfig.node_distance_maximum) {
+        if (nodeDistance > CommonConfig.node_distance_maximum) {
             HudMessageManager.queueMessage("message.via_romana.too_far_from_node_message");
             return;
         }
-        if (infrastructureQuality < ViaRomanaConfig.path_quality_threshold) {
-            float threshold = ViaRomanaConfig.path_quality_threshold;
+        if (infrastructureQuality < CommonConfig.path_quality_threshold) {
+            float threshold = CommonConfig.path_quality_threshold;
             int requiredBlocks = (int) Math.ceil(threshold * 9.0);
             int currentBlocks = Math.round(infrastructureQuality * 9.0f);
             HudMessageManager.queueMessage(Component.translatable("gui.viaromana.infrastructure_insufficient", currentBlocks, requiredBlocks));
             return;
         }
 
-        if (nodeDistance < ViaRomanaConfig.node_distance_minimum) {
+        if (nodeDistance < CommonConfig.node_distance_minimum) {
             HudMessageManager.queueMessage("message.via_romana.path_charting");
             return;
         }
@@ -74,7 +74,7 @@ public final class ChartingHandler {
         if (entity == null) return;  
         if (Math.random() > 0.9) playCartographySound(level, entity);
 
-        Optional<Node> nearbyNode = ClientPathData.getInstance().getNearestNode(pos, ViaRomanaConfig.node_utility_distance, true);
+        Optional<Node> nearbyNode = ClientPathData.getInstance().getNearestNode(pos, CommonConfig.node_utility_distance, true);
 
         if (nearbyNode.isPresent()) {
             BlockPos nearbyPos = nearbyNode.get().getBlockPos();

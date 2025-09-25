@@ -7,7 +7,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.rasanovum.viaromana.ViaRomana;
-import net.rasanovum.viaromana.configuration.ViaRomanaConfig;
+import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.path.Node;
 
 /**
@@ -25,7 +25,7 @@ public class ViaRomanaLandmarkManager {
      * Adds/updates a given landmark
      */
     public static void addDestinationLandmark(Level level, Node node) {
-        if (!ViaRomanaConfig.enable_surveyor_landmark) return;
+        if (!CommonConfig.enable_surveyor_landmark) return;
         if (!(level instanceof ServerLevel serverLevel)) return;
 
         try {
@@ -51,7 +51,7 @@ public class ViaRomanaLandmarkManager {
      * Removes a given landmark
      */
     public static void removeDestinationLandmark(Level level, Node node) {
-        if (!ViaRomanaConfig.enable_surveyor_landmark) return;
+        if (!CommonConfig.enable_surveyor_landmark) return;
         if (!(level instanceof ServerLevel serverLevel)) return;
         
         try {

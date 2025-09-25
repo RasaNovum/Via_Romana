@@ -1,6 +1,6 @@
 package net.rasanovum.viaromana.util;
 
-import net.rasanovum.viaromana.configuration.ViaRomanaConfig;
+import net.rasanovum.viaromana.CommonConfig;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.LevelAccessor;
@@ -15,7 +15,7 @@ public class EffectUtils {
         if (entity instanceof LivingEntity _entity && !_entity.level().isClientSide()) {
             Holder<MobEffect> effect = getEffectByName(effectName);
             if (effect != null) {
-                _entity.addEffect(new MobEffectInstance(effect, ViaRomanaConfig.travel_fatigue_cooldown, 0, false, false));
+                _entity.addEffect(new MobEffectInstance(effect, CommonConfig.travel_fatigue_cooldown, 0, false, false));
             } else {
                 System.err.println("Failed to apply effect: " + effectName + " - Effect not found in registry");
             }

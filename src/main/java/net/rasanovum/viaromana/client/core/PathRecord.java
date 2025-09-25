@@ -2,7 +2,7 @@ package net.rasanovum.viaromana.client.core;
 
 import net.rasanovum.viaromana.variables.VariableAccess;
 import net.rasanovum.viaromana.client.HudMessageManager;
-// import net.rasanovum.viaromana.configuration.ViaRomanaConfig;
+// import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.core.DimensionHandler;
 import net.rasanovum.viaromana.core.ResetVariables;
 import net.rasanovum.viaromana.util.PathUtils;
@@ -19,7 +19,7 @@ public class PathRecord {
 
 		float infrastructureQuality = PathUtils.calculateInfrastructureQuality(world, player);
 
-		// double qualityThreshold = ViaRomanaConfig.path_quality_threshold;
+		// double qualityThreshold = CommonConfig.path_quality_threshold;
 
 		// if (infrastructureQuality < qualityThreshold) {
 		// 	cancel(world, player, false);

@@ -1,6 +1,6 @@
 package net.rasanovum.viaromana.util;
 
-import net.rasanovum.viaromana.configuration.ViaRomanaConfig;
+import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.variables.VariableAccess;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.LevelAccessor;
@@ -46,7 +46,7 @@ public class PathUtils {
         }
 
         int surfaceY = mutablePos.getY();
-        int checkRadius = ViaRomanaConfig.infrastructure_check_radius;
+        int checkRadius = CommonConfig.infrastructure_check_radius;
         int pathQuality = 0;
         int entityX = (int) Math.floor(entity.getX());
         int entityZ = (int) Math.floor(entity.getZ());

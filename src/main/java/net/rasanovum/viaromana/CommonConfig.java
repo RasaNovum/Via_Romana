@@ -1,16 +1,14 @@
-package net.rasanovum.viaromana.configuration;
+package net.rasanovum.viaromana;
 
 import eu.midnightdust.lib.config.MidnightConfig;
 import java.util.List;
 
 import com.google.common.collect.Lists;
 
-public class ViaRomanaConfig extends MidnightConfig {
+public class CommonConfig extends MidnightConfig {
 
     public static final String VARIABLES = "variables";
     public static final String MANAGEMENT = "management";
-
-    // @Comment(centered = true) public static Comment server_title;
 
     // Variables Category
     @Entry(category = VARIABLES) public static int infrastructure_check_radius = 1;
@@ -23,7 +21,6 @@ public class ViaRomanaConfig extends MidnightConfig {
     @Entry(category = VARIABLES) public static int maximum_map_dimension = 512;
     @Entry(category = VARIABLES) public static int map_refresh_interval = 10;
     @Entry(category = VARIABLES) public static int map_save_interval = 5;
-    @Entry(category = VARIABLES, min = 0f, max = 1f) public static float invalid_block_overlay_opacity = 0.4f;
     @Entry(category = VARIABLES) public static boolean enable_surveyor_landmark = false;
     @Entry(category = VARIABLES) public static boolean enable_surveyor_landmark_coloring = false;
 
@@ -35,6 +32,4 @@ public class ViaRomanaConfig extends MidnightConfig {
     @Entry(category = MANAGEMENT) public static List<String> path_block_strings = Lists.newArrayList("sandstone", "polished", "cobble", "brick", "smooth", "basalt", "path", "road");
     @Entry(category = MANAGEMENT) public static List<String> warp_block_ids = Lists.newArrayList("via_romana:warp_block");
     @Entry(category = MANAGEMENT) public static List<String> warp_block_tags = Lists.newArrayList("minecraft:all_signs");
-
-    // @Comment(centered = true) public static Comment client_title;
 }

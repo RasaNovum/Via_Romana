@@ -95,7 +95,7 @@
 
   "via_romana.midnightconfig.category.variables": "Server Variables",
   "via_romana.midnightconfig.category.management": "Server Management",
-  "via_romana.midnightconfig.category.debug": "Client Debug",
+  "via_romana.midnightconfig.category.client": "Client Variables",
 
   "via_romana.midnightconfig.server_title": "§lServer Settings§r",
   "via_romana.midnightconfig.client_title": "§lClient Settings§r",
@@ -124,8 +124,6 @@
   "via_romana.midnightconfig.enable_surveyor_landmark.tooltip": "Adds destinations as a landmark through Surveyor.",
   "via_romana.midnightconfig.enable_surveyor_landmark_coloring": "Colors connected destinations",
   "via_romana.midnightconfig.enable_surveyor_landmark_coloring.tooltip": "Colors all landmarks in the same network the same colour to indicate connections.",
-  "via_romana.midnightconfig.invalid_block_overlay_opacity": "Invalid Block Overlay Opacity",
-  "via_romana.midnightconfig.invalid_block_overlay_opacity.tooltip": "Highlights blocks that do not count as valid infrastructure for charting. Set to 0 to disable.",
 
   "via_romana.midnightconfig.invalid_entities": "Invalid Entities",
   "via_romana.midnightconfig.invalid_entities.tooltip": "List of entity IDs that cannot fast-travel.",
@@ -140,5 +138,8 @@
   "via_romana.midnightconfig.warp_block_ids": "Warp Block IDs",
   "via_romana.midnightconfig.warp_block_ids.tooltip": "List of block IDs that can act as warp blocks.",
   "via_romana.midnightconfig.warp_block_tags": "Warp Block Tags",
-  "via_romana.midnightconfig.warp_block_tags.tooltip": "List of block tags that can act as warp blocks."
+  "via_romana.midnightconfig.warp_block_tags.tooltip": "List of block tags that can act as warp blocks.",
+
+  "via_romana.midnightconfig.invalid_block_overlay_opacity": "Invalid Block Overlay Opacity",
+  "via_romana.midnightconfig.invalid_block_overlay_opacity.tooltip": "Highlights blocks that do not count as valid infrastructure for charting. Set to 0 to disable."
 }

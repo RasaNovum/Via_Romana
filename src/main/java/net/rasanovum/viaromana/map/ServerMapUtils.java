@@ -1,7 +1,7 @@
 package net.rasanovum.viaromana.map;
 
 import net.minecraft.world.level.ChunkPos;
-import net.rasanovum.viaromana.configuration.ViaRomanaConfig;
+import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.network.packets.DestinationResponseS2C;
 
 import java.util.HashSet;
@@ -24,7 +24,7 @@ public final class ServerMapUtils {
             }
             return allowedChunks;
         }
-        final int FOG_OF_WAR_DISTANCE = ViaRomanaConfig.fog_of_war_distance;
+        final int FOG_OF_WAR_DISTANCE = CommonConfig.fog_of_war_distance;
         final int radiusSq = FOG_OF_WAR_DISTANCE * FOG_OF_WAR_DISTANCE;
         for (DestinationResponseS2C.NodeNetworkInfo node : networkNodes) {
             ChunkPos nodeChunk = new ChunkPos(node.position);

@@ -12,7 +12,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.rasanovum.viaromana.configuration.ViaRomanaConfig;
+import net.rasanovum.viaromana.CommonConfig;
+import net.rasanovum.viaromana.client.ClientConfig;
 import net.rasanovum.viaromana.items.ChartingMap;
 import net.rasanovum.viaromana.util.PathUtils;
 import net.rasanovum.viaromana.variables.VariableAccess;
@@ -20,12 +21,18 @@ import net.minecraft.world.phys.Vec3;
 
 public class InvalidBlockRenderer {
     private static final ResourceLocation BARRIER_TEXTURE = ResourceLocation.parse("minecraft:textures/item/barrier.png");
-    private static final float ALPHA = (float) ViaRomanaConfig.invalid_block_overlay_opacity;
     private static final int FADE_BUFFER = 3;
-    private static final int REGION_SIZE = ViaRomanaConfig.infrastructure_check_radius + FADE_BUFFER;
+
+    private static float getAlpha() {
+        return (float) ClientConfig.invalid_block_overlay_opacity;
+    }
+
+    private static int getRegionSize() {
+        return CommonConfig.infrastructure_check_radius + FADE_BUFFER;
+    }
 
     public static void renderInfrastructureBlocks(PoseStack poseStack, Level level, Player player, float tickDelta) {
-        boolean shouldRender = ALPHA == 0 || VariableAccess.playerVariables.isChartingPath(player) || player.getMainHandItem().getItem() instanceof ChartingMap || player.getOffhandItem().getItem() instanceof ChartingMap;
+        boolean shouldRender = getAlpha() == 0 || VariableAccess.playerVariables.isChartingPath(player) || player.getMainHandItem().getItem() instanceof ChartingMap || player.getOffhandItem().getItem() instanceof ChartingMap;
 
         if (!shouldRender) return;
 
@@ -40,9 +47,9 @@ public class InvalidBlockRenderer {
         BlockPos playerPos = player.blockPosition();
         Vec3 playerPosition = player.position();
 
-        for (int x = -REGION_SIZE; x <= REGION_SIZE; x++) {
-            for (int z = -REGION_SIZE; z <= REGION_SIZE; z++) {
-                for (int y = -REGION_SIZE; y <= REGION_SIZE; y++) {
+        for (int x = -getRegionSize(); x <= getRegionSize(); x++) {
+            for (int z = -getRegionSize(); z <= getRegionSize(); z++) {
+                for (int y = -getRegionSize(); y <= getRegionSize(); y++) {
                     BlockPos pos = playerPos.offset(x, y, z);
                     BlockState state = level.getBlockState(pos);
 
@@ -61,11 +68,11 @@ public class InvalidBlockRenderer {
                     
                     float fadeAlpha;
                     
-                    if (distance <= ViaRomanaConfig.infrastructure_check_radius) {
-                        fadeAlpha = ALPHA;
-                    } else if (distance <= ViaRomanaConfig.infrastructure_check_radius + FADE_BUFFER) {
-                        float fadeProgress = (float)(distance - ViaRomanaConfig.infrastructure_check_radius) / FADE_BUFFER;
-                        fadeAlpha = ALPHA * (1.0f - fadeProgress);
+                    if (distance <= CommonConfig.infrastructure_check_radius) {
+                        fadeAlpha = getAlpha();
+                    } else if (distance <= CommonConfig.infrastructure_check_radius + FADE_BUFFER) {
+                        float fadeProgress = (float)(distance - CommonConfig.infrastructure_check_radius) / FADE_BUFFER;
+                        fadeAlpha = getAlpha() * (1.0f - fadeProgress);
                     } else {
                         continue;
                     }
