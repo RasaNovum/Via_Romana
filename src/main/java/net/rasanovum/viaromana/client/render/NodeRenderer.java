@@ -250,6 +250,7 @@ public class NodeRenderer {
     
     private static float calculateMaxVignette(List<NodeRenderData> nodeDataList) {
         return nodeDataList.stream()
+            .filter(data -> data.color() != CHARTING_BEAM_COLOR) // exclude charting nodes until I have a green vignette system
             .map(data -> calculateVignetteForDistance(data.distance()))
             .max(Float::compare)
             .orElse(0.0f);
