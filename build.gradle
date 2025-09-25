@@ -34,6 +34,8 @@ dependencies {
 	modImplementation libs.fl
 	modImplementation libs.fapi
 
+	modImplementation libs.iris
+
 	modImplementation libs.surveyor
 	include libs.surveyor
 

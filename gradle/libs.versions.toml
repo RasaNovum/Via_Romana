@@ -3,7 +3,7 @@ loom = "1.7.+"
 minotaur = "2.+"
 
 mc = "1.21.1"
-fl = "0.15.11"
+fl = "0.16.0"
 yarn = "1.21.1+build.10"
 fapi = "0.115.6+1.21.1"
 forgeFapi = "0.115.6+2.1.3+1.21.1"
@@ -15,6 +15,7 @@ forgeSupplementaries = "forge_1.21-3.4.16"
 brrp = "1.0.4-1.21.1"
 midnightlib = "1.7.5+1.21.1-fabric"
 forgeMidnightlib = "1.7.5+1.21.1-neoforge"
+iris = "1.8.1+1.21.1-fabric"
 
 [plugins]
 loom = { id = "fabric-loom", version.ref = "loom" }
@@ -29,4 +30,5 @@ brrp = { group = "pers.solid", name = "brrp-fabric", version.ref = "brrp" }
 midnightlib = { group = "maven.modrinth", name = "midnightlib", version.ref = "midnightlib" }
 forgeMidnightlib = { group = "maven.modrinth", name = "midnightlib", version.ref = "forgeMidnightlib" }
 surveyor = { group = "folk.sisby", name = "surveyor", version.ref = "surveyor" }
-supplementaries = { group = "maven.modrinth", name = "supplementaries", version.ref = "supplementaries" } 
+supplementaries = { group = "maven.modrinth", name = "supplementaries", version.ref = "supplementaries" }
+iris = { group = "maven.modrinth", name = "iris", version.ref = "iris" }

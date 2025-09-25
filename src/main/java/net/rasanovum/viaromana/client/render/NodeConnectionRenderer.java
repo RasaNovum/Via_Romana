@@ -2,6 +2,8 @@ package net.rasanovum.viaromana.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+
+import net.irisshaders.iris.api.v0.IrisApi;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -42,6 +44,9 @@ public final class NodeConnectionRenderer {
     private static final float VERTICAL_WANDER_SCALE = 0.4f;
 
     private static final ResourceLocation CONNECTION_TEXTURE = ResourceLocation.parse("via_romana:textures/effect/connection_ribbon.png");
+    private static RenderType getRenderType() {
+        return IrisApi.getInstance().isShaderPackInUse() ? RenderType.entityTranslucentEmissive(CONNECTION_TEXTURE, true) : RenderType.beaconBeam(CONNECTION_TEXTURE, true);
+    }
 
     // Animation Constants
     private record RibbonConfig(float baseAlpha, float width, float scrollSpeedSec, float crossAngleRadians, float r, float g, float b, VertexConsumer consumer) {}
@@ -59,10 +64,10 @@ public final class NodeConnectionRenderer {
         if (nearby.isEmpty()) return;
 
         PoseStack.Pose pose = poseStack.last();
-        RibbonConfig primaryConfig = new RibbonConfig(0.2f, 0.25f, 0.4f, (float)Math.toRadians(70.0), 1.0f, 1.0f, 1.0f, bufferSource.getBuffer(RenderType.beaconBeam(CONNECTION_TEXTURE, true)));
-        RibbonConfig secondaryConfig = new RibbonConfig(0.2f, 0.30f, -0.3f, (float)Math.toRadians(70.0), 1.0f, 1.0f, 1.0f, bufferSource.getBuffer(RenderType.beaconBeam(CONNECTION_TEXTURE, true)));
-        RibbonConfig signConfig = new RibbonConfig(0.3f, 0.20f, 0.16f, (float)Math.toRadians(70.0), 1.0f, 1.0f, 1.0f, bufferSource.getBuffer(RenderType.beaconBeam(CONNECTION_TEXTURE, true)));
-        RibbonConfig tempSignConfig = new RibbonConfig(0.3f, 0.20f, 0.16f, (float)Math.toRadians(70.0), 0.0f, 1.0f, 0.0f, bufferSource.getBuffer(RenderType.beaconBeam(CONNECTION_TEXTURE, true)));
+        RibbonConfig primaryConfig = new RibbonConfig(0.2f, 0.25f, 0.4f, (float)Math.toRadians(70.0), 1.0f, 1.0f, 1.0f, bufferSource.getBuffer(getRenderType()));
+        RibbonConfig secondaryConfig = new RibbonConfig(0.2f, 0.30f, -0.3f, (float)Math.toRadians(70.0), 1.0f, 1.0f, 1.0f, bufferSource.getBuffer(getRenderType()));
+        RibbonConfig signConfig = new RibbonConfig(0.3f, 0.20f, 0.16f, (float)Math.toRadians(70.0), 1.0f, 1.0f, 1.0f, bufferSource.getBuffer(getRenderType()));
+        RibbonConfig tempSignConfig = new RibbonConfig(0.3f, 0.20f, 0.16f, (float)Math.toRadians(70.0), 0.0f, 1.0f, 0.0f, bufferSource.getBuffer(getRenderType()));
 
         for (Node a : nearby) {
             Vec3 aCenter = Vec3.atCenterOf(BlockPos.of(a.getPos()));

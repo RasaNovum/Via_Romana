@@ -22,6 +22,7 @@ import net.rasanovum.viaromana.items.ChartingMap;
 import net.rasanovum.viaromana.path.Node;
 import net.rasanovum.viaromana.path.PathGraph;
 import net.rasanovum.viaromana.variables.VariableAccess;
+import net.irisshaders.iris.api.v0.IrisApi;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -54,6 +55,9 @@ public class NodeRenderer {
     private static final int SOUND_INTERVAL_TICKS = 40;
 
     private static int getPulseDistance() { return CommonConfig.node_utility_distance; }
+    private static RenderType getRenderType() {
+        return IrisApi.getInstance().isShaderPackInUse() ? RenderType.entityTranslucentEmissive(BEAM_TEXTURE, true) : RenderType.beaconBeam(BEAM_TEXTURE, true);
+    }
 
     private static final float ANIMATION_SPEED_SEC = -1.0f;
 
@@ -117,7 +121,7 @@ public class NodeRenderer {
         poseStack.pushPose();
         poseStack.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z);
 
-        VertexConsumer beamConsumer = bufferSource.getBuffer(RenderType.beaconBeam(BEAM_TEXTURE, true));
+        VertexConsumer beamConsumer = bufferSource.getBuffer(getRenderType());
         float vOffset = animationTime * ANIMATION_SPEED_SEC;
 
         for (NodeRenderData data : nodeDataList) {
@@ -125,7 +129,7 @@ public class NodeRenderer {
             playNodeSoundAtPosition(clientLevel, data.pos, data.adjustedY, level.getGameTime());
         }
 
-        bufferSource.endBatch(RenderType.beaconBeam(BEAM_TEXTURE, true));
+        bufferSource.endBatch(getRenderType());
 
         PathGraph graph = ClientPathData.getInstance().getGraph();
         if (graph != null && !graph.nodesView().isEmpty()) {
