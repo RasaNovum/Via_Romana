@@ -3,7 +3,6 @@ package net.rasanovum.viaromana.client.render;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 
-import net.irisshaders.iris.api.v0.IrisApi;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -45,7 +44,15 @@ public final class NodeConnectionRenderer {
 
     private static final ResourceLocation CONNECTION_TEXTURE = ResourceLocation.parse("via_romana:textures/effect/connection_ribbon.png");
     private static RenderType getRenderType() {
-        return IrisApi.getInstance().isShaderPackInUse() ? RenderType.entityTranslucentEmissive(CONNECTION_TEXTURE, true) : RenderType.beaconBeam(CONNECTION_TEXTURE, true);
+        boolean shadersInUse = false;
+        try {
+            Class<?> irisApiClass = Class.forName("net.irisshaders.iris.api.v0.IrisApi");
+            Object instance = irisApiClass.getMethod("getInstance").invoke(null);
+            shadersInUse = (Boolean) irisApiClass.getMethod("isShaderPackInUse").invoke(instance);
+        } catch (Exception e) {
+            shadersInUse = false;
+        }
+        return shadersInUse ? RenderType.entityTranslucentEmissive(CONNECTION_TEXTURE, true) : RenderType.beaconBeam(CONNECTION_TEXTURE, true);
     }
 
     // Animation Constants

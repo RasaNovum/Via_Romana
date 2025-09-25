@@ -22,7 +22,6 @@ import net.rasanovum.viaromana.items.ChartingMap;
 import net.rasanovum.viaromana.path.Node;
 import net.rasanovum.viaromana.path.PathGraph;
 import net.rasanovum.viaromana.variables.VariableAccess;
-import net.irisshaders.iris.api.v0.IrisApi;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -56,7 +55,15 @@ public class NodeRenderer {
 
     private static int getPulseDistance() { return CommonConfig.node_utility_distance; }
     private static RenderType getRenderType() {
-        return IrisApi.getInstance().isShaderPackInUse() ? RenderType.entityTranslucentEmissive(BEAM_TEXTURE, true) : RenderType.beaconBeam(BEAM_TEXTURE, true);
+        boolean shadersInUse = false;
+        try {
+            Class<?> irisApiClass = Class.forName("net.irisshaders.iris.api.v0.IrisApi");
+            Object instance = irisApiClass.getMethod("getInstance").invoke(null);
+            shadersInUse = (Boolean) irisApiClass.getMethod("isShaderPackInUse").invoke(instance);
+        } catch (Exception e) {
+            shadersInUse = false;
+        }
+        return shadersInUse ? RenderType.entityTranslucentEmissive(BEAM_TEXTURE, true) : RenderType.beaconBeam(BEAM_TEXTURE, true);
     }
 
     private static final float ANIMATION_SPEED_SEC = -1.0f;
