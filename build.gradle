@@ -5,7 +5,7 @@ plugins {
 	alias libs.plugins.minotaur
 }
 
-version = "$baseVersion+$branch"
+version = "$baseVersion+$compatibleVersions"
 archivesBaseName = project.slug
 
 repositories {
