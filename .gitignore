@@ -8,3 +8,8 @@ build/
 *.launch
 .vscode/settings.json
 src/main/generated/.cache/e646a25c339e0de009e09bd202d29c54614fe197
+.idea/gradle.xml
+.idea/modules.xml
+.idea/modules/via_romana.main.iml
+.idea/modules/via_romana.test.iml
+.idea/gradle.xml

@@ -56,6 +56,17 @@ public class NodeRenderer {
     private static final int SOUND_INTERVAL_TICKS = 40;
 
     private static int getPulseDistance() { return CommonConfig.node_utility_distance; }
+    private static RenderType getRenderType() {
+        boolean shadersInUse = false;
+        try {
+            Class<?> irisApiClass = Class.forName("net.irisshaders.iris.api.v0.IrisApi");
+            Object instance = irisApiClass.getMethod("getInstance").invoke(null);
+            shadersInUse = (Boolean) irisApiClass.getMethod("isShaderPackInUse").invoke(instance);
+        } catch (Exception e) {
+            shadersInUse = false;
+        }
+        return shadersInUse ? RenderType.entityTranslucentEmissive(BEAM_TEXTURE, true) : RenderType.beaconBeam(BEAM_TEXTURE, true);
+    }
 
     private static final float ANIMATION_SPEED_SEC = -1.0f;
 
@@ -119,7 +130,7 @@ public class NodeRenderer {
         poseStack.pushPose();
         poseStack.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z);
 
-        VertexConsumer beamConsumer = bufferSource.getBuffer(RenderType.beaconBeam(BEAM_TEXTURE, true));
+        VertexConsumer beamConsumer = bufferSource.getBuffer(getRenderType());
         float vOffset = animationTime * ANIMATION_SPEED_SEC;
 
         for (NodeRenderData data : nodeDataList) {
@@ -127,7 +138,7 @@ public class NodeRenderer {
             playNodeSoundAtPosition(clientLevel, data.pos, data.adjustedY, level.getGameTime());
         }
 
-        bufferSource.endBatch(RenderType.beaconBeam(BEAM_TEXTURE, true));
+        bufferSource.endBatch(getRenderType());
 
         PathGraph graph = ClientPathData.getInstance().getGraph();
         if (graph != null && !graph.nodesView().isEmpty()) {

@@ -44,6 +44,17 @@ public final class NodeConnectionRenderer {
     private static final float VERTICAL_WANDER_SCALE = 0.4f;
 
     private static final ResourceLocation CONNECTION_TEXTURE = new ResourceLocation("via_romana", "textures/effect/connection_ribbon.png");
+    private static RenderType getRenderType() {
+        boolean shadersInUse = false;
+        try {
+            Class<?> irisApiClass = Class.forName("net.irisshaders.iris.api.v0.IrisApi");
+            Object instance = irisApiClass.getMethod("getInstance").invoke(null);
+            shadersInUse = (Boolean) irisApiClass.getMethod("isShaderPackInUse").invoke(instance);
+        } catch (Exception e) {
+            shadersInUse = false;
+        }
+        return shadersInUse ? RenderType.entityTranslucentEmissive(CONNECTION_TEXTURE, true) : RenderType.beaconBeam(CONNECTION_TEXTURE, true);
+    }
 
     // --- New Frame-Delta Animation Constants ---
     private record RibbonConfig(float baseAlpha, float width, float scrollSpeedSec, float crossAngleRadians, float r, float g, float b, VertexConsumer consumer) {}
@@ -60,10 +71,10 @@ public final class NodeConnectionRenderer {
         List<Node> nearby = ClientPathData.getInstance().getNearbyNodes(BlockPos.containing(playerPos), searchRadius, false);
         if (nearby.isEmpty()) return;
 
-        RibbonConfig primaryConfig = new RibbonConfig(0.2f, 0.25f, 0.4f, (float)Math.toRadians(70.0), 1.0f, 1.0f, 1.0f, bufferSource.getBuffer(RenderType.beaconBeam(CONNECTION_TEXTURE, true)));
-        RibbonConfig secondaryConfig = new RibbonConfig(0.2f, 0.30f, -0.3f, (float)Math.toRadians(70.0), 1.0f, 1.0f, 1.0f, bufferSource.getBuffer(RenderType.beaconBeam(CONNECTION_TEXTURE, true)));
-        RibbonConfig signConfig = new RibbonConfig(0.3f, 0.20f, 0.16f, (float)Math.toRadians(70.0), 1.0f, 1.0f, 1.0f, bufferSource.getBuffer(RenderType.beaconBeam(CONNECTION_TEXTURE, true)));
-        RibbonConfig tempSignConfig = new RibbonConfig(0.3f, 0.20f, 0.16f, (float)Math.toRadians(70.0), 0.0f, 1.0f, 0.0f, bufferSource.getBuffer(RenderType.beaconBeam(CONNECTION_TEXTURE, true)));
+        RibbonConfig primaryConfig = new RibbonConfig(0.2f, 0.25f, 0.4f, (float)Math.toRadians(70.0), 1.0f, 1.0f, 1.0f, bufferSource.getBuffer(getRenderType()));
+        RibbonConfig secondaryConfig = new RibbonConfig(0.2f, 0.30f, -0.3f, (float)Math.toRadians(70.0), 1.0f, 1.0f, 1.0f, bufferSource.getBuffer(getRenderType()));
+        RibbonConfig signConfig = new RibbonConfig(0.3f, 0.20f, 0.16f, (float)Math.toRadians(70.0), 1.0f, 1.0f, 1.0f, bufferSource.getBuffer(getRenderType()));
+        RibbonConfig tempSignConfig = new RibbonConfig(0.3f, 0.20f, 0.16f, (float)Math.toRadians(70.0), 0.0f, 1.0f, 0.0f, bufferSource.getBuffer(getRenderType()));
 
         Matrix4f matrix = poseStack.last().pose();
 
