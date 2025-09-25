@@ -264,7 +264,7 @@ public class ViaRomanaModPacketHandler {
 
                 PathSyncUtils.syncPathGraphToAllPlayers(level);
 
-                awardAdvancementIfNeeded(context.player(), "via_romana:a_strand_type_game");
+                awardAdvancementIfNeeded(context.player(), "via_romana:story/a_strand_type_game");
 
                 ViaRomana.LOGGER.debug("Created charted path with {} nodes for player {}", chartingNodes.size(), context.player().getName().getString());
             } catch (Exception e) {
@@ -275,17 +275,23 @@ public class ViaRomanaModPacketHandler {
 
     private static void awardAdvancementIfNeeded(ServerPlayer player, String id) {
         try {
-            AdvancementHolder advancement = player.server.getAdvancements().get(ResourceLocation.parse(id));
+            ResourceLocation advancementId = ResourceLocation.parse(id);
+            AdvancementHolder advancement = player.server.getAdvancements().get(advancementId);
             if (advancement != null) {
                 AdvancementProgress advancementProgress = player.getAdvancements().getOrStartProgress(advancement);
                 if (!advancementProgress.isDone()) {
-                    for (String c : advancementProgress.getRemainingCriteria()) {
-                        player.getAdvancements().award(advancement, c);
+                    boolean grantedAny = false;
+                    for (String criterion : advancementProgress.getRemainingCriteria()) {
+                        boolean granted = player.getAdvancements().award(advancement, criterion);
+                        if (granted) grantedAny = true;
                     }
+
+                    if (grantedAny) player.getAdvancements().flushDirty(player);
                 }
             }
         } catch (Exception e) {
             ViaRomana.LOGGER.warn("Failed to award advancement {} to player {}: {}", id, player.getName().getString(), e.getMessage());
+            e.printStackTrace();
         }
     }
 }

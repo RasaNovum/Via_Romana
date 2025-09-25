@@ -15,6 +15,7 @@
     }
   ],
   "result": {
-    "item": "via_romana:charting_map"
+    "id": "via_romana:charting_map",
+    "count": 1
   }
 }
