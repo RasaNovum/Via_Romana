@@ -37,8 +37,13 @@ public class WarpBlockScreen extends Screen {
     }
 
     @Override
+    public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        // Skip 1.21 background rendering
+    }
+
+    @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
+        renderBackground(guiGraphics, mouseX, mouseY, partialTick);
 
         Component title = this.getTitle();
         int titleWidth = this.font.width(title);
@@ -48,6 +53,8 @@ public class WarpBlockScreen extends Screen {
         
         int drawX = (this.width - textureSize) / 2;
         int drawY = (this.height - textureSize) / 2 - 18;
+
+        this.renderTransparentBackground(guiGraphics);
 
         guiGraphics.blit(WARP_BLOCK_TEXTURE, drawX, drawY, 0, 0, textureSize, textureSize, 128, 128);
 

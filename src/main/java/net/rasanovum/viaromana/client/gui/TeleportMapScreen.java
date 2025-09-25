@@ -137,6 +137,8 @@ public class TeleportMapScreen extends Screen {
         renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
 
         if (this.mapTexture == null || this.minecraft == null || this.minecraft.player == null || this.mapRenderer == null) return;
+
+        this.renderBlurredBackground(partialTicks);
         
         this.mapRenderer.render(guiGraphics, this.width, this.height, this.minecraft.player);
 

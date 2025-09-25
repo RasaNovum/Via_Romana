@@ -172,6 +172,8 @@ public class LinkSignScreen extends Screen {
         int usableX = panelX + (BACKGROUND_WIDTH - USABLE_WIDTH) / 2;
         int usableY = panelY + (BACKGROUND_HEIGHT - USABLE_HEIGHT) / 2;
         usableY -= 8;
+
+        this.renderTransparentBackground(guiGraphics);
         
         guiGraphics.blit(BACKGROUND_TEXTURE, panelX, panelY, 0, 0, BACKGROUND_WIDTH, BACKGROUND_HEIGHT, BACKGROUND_WIDTH, BACKGROUND_HEIGHT);
         

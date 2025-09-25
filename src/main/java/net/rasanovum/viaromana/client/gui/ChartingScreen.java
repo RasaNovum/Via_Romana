@@ -107,6 +107,8 @@ public class ChartingScreen extends Screen {
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
 
+        // this.renderBlurredBackground(partialTick); // Looked a little weird, but will visit later
+
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
         renderHeader(guiGraphics);
