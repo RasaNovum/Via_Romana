@@ -1,5 +1,7 @@
 package net.rasanovum.viaromana.tags;
 
+import java.util.List;
+
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -21,15 +23,12 @@ public class TagGenerator {
         try {
             pack.clearResources(PackType.SERVER_DATA);
             
-            // Create TagKey objects for the tags
             TagKey<Block> pathBlockTagKey = TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("via_romana", "path_block"));
             TagKey<Block> warpBlockTagKey = TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("via_romana", "warp_block"));
 
-            // Generate TagBuilders
             TagBuilder pathTagBuilder = generatePathBlockTagBuilder();
             TagBuilder warpTagBuilder = generateWarpBlockTagBuilder();
 
-            // Add tags using the proper BRRP method
             pack.addTag(pathBlockTagKey, pathTagBuilder);
             pack.addTag(warpBlockTagKey, warpTagBuilder);
 
@@ -40,11 +39,21 @@ public class TagGenerator {
     }
 
     private static TagBuilder generatePathBlockTagBuilder() {
+        TagBuilder tagBuilder = generateBlockTagBuilder(CommonConfig.path_block_ids, CommonConfig.path_block_tags, CommonConfig.path_block_strings);
+        return tagBuilder;
+    }
+
+    private static TagBuilder generateWarpBlockTagBuilder() {
+        TagBuilder tagBuilder = generateBlockTagBuilder(CommonConfig.warp_block_ids, CommonConfig.warp_block_tags, null);
+        return tagBuilder;
+    }
+
+    private static TagBuilder generateBlockTagBuilder(List<String> explicitIds, List<String> tagStrings, List<String> searchStrings) {
         TagBuilder tagBuilder = TagBuilder.create();
 
         // Add explicit block IDs from config
-        for (String blockId : CommonConfig.path_block_ids) {
-            if (!blockId.isEmpty()) {
+        for (String blockId : explicitIds) {
+            if (!blockId.isEmpty() && !isBlacklistedBlock(blockId)) {
                 try {
                     ResourceLocation blockLocation = ResourceLocation.parse(blockId);
                     tagBuilder.addElement(blockLocation);
@@ -55,8 +64,8 @@ public class TagGenerator {
         }
 
         // Add tag references from config
-        for (String tagString : CommonConfig.path_block_tags) {
-            if (!tagString.isEmpty() && isModLoadedForTag(tagString)) {
+        for (String tagString : tagStrings) {
+            if (!tagString.isEmpty() && isModLoadedForTag(tagString) && !isBlacklistedBlock(tagString)) {
                 try {
                     ResourceLocation tagLocation = ResourceLocation.parse(tagString);
                     tagBuilder.addTag(tagLocation);
@@ -67,12 +76,14 @@ public class TagGenerator {
         }
 
         // Add blocks from string matching in config
-        if (!CommonConfig.path_block_strings.isEmpty()) {
+        if (searchStrings != null && !searchStrings.isEmpty()) {
             for (Block block : BuiltInRegistries.BLOCK) {
                 ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(block);
                 String blockIdString = blockId.toString();
 
-                for (String searchString : CommonConfig.path_block_strings) {
+                if (isBlacklistedBlock(blockIdString)) continue;
+
+                for (String searchString : searchStrings) {
                     if (!searchString.isEmpty() && blockIdString.contains(searchString.toLowerCase())) {
                         tagBuilder.addElement(blockId);
                         break;
@@ -84,40 +95,6 @@ public class TagGenerator {
         return tagBuilder;
     }
 
-
-
-    private static TagBuilder generateWarpBlockTagBuilder() {
-        TagBuilder tagBuilder = TagBuilder.create();
-
-        // Add explicit block IDs from config
-        for (String blockId : CommonConfig.warp_block_ids) {
-            if (!blockId.isEmpty()) {
-                try {
-                    ResourceLocation blockLocation = ResourceLocation.parse(blockId);
-                    tagBuilder.addElement(blockLocation);
-                } catch (Exception e) {
-                    ViaRomana.LOGGER.warn("Invalid warp block ID in config: {}", blockId);
-                }
-            }
-        }
-
-        // Add tag references from config
-        for (String tagString : CommonConfig.warp_block_tags) {
-            if (!tagString.isEmpty() && isModLoadedForTag(tagString)) {
-                try {
-                    ResourceLocation tagLocation = ResourceLocation.parse(tagString);
-                    tagBuilder.addTag(tagLocation);
-                } catch (Exception e) {
-                    ViaRomana.LOGGER.warn("Invalid warp tag reference in config: {}", tagString);
-                }
-            }
-        }
-
-        return tagBuilder;
-    }
-
-
-
     private static boolean isModLoadedForTag(String tagString) {
         try {
             ResourceLocation tagLocation = ResourceLocation.parse(tagString);
@@ -127,5 +104,15 @@ public class TagGenerator {
             ViaRomana.LOGGER.warn("Invalid tag format: '{}'", tagString);
             return false;
         }
+    }
+
+    private static boolean isBlacklistedBlock(String blockIdString) {
+        for (String blacklistString : CommonConfig.block_string_blacklist) {
+            if (!blacklistString.isEmpty() && blockIdString.contains(blacklistString.toLowerCase())) {
+                ViaRomana.LOGGER.debug("Blacklisted block: '{}' from Via Romana block tag", blockIdString);
+                return true;
+            }
+        }
+        return false;
     }
 }

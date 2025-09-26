@@ -98,7 +98,7 @@ public class InvalidBlockRenderer {
     private static void renderTopFace(PoseStack.Pose pose, VertexConsumer consumer, float minX, float maxX, float y, float minZ, float maxZ, float alpha) {
         int light = 15728880;
         int overlay = 655360;
-        float yOffset = y + 0.0625f;
+        float yOffset = y + 0.06f;
 
         int color = ((int)(alpha * 255) << 24) | ((int)(1.0f * 255) << 16) | ((int)(1.0f * 255) << 8) | (int)(1.0f * 255);
         

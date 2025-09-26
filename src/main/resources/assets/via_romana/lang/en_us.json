@@ -141,6 +141,8 @@
   "via_romana.midnightconfig.warp_block_ids.tooltip": "List of block IDs that can act as warp blocks.",
   "via_romana.midnightconfig.warp_block_tags": "Warp Block Tags",
   "via_romana.midnightconfig.warp_block_tags.tooltip": "List of block tags that can act as warp blocks.",
+  "via_romana.midnightconfig.block_string_blacklist": "Block Substring Blacklist",
+  "via_romana.midnightconfig.block_string_blacklist.tooltip": "Substrings to search for in block IDs to exclude them from being valid for paths (used to avoid crashes with other mods).",
 
   "via_romana.midnightconfig.invalid_block_overlay_opacity": "Invalid Block Overlay Opacity",
   "via_romana.midnightconfig.invalid_block_overlay_opacity.tooltip": "Highlights blocks that do not count as valid infrastructure for charting. Set to 0 to disable."

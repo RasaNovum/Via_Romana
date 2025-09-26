@@ -303,6 +303,7 @@ public class TeleportMapScreen extends Screen {
             // Head
             RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
             guiGraphics.blit(skin, x, y, 8, 8, PLAYER_MARKER_SIZE, PLAYER_MARKER_SIZE, 64, 64);
+            guiGraphics.blit(skin, x, y, 40, 8, PLAYER_MARKER_SIZE, PLAYER_MARKER_SIZE, 64, 64);
 
             RenderSystem.disableBlend();
             guiGraphics.pose().popPose();
