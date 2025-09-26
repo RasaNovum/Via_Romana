@@ -6,7 +6,7 @@ plugins {
 }
 
 // True for Fabric jar, False for NeoForge jar, scuffed but we ball
-ext.fabric = true
+ext.fabric = false
 
 if (fabric) version = "$baseVersion+$compatibleVersions-fabric"
 else version = "$baseVersion+$compatibleVersions-neoforge"
