@@ -99,7 +99,7 @@ public class InvalidBlockRenderer {
     private static void renderTopFace(Matrix4f matrix, VertexConsumer consumer, float minX, float maxX, float y, float minZ, float maxZ, float alpha) {
         int light = 15728880;
         int overlay = 655360;
-        float yOffset = y + 0.0625f;
+        float yOffset = y + 0.06f;
 
         consumer.vertex(matrix, minX, yOffset, minZ).color(1.0f, 1.0f, 1.0f, alpha).uv(0, 0).overlayCoords(overlay).uv2(light).normal(0, 1, 0).endVertex();
         consumer.vertex(matrix, minX, yOffset, maxZ).color(1.0f, 1.0f, 1.0f, alpha).uv(0, 1).overlayCoords(overlay).uv2(light).normal(0, 1, 0).endVertex();
