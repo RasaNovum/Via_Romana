@@ -33,9 +33,6 @@
 		"fabric-api": ">=${fapi}",
 		"midnightlib": "*"
 	},
-	"suggests": {
-		"supplementaries": ">=${supplementaries}"
-	},
 	"mixins": [
 		"${modId}.mixins.json"
 	]

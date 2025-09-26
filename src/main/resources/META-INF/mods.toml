@@ -46,13 +46,6 @@ side = "BOTH"
 [[dependencies.${modId}]]
 modId = "midnightlib"
 mandatory = true
-versionRange = "[${forgeMidnightlib},)"
-ordering = "NONE"
-side = "BOTH"
-
-[[dependencies.${modId}]]
-modId = "supplementaries"
-mandatory = false
-versionRange = "[${supplementaries},)"
+versionRange = "*"
 ordering = "NONE"
 side = "BOTH"
