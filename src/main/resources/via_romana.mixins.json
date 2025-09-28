@@ -15,7 +15,8 @@
     "BlockEntityMixin",
     "PreventFatigueRemovalMixin",
     "ServerLevelMixin",
-    "ServerPlayerMixin"
+    "ServerPlayerMixin",
+    "RegistryPaletteMixin"
   ],
   "injectors": {
     "defaultRequire": 1
