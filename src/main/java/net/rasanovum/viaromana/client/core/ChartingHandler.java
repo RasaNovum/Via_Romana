@@ -74,7 +74,7 @@ public final class ChartingHandler {
         if (entity == null) return;  
         if (Math.random() > 0.9) playCartographySound(level, entity);
 
-        Optional<Node> nearbyNode = ClientPathData.getInstance().getNearestNode(pos, CommonConfig.node_utility_distance, true);
+        Optional<Node> nearbyNode = ClientPathData.getInstance().getNearestNode(pos, CommonConfig.node_utility_distance, 1.0f, true);
 
         if (nearbyNode.isPresent()) {
             BlockPos nearbyPos = nearbyNode.get().getBlockPos();

@@ -134,13 +134,20 @@ public class ClientPathData {
      * Finds the nearest node to the given position, optionally including temporary nodes.
      */
     public Optional<Node> getNearestNode(BlockPos origin, double maxDistance, boolean includeTemp) {
-        return getNearestNode(origin, maxDistance, includeTemp, node -> true, node -> true);
+        return getNearestNode(origin, maxDistance, maxDistance, includeTemp, node -> true, node -> true);
+    }
+    
+    /**
+     * Finds the nearest node to the given position, optionally including temporary nodes, with separate Y-axis range.
+     */
+    public Optional<Node> getNearestNode(BlockPos origin, double maxDistance, double maxYDistance, boolean includeTemp) {
+        return getNearestNode(origin, maxDistance, maxYDistance, includeTemp, node -> true, node -> true);
     }
     
     /**
      * Finds the nearest node to the given position, optionally including temporary nodes.
      */
-    public Optional<Node> getNearestNode(BlockPos origin, double maxDistance, boolean includeTemp, Predicate<Node> graphFilter, Predicate<Node> clientFilter) {
+    public Optional<Node> getNearestNode(BlockPos origin, double maxDistance, double maxYDistance, boolean includeTemp, Predicate<Node> graphFilter, Predicate<Node> clientFilter) {
         PathGraph graph = getGraph();
         if (graph == null) return Optional.empty();
     
@@ -152,19 +159,19 @@ public class ClientPathData {
         Optional<Node> bestTemporary = temporaryNodes.stream()
                 .map(data -> new Node(data.pos().asLong(), data.quality()))
                 .filter(clientFilter)
-                .filter(node -> calculateDistance(node.getBlockPos(), origin) <= maxDistSq)
-                .min(Comparator.comparingDouble(node -> calculateDistance(node.getBlockPos(), origin)));
+                .filter(node -> calculateDistance(node.getBlockPos(), origin, false) <= maxDistSq && Math.abs(node.getBlockPos().getY() - origin.getY()) <= maxYDistance)
+                .min(Comparator.comparingDouble(node -> calculateDistance(node.getBlockPos(), origin, true)));
     
         if (bestPersistent.isEmpty()) return bestTemporary;
         if (bestTemporary.isEmpty()) return bestPersistent;
     
-        Node pNode = bestPersistent.get();
-        Node tNode = bestTemporary.get();
+        Node persistentNode = bestPersistent.get();
+        Node temporaryNode = bestTemporary.get();
     
-        double pDist = calculateDistance(pNode.getBlockPos(), origin);
-        double tDist = calculateDistance(tNode.getBlockPos(), origin);
+        double persistentNodeDistance = calculateDistance(persistentNode.getBlockPos(), origin);
+        double tempNodeDistance = calculateDistance(temporaryNode.getBlockPos(), origin);
     
-        return pDist <= tDist ? bestPersistent : bestTemporary;
+        return persistentNodeDistance <= tempNodeDistance ? bestPersistent : bestTemporary;
     }
     
     /**
