@@ -79,12 +79,12 @@ public class PathUtils {
             }
         }
 
-        int ceilingCheck = mutablePos.getY() + 1;
-        int clearance = 1;
+        int surfaceY = mutablePos.getY();
+        int clearance = 0;
         int entityX = (int) Math.floor(entity.getX());
         int entityZ = (int) Math.floor(entity.getZ());
 
-        for (int y = ceilingCheck + 1; y <= ceilingCheck + 6; y++) {
+        for (int y = surfaceY + 1; y <= surfaceY + 6; y++) {
             mutablePos.set(entityX, y, entityZ);
             BlockState blockState = world.getBlockState(mutablePos);
             
