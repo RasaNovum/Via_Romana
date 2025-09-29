@@ -55,6 +55,7 @@ public class TeleportMapScreen extends Screen {
     private static final float DIRECTION_BASE_OPACITY = 1.0f;
     private static final float DIRECTION_FADE_CURVE = 1.0f;
     private static final int DIRECTION_COLOR_RGB = net.rasanovum.viaromana.client.ColorUtil.rgbToHex(1,1,1);
+    private static final int THICKNESS = 1;
     //endregion
 
     //region Initialization
@@ -78,7 +79,6 @@ public class TeleportMapScreen extends Screen {
 
         calculateBounds();
 
-        // Apply padding consistently using MapConstants
         int widthW = this.maxBounds.getX() - this.minBounds.getX();
         int heightW = this.maxBounds.getZ() - this.minBounds.getZ();
         int paddingX = Math.max(16, (int) (widthW * 0.1f));
@@ -86,10 +86,8 @@ public class TeleportMapScreen extends Screen {
         BlockPos paddedMin = this.minBounds.offset(-paddingX, 0, -paddingZ);
         BlockPos paddedMax = this.maxBounds.offset(paddingX, 0, paddingZ);
 
-        // Prepare map renderer holder for drawing
         this.mapRenderer = new MapRenderer(paddedMin, paddedMax, networkNodes);
 
-        // Request map from server
         requestMapAsync(paddedMin, paddedMax);
     }
     
@@ -100,7 +98,6 @@ public class TeleportMapScreen extends Screen {
         MapClient.requestMap(networkId, paddedMin, paddedMax, networkNodes)
             .thenAccept(mapInfo -> {
                 if (mapInfo != null) {
-                    // Create texture on main thread
                     this.minecraft.execute(() -> {
                         if (this.mapTexture != null) {
                             this.mapTexture.close();
@@ -160,7 +157,6 @@ public class TeleportMapScreen extends Screen {
     private void renderNetwork(GuiGraphics guiGraphics, float partialTicks) {
         if (networkNodeMap.isEmpty()) return;
 
-        // Update animation progress
         if (!nodesToAnimate.isEmpty()) {
             animationProgress = Math.min(1.0f, animationProgress + partialTicks * getAnimationSpeed());
         }
@@ -182,21 +178,25 @@ public class TeleportMapScreen extends Screen {
                     final boolean isEndCompleted = animatedNodes.contains(endPos);
                     final boolean isEndAnimating = currentlyAnimatingSources.contains(endPos);
 
+                    DestinationResponseS2C.NodeNetworkInfo endNodeInfo = networkNodeMap.get(endPos);
+                    boolean bothUnderground = nodeInfo.clearance > 0 && nodeInfo.clearance < 5 && endNodeInfo != null && endNodeInfo.clearance > 0 && endNodeInfo.clearance < 5;
+                    int lineColor = bothUnderground ? 0xFFAAAAAA : 0xFFFFFFFF;
+
                     // Case 1: Connection between two fully completed nodes. Drawn once.
                     if (isStartCompleted && isEndCompleted) {
                         if (startPos.hashCode() < endPos.hashCode()) {
-                            worldToScreen(endPos).ifPresent(endScreenPos -> drawLine(guiGraphics, startScreenPos, endScreenPos, 0xFFFFFFFF, 1));
+                            worldToScreen(endPos).ifPresent(endScreenPos -> drawLine(guiGraphics, startScreenPos, endScreenPos, lineColor, THICKNESS));
                         }
                     }
-                    // Case 2: "Bridge" connection from a completed node to the current animating wave.
+                    // Case 2: Bridge connection from a completed node to the current animating wave.
                     else if (isStartCompleted && isEndAnimating) {
-                        worldToScreen(endPos).ifPresent(endScreenPos -> drawLine(guiGraphics, startScreenPos, endScreenPos, 0xFFFFFFFF, 1));
+                        worldToScreen(endPos).ifPresent(endScreenPos -> drawLine(guiGraphics, startScreenPos, endScreenPos, lineColor, THICKNESS));
                     }
                     // Case 3: The actively growing spline from the current wave to un-animated nodes.
                     else if (isStartAnimating && !isEndCompleted) {
                         worldToScreen(endPos).ifPresent(endScreenPos -> {
                             Point animatedEndPoint = getAnimatedPoint(startScreenPos, endScreenPos, animationProgress);
-                            drawLine(guiGraphics, startScreenPos, animatedEndPoint, 0xFFFFFFFF, 1);
+                            drawLine(guiGraphics, startScreenPos, animatedEndPoint, lineColor, THICKNESS);
                         });
                     }
                 }
@@ -326,7 +326,6 @@ public class TeleportMapScreen extends Screen {
         int left = center.x - half;
         int top = center.y - half;
 
-        // Iterate over the perimeter of the square indicator
         for (int i = 0; i < size * 4 - 4; i++) {
             int x, y;
             if (i < size) { x = left + i; y = top; } // Top edge
@@ -454,7 +453,6 @@ public class TeleportMapScreen extends Screen {
     }
 
     private void drawLine(GuiGraphics guiGraphics, Point start, Point end, int color, int thickness) {
-        // Bresenham's line algorithm
         int dx = Math.abs(end.x - start.x), sx = start.x < end.x ? 1 : -1;
         int dy = -Math.abs(end.y - start.y), sy = start.y < end.y ? 1 : -1;
         int err = dx + dy, e2;
@@ -496,13 +494,11 @@ public class TeleportMapScreen extends Screen {
     //region Overrides
     @Override
     public void onClose() {
-        // Clean up map texture
         if (this.mapTexture != null) {
             this.mapTexture.close();
             this.mapTexture = null;
         }
         
-        // Clean up map renderer
         if (this.mapRenderer != null) {
             this.mapRenderer.close();
             this.mapRenderer = null;

@@ -66,4 +66,35 @@ public class PathUtils {
 
         return totalBlocksChecked == 0 ? 0 : pathQuality / totalBlocksChecked;
     }
+
+    public static float calculateClearance(LevelAccessor world, Entity entity) {
+        if (entity == null) return 0;
+
+        BlockPos.MutableBlockPos mutablePos = new BlockPos.MutableBlockPos(entity.getX(), entity.getY(), entity.getZ());
+        if (!entity.onGround()) {
+            int startY = mutablePos.getY();
+            while (world.isEmptyBlock(mutablePos)) {
+                mutablePos.setY(mutablePos.getY() - 1);
+                if (startY - mutablePos.getY() >= 4) return 0;
+            }
+        }
+
+        int ceilingCheck = mutablePos.getY() + 1;
+        int clearance = 1;
+        int entityX = (int) Math.floor(entity.getX());
+        int entityZ = (int) Math.floor(entity.getZ());
+
+        for (int y = ceilingCheck + 1; y <= ceilingCheck + 6; y++) {
+            mutablePos.set(entityX, y, entityZ);
+            BlockState blockState = world.getBlockState(mutablePos);
+            
+            if (!world.isEmptyBlock(mutablePos) && !blockState.is(TagKey.create(Registries.BLOCK, ResourceLocation.parse("minecraft:leaves")))) {
+                return clearance;
+            }
+            
+            clearance++;
+        }
+
+        return 6;
+    }
 }

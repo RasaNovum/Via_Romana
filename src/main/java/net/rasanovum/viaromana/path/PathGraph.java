@@ -63,7 +63,7 @@ public final class PathGraph {
 
         public List<DestinationResponseS2C.NodeNetworkInfo> getNodesAsInfo() {
             return nodePositions.stream()
-                    .map(pos -> new DestinationResponseS2C.NodeNetworkInfo(BlockPos.of(pos), List.of()))
+                    .map(pos -> new DestinationResponseS2C.NodeNetworkInfo(BlockPos.of(pos), 0, List.of()))
                     .collect(Collectors.toList());
         }
     }
@@ -257,10 +257,10 @@ public final class PathGraph {
         return idx != -1 ? Optional.of(nodes.get(idx)) : Optional.empty();
     }
 
-    public int getOrCreateNode(BlockPos pos, float quality) {
-        return posToIndex.computeIfAbsent(pos.asLong(), p -> {
+    public int getOrCreateNode(BlockPos pos, float quality, float clearance) {
+        return posToIndex.computeIfAbsent(pos.asLong(), nodePos -> {
             int newIndex = nodes.size();
-            nodes.add(new Node(p, quality));
+            nodes.add(new Node(nodePos, quality, clearance));
             return newIndex;
         });
     }
@@ -270,7 +270,7 @@ public final class PathGraph {
 
         Node previousNode = null;
         for (Node.NodeData currentData : pathData) {
-            Node currentNode = nodes.get(getOrCreateNode(currentData.pos(), currentData.quality()));
+            Node currentNode = nodes.get(getOrCreateNode(currentData.pos(), currentData.quality(), currentData.clearance()));
             if (previousNode != null) {
                 invalidateNetworksContaining(previousNode, currentNode);
                 previousNode.connect(currentNode);

@@ -45,6 +45,7 @@ public record DestinationResponseS2C(
             List<NodeNetworkInfo> networkNodes = new ArrayList<>(networkSize);
             for (int i = 0; i < networkSize; i++) {
                 BlockPos pos = buffer.readBlockPos();
+                float clearance = buffer.readFloat();
 
                 int connectionCount = buffer.readInt();
                 List<BlockPos> connections = new ArrayList<>(connectionCount);
@@ -52,7 +53,7 @@ public record DestinationResponseS2C(
                     connections.add(buffer.readBlockPos());
                 }
 
-                networkNodes.add(new NodeNetworkInfo(pos, connections));
+                networkNodes.add(new NodeNetworkInfo(pos, clearance, connections));
             }
 
             return new DestinationResponseS2C(destinations, signPos, sourceNodePos, networkNodes, networkId);
@@ -75,7 +76,7 @@ public record DestinationResponseS2C(
             buffer.writeInt(packet.networkNodes.size());
             for (NodeNetworkInfo node : packet.networkNodes) {
                 buffer.writeBlockPos(node.position);
-
+                buffer.writeFloat(node.clearance);
                 buffer.writeInt(node.connections.size());
                 for (BlockPos connection : node.connections) {
                     buffer.writeBlockPos(connection);
@@ -105,10 +106,12 @@ public record DestinationResponseS2C(
     
     public static class NodeNetworkInfo {
         public final BlockPos position;
+        public final float clearance;
         public final List<BlockPos> connections;
-        
-        public NodeNetworkInfo(BlockPos position, List<BlockPos> connections) {
+
+        public NodeNetworkInfo(BlockPos position, float clearance, List<BlockPos> connections) {
             this.position = position;
+            this.clearance = clearance;
             this.connections = connections;
         }
     }

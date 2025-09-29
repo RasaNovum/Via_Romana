@@ -27,7 +27,8 @@ public record ChartedPathC2S(List<NodeData> chartedNodes) implements CustomPacke
             for (int i = 0; i < nodeCount; i++) {
                 BlockPos pos = buffer.readBlockPos();
                 float quality = buffer.readFloat();
-                chartedNodes.add(new NodeData(pos, quality));
+                float clearance = buffer.readFloat();
+                chartedNodes.add(new NodeData(pos, quality, clearance));
             }
 
             return new ChartedPathC2S(chartedNodes);
@@ -40,6 +41,7 @@ public record ChartedPathC2S(List<NodeData> chartedNodes) implements CustomPacke
             for (NodeData nodeData : packet.chartedNodes) {
                 buffer.writeBlockPos(nodeData.pos());
                 buffer.writeFloat(nodeData.quality());
+                buffer.writeFloat(nodeData.clearance());
             }
         }
     };

@@ -18,6 +18,7 @@ public class PathRecord {
 		if (!DimensionHandler.isValid(world, player)) return;
 
 		float infrastructureQuality = PathUtils.calculateInfrastructureQuality(world, player);
+		float clearance = PathUtils.calculateClearance(world, player);
 
 		// double qualityThreshold = CommonConfig.path_quality_threshold;
 
@@ -30,7 +31,7 @@ public class PathRecord {
 		// HudMessageManager.queueMessage("message.via_romana.start_charting");
 
 		ChartingHandler.initializeChartingNodes(player);
-		ChartingHandler.addChartingNode(world, player, playerPos, infrastructureQuality);
+		ChartingHandler.addChartingNode(world, player, playerPos, infrastructureQuality, clearance);
 		VariableAccess.playerVariables.setChartingPath(player, true);
 		VariableAccess.playerVariables.syncAndSave(player);
 	}

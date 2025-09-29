@@ -33,6 +33,7 @@ public final class ChartingHandler {
 
         float nodeDistance = PathUtils.calculateNodeDistance(entity);
         float infrastructureQuality = PathUtils.calculateInfrastructureQuality(level, entity);
+        float clearance = PathUtils.calculateClearance(level, entity);
 
         if (nodeDistance > CommonConfig.node_distance_maximum) {
             HudMessageManager.queueMessage("message.via_romana.too_far_from_node_message");
@@ -51,7 +52,7 @@ public final class ChartingHandler {
             return;
         }
 
-        addChartingNode(level, entity, entity.blockPosition(), infrastructureQuality);
+        addChartingNode(level, entity, entity.blockPosition(), infrastructureQuality, clearance);
     }
 
     private static void playCartographySound(LevelAccessor level, Entity entity) {
@@ -70,7 +71,7 @@ public final class ChartingHandler {
     /**
      * Merges with an existing nearby node (preferred) or creates a new one.
      */
-    public static void addChartingNode(LevelAccessor level, Entity entity, BlockPos pos, Float quality) {
+    public static void addChartingNode(LevelAccessor level, Entity entity, BlockPos pos, Float quality, Float clearance) {
         if (entity == null) return;  
         if (Math.random() > 0.9) playCartographySound(level, entity);
 
@@ -80,10 +81,11 @@ public final class ChartingHandler {
             BlockPos nearbyPos = nearbyNode.get().getBlockPos();
             
             pos = nearbyPos;
+            clearance = nearbyNode.get().getClearance();
         }
 
         VariableAccess.playerVariables.setLastNodePos(entity, pos);
-        ClientPathData.getInstance().addTemporaryNode(pos, quality);
+        ClientPathData.getInstance().addTemporaryNode(pos, quality, clearance);
     }
 
     /**

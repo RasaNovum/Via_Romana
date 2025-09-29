@@ -100,6 +100,7 @@ public record MapInfo(
         buffer.writeInt(networkNodes.size());
         for (NodeNetworkInfo node : networkNodes) {
             buffer.writeBlockPos(node.position);
+            buffer.writeFloat(node.clearance);
             buffer.writeInt(node.connections.size());
             for (BlockPos connection : node.connections) {
                 buffer.writeBlockPos(connection);
@@ -140,12 +141,13 @@ public record MapInfo(
         List<NodeNetworkInfo> networkNodes = new ArrayList<>(nodeCount);
         for (int i = 0; i < nodeCount; i++) {
             BlockPos nodePos = buffer.readBlockPos();
+            float clearance = buffer.readFloat();
             int connectionCount = buffer.readInt();
             List<BlockPos> connections = new ArrayList<>(connectionCount);
             for (int j = 0; j < connectionCount; j++) {
                 connections.add(buffer.readBlockPos());
             }
-            networkNodes.add(new NodeNetworkInfo(nodePos, connections));
+            networkNodes.add(new NodeNetworkInfo(nodePos, clearance, connections));
         }
         
         // Read image data (if present)

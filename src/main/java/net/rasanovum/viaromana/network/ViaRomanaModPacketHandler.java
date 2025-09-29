@@ -192,6 +192,7 @@ public class ViaRomanaModPacketHandler {
                     }
                     networkNodes.add(new DestinationResponseS2C.NodeNetworkInfo(
                         node.getBlockPos(),
+                        node.getClearance(),
                         connections
                     ));
                 }
