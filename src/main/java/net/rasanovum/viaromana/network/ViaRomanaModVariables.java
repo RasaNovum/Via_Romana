@@ -33,6 +33,7 @@ public class ViaRomanaModVariables {
             CompoundTag nodeCompound = new CompoundTag();
             nodeCompound.putLong("pos", data.pos().asLong());
             nodeCompound.putFloat("quality", data.quality());
+            nodeCompound.putFloat("clearance", data.clearance());
             listTag.add(nodeCompound);
         }
         return listTag;
@@ -49,7 +50,8 @@ public class ViaRomanaModVariables {
             CompoundTag nodeCompound = (CompoundTag) tag;
             BlockPos pos = BlockPos.of(nodeCompound.getLong("pos"));
             float quality = nodeCompound.getFloat("quality");
-            loadedList.add(new NodeData(pos, quality));
+            float clearance = nodeCompound.getFloat("clearance");
+            loadedList.add(new NodeData(pos, quality, clearance));
         }
         return loadedList;
     }

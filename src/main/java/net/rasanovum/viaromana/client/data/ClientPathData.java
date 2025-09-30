@@ -56,8 +56,8 @@ public class ClientPathData {
     
     // region Temp Node Util
 
-    public void addTemporaryNode(BlockPos pos, float quality) {
-        temporaryNodes.add(new NodeData(pos, quality));
+    public void addTemporaryNode(BlockPos pos, float quality, float clearance) {
+        temporaryNodes.add(new NodeData(pos, quality, clearance));
     }
     
     public void removeTemporaryNode(BlockPos pos) {
@@ -164,7 +164,7 @@ public class ClientPathData {
     
         double maxDistSq = maxDistance * maxDistance;
         Optional<Node> bestTemporary = temporaryNodes.stream()
-                .map(data -> new Node(data.pos().asLong(), data.quality()))
+                .map(data -> new Node(data.pos().asLong(), data.quality(), data.clearance()))
                 .filter(clientFilter)
                 .filter(node -> calculateDistance(node.getBlockPos(), origin, false) <= maxDistSq && Math.abs(node.getBlockPos().getY() - origin.getY()) <= maxYDistance)
                 .min(Comparator.comparingDouble(node -> calculateDistance(node.getBlockPos(), origin, true)));
@@ -204,7 +204,7 @@ public class ClientPathData {
                 double dz = (packed.pos().getZ() + 0.5) - cz;
                 
                 if (dx*dx + dy*dy + dz*dz <= r2) {
-                    result.add(new Node(packed.pos().asLong(), packed.quality()));
+                    result.add(new Node(packed.pos().asLong(), packed.quality(), packed.clearance()));
                 }
             }
         }

@@ -304,6 +304,7 @@ public class ViaRomanaModPacketHandler {
                     }
                     networkNodes.add(new DestinationResponsePacket.NodeNetworkInfo(
                         node.getBlockPos(),
+                        node.getClearance(),
                         connections
                     ));
                 }

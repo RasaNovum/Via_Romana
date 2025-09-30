@@ -43,14 +43,15 @@ public class DestinationResponsePacket {
         this.networkNodes = new ArrayList<>(networkSize);
         for (int i = 0; i < networkSize; i++) {
             BlockPos pos = buffer.readBlockPos();
-            
+            float clearance = buffer.readFloat();
             int connectionCount = buffer.readInt();
+            
             List<BlockPos> connections = new ArrayList<>(connectionCount);
             for (int j = 0; j < connectionCount; j++) {
                 connections.add(buffer.readBlockPos());
             }
             
-            networkNodes.add(new NodeNetworkInfo(pos, connections));
+            networkNodes.add(new NodeNetworkInfo(pos, clearance, connections));
         }
     }
     
@@ -70,7 +71,7 @@ public class DestinationResponsePacket {
         buffer.writeInt(networkNodes.size());
         for (NodeNetworkInfo node : networkNodes) {
             buffer.writeBlockPos(node.position);
-            
+            buffer.writeFloat(node.clearance);
             buffer.writeInt(node.connections.size());
             for (BlockPos connection : node.connections) {
                 buffer.writeBlockPos(connection);
@@ -114,10 +115,12 @@ public class DestinationResponsePacket {
     
     public static class NodeNetworkInfo {
         public final BlockPos position;
+        public final float clearance;
         public final List<BlockPos> connections;
         
-        public NodeNetworkInfo(BlockPos position, List<BlockPos> connections) {
+        public NodeNetworkInfo(BlockPos position, float clearance, List<BlockPos> connections) {
             this.position = position;
+            this.clearance = clearance;
             this.connections = connections;
         }
     }

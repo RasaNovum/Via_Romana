@@ -26,7 +26,8 @@ public class ChartedPathC2S {
         for (int i = 0; i < nodeCount; i++) {
             BlockPos pos = buffer.readBlockPos();
             float quality = buffer.readFloat();
-            this.chartedNodes.add(new NodeData(pos, quality));
+            float clearance = buffer.readFloat();
+            this.chartedNodes.add(new NodeData(pos, quality, clearance));
         }
     }
 
@@ -36,6 +37,7 @@ public class ChartedPathC2S {
         for (NodeData nodeData : chartedNodes) {
             buffer.writeBlockPos(nodeData.pos());
             buffer.writeFloat(nodeData.quality());
+            buffer.writeFloat(nodeData.clearance());
         }
     }
 

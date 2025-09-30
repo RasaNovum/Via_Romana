@@ -16,7 +16,7 @@ import java.util.function.LongPredicate;
 public class Node {
 
     //region Enums & Records
-    public record NodeData(BlockPos pos, float quality) {}
+    public record NodeData(BlockPos pos, float quality, float clearance) {}
 
     public enum LinkType {
         NONE,
@@ -33,6 +33,7 @@ public class Node {
     //region Core Data
     private final long pos;
     private final float quality;
+    private final float clearance;
     private final LongSet connectedNodes = new LongOpenHashSet();
     private DestinationInfo destinationInfo = null; // Null if not a destination
     //endregion
@@ -55,13 +56,14 @@ public class Node {
     }
 
     //region Construction & Serialization
-    public Node(long pos, float quality) {
+    public Node(long pos, float quality, float clearance) {
         this.pos = pos;
         this.quality = quality;
+        this.clearance = clearance;
     }
 
     public Node(CompoundTag tag) {
-        this(tag.getLong("pos"), tag.getFloat("quality"));
+        this(tag.getLong("pos"), tag.getFloat("quality"), tag.getFloat("clearance"));
 
         long[] connections = tag.getLongArray("connections");
         for (long c : connections) {
@@ -89,6 +91,7 @@ public class Node {
     public CompoundTag serialize(CompoundTag tag) {
         tag.putLong("pos", this.pos);
         tag.putFloat("quality", this.quality);
+        tag.putFloat("clearance", this.clearance);
         tag.putLongArray("connections", this.connectedNodes.toLongArray());
 
         if (this.destinationInfo != null) {
@@ -122,6 +125,10 @@ public class Node {
 
     public float getQuality() {
         return quality;
+    }
+
+    public float getClearance() {
+        return clearance;
     }
     //endregion
 

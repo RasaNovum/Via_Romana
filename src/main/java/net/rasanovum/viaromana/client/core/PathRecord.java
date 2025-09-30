@@ -18,19 +18,10 @@ public class PathRecord {
 		if (!DimensionHandler.isValid(world, player)) return;
 
 		float infrastructureQuality = PathUtils.calculateInfrastructureQuality(world, player);
-
-		// double qualityThreshold = ViaRomanaConfig.path_quality_threshold;
-
-		// if (infrastructureQuality < qualityThreshold) {
-		// 	cancel(world, player, false);
-		// 	HudMessageManager.queueMessage("message.via_romana.low_quality_message");
-		// 	return;
-		// }
-
-		// HudMessageManager.queueMessage("message.via_romana.start_charting");
+		float clearance = PathUtils.calculateClearance(world, player);
 
 		ChartingHandler.initializeChartingNodes(player);
-		ChartingHandler.addChartingNode(world, player, playerPos, infrastructureQuality);
+		ChartingHandler.addChartingNode(world, player, playerPos, infrastructureQuality, clearance);
 		VariableAccess.playerVariables.setChartingPath(player, true);
 		VariableAccess.playerVariables.syncAndSave(player);
 	}
