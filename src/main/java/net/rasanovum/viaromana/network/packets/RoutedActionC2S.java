@@ -23,4 +23,14 @@ public record RoutedActionC2S(Operation op) implements CustomPacketPayload {
     public Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
+
+    public static void handle(commonnetwork.networking.data.PacketContext<RoutedActionC2S> ctx) {
+        if (commonnetwork.networking.data.Side.SERVER.equals(ctx.side())) {
+            // Handle action request on server
+            // From ViaRomanaModPacketHandler.handleActionRequestC2S
+            // The logic is to handle the operation
+            // For now, placeholder
+            net.rasanovum.viaromana.ViaRomana.LOGGER.debug("Received RoutedActionC2S: {}", ctx.message().op());
+        }
+    }
 }

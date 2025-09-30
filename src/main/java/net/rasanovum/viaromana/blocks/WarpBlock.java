@@ -10,6 +10,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.rasanovum.viaromana.network.packets.OpenWarpBlockScreenS2C;
+import commonnetwork.api.Dispatcher;
 import net.rasanovum.viaromana.network.ViaRomanaModVariables;
 
 /**
@@ -24,7 +25,7 @@ public class WarpBlock extends Block {
     public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         if (!level.isClientSide() && player instanceof ServerPlayer serverPlayer) {
             OpenWarpBlockScreenS2C packet = new OpenWarpBlockScreenS2C(pos);
-            ViaRomanaModVariables.networkHandler.sendToPlayer(serverPlayer, packet);
+            Dispatcher.sendToClient(packet, serverPlayer);
             return InteractionResult.SUCCESS;
         }
         return InteractionResult.CONSUME;

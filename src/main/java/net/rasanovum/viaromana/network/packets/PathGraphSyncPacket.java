@@ -36,17 +36,18 @@ public record PathGraphSyncPacket(CompoundTag pathGraphData) implements CustomPa
         return TYPE;
     }
 
-    public static void handleClient(PathGraphSyncPacket packet) {
-        try {
-            PathGraph clientGraph = new PathGraph();
-            clientGraph.deserialize(packet.pathGraphData());
+    public static void handle(commonnetwork.networking.data.PacketContext<PathGraphSyncPacket> ctx) {
+        if (commonnetwork.networking.data.Side.CLIENT.equals(ctx.side())) {
+            try {
+                PathGraph clientGraph = new PathGraph();
+                clientGraph.deserialize(ctx.message().pathGraphData());
 
-            ClientPathData.getInstance().updatePathData(clientGraph);
+                ClientPathData.getInstance().updatePathData(clientGraph);
 
-            ViaRomana.LOGGER.debug("Client received PathGraph sync with {} nodes", clientGraph.size());
-
-        } catch (Exception e) {
-            ViaRomana.LOGGER.error("Failed to process PathGraph sync packet on client", e);
+                ViaRomana.LOGGER.debug("Client received PathGraph sync with {} nodes", clientGraph.size());
+            } catch (Exception e) {
+                ViaRomana.LOGGER.error("Failed to process PathGraph sync packet on client", e);
+            }
         }
     }
 }

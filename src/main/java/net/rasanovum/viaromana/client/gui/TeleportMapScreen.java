@@ -13,7 +13,6 @@ import net.rasanovum.viaromana.client.MapClient;
 import net.rasanovum.viaromana.network.packets.DestinationResponseS2C;
 import net.rasanovum.viaromana.network.packets.SignValidationRequestC2S;
 import net.rasanovum.viaromana.network.packets.TeleportRequestC2S;
-import net.rasanovum.viaromana.network.ViaRomanaModVariables;
 import net.rasanovum.viaromana.teleport.TeleportHelper;
 
 import java.awt.Point;
@@ -375,11 +374,7 @@ public class TeleportMapScreen extends Screen {
         if (minecraft == null || minecraft.player == null) return;
         TeleportRequestC2S packet = new TeleportRequestC2S(this.signPos, destination.position);
 
-        if (ViaRomanaModVariables.networkHandler != null) {
-            ViaRomanaModVariables.networkHandler.sendToServer(packet);
-        } else {
-            ViaRomana.LOGGER.error("Network handler is null - cannot send teleport request");
-        }
+        commonnetwork.api.Dispatcher.sendToServer(packet);
         this.onClose();
     }
     //endregion
@@ -388,9 +383,7 @@ public class TeleportMapScreen extends Screen {
     private void validateNodeSign(BlockPos nodePos) {
         if (!validatedNodes.contains(nodePos)) {
             SignValidationRequestC2S packet = new SignValidationRequestC2S(nodePos);
-            if (ViaRomanaModVariables.networkHandler != null) {
-                ViaRomanaModVariables.networkHandler.sendToServer(packet);
-            }
+            commonnetwork.api.Dispatcher.sendToServer(packet);
         }
     }
 

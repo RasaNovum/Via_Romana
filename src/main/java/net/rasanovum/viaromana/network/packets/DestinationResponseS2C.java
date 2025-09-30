@@ -6,6 +6,8 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.rasanovum.viaromana.path.Node;
+import commonnetwork.networking.data.PacketContext;
+import commonnetwork.networking.data.Side;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -88,6 +90,16 @@ public record DestinationResponseS2C(
     @Override
     public Type<? extends CustomPacketPayload> type() {
         return TYPE;
+    }
+
+    public static void handle(PacketContext<DestinationResponseS2C> ctx) {
+        if (Side.CLIENT.equals(ctx.side())) {
+            net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
+            mc.execute(() -> {
+                net.rasanovum.viaromana.client.gui.TeleportMapScreen screen = new net.rasanovum.viaromana.client.gui.TeleportMapScreen(ctx.message());
+                mc.setScreen(screen);
+            });
+        }
     }
     
     public static class DestinationInfo {

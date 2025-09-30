@@ -2,7 +2,6 @@ package net.rasanovum.viaromana.core;
 
 import net.rasanovum.viaromana.variables.VariableAccess;
 import net.rasanovum.viaromana.network.packets.DestinationRequestC2S;
-import net.rasanovum.viaromana.network.ViaRomanaModVariables;
 
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.entity.Entity;
@@ -45,7 +44,7 @@ public class SignInteract {
                     
                     if (world.isClientSide() && entity instanceof Player) {
                         DestinationRequestC2S req = new DestinationRequestC2S(signPos);
-                        ViaRomanaModVariables.networkHandler.sendToServer(req);
+                        commonnetwork.api.Dispatcher.sendToServer(req);
                         return true;
                     }
                 }

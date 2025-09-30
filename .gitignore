@@ -9,3 +9,5 @@ build/
 .vscode/settings.json
 src/main/generated/.cache/e646a25c339e0de009e09bd202d29c54614fe197
 .idea/runConfigurations/Minecraft_Server.xml
+common-networking_common.txt
+common-networking_example_common.txt

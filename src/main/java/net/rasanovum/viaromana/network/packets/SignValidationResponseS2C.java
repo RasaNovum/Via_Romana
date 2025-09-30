@@ -6,6 +6,8 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
+import commonnetwork.networking.data.PacketContext;
+import commonnetwork.networking.data.Side;
 
 /*
  * Response from the server indicating whether the sign at the given position is valid.
@@ -22,5 +24,13 @@ public record SignValidationResponseS2C(BlockPos nodePos, boolean isValid) imple
     @Override
     public Type<? extends CustomPacketPayload> type() {
         return TYPE;
+    }
+
+    public static void handle(PacketContext<SignValidationResponseS2C> ctx) {
+        if (Side.CLIENT.equals(ctx.side())) {
+            // Handle sign validation response - currently just logs the result
+            net.rasanovum.viaromana.ViaRomana.LOGGER.debug("Sign validation response: node at {} is {}", 
+                ctx.message().nodePos(), ctx.message().isValid() ? "valid" : "invalid");
+        }
     }
 }

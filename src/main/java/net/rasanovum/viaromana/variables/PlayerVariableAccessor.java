@@ -5,7 +5,6 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
-import net.rasanovum.viaromana.network.ViaRomanaModClientPacketHandler;
 import net.rasanovum.viaromana.network.ViaRomanaModVariables;
 
 public class PlayerVariableAccessor {
@@ -38,7 +37,8 @@ public class PlayerVariableAccessor {
 
     public void syncAndSave(Entity entity) {
         if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT && isLocalPlayer(entity)) {
-            ViaRomanaModClientPacketHandler.sendPlayerVariablesToServer(getVars(entity));
+            // Use Dispatcher for client-to-server sending
+            commonnetwork.api.Dispatcher.sendToServer(new ViaRomanaModVariables.PlayerVariablesSyncMessage(getVars(entity)));
         } else {
             sync(entity);
             save(entity);

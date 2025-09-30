@@ -6,7 +6,11 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.rasanovum.viaromana.map.MapInfo;
+import net.rasanovum.viaromana.map.ServerMapCache;
 import net.rasanovum.viaromana.network.packets.DestinationResponseS2C.NodeNetworkInfo;
+import commonnetwork.networking.data.PacketContext;
+import commonnetwork.networking.data.Side;
+import commonnetwork.api.Dispatcher;
 
 import java.util.List;
 import java.util.UUID;
@@ -46,4 +50,19 @@ public record MapRequestC2S(MapInfo mapInfo) implements CustomPacketPayload {
     public List<NodeNetworkInfo> getNetworkNodes() { return mapInfo.networkNodes(); }
 
     public MapInfo getMapInfo() { return mapInfo; }
+
+    public static void handle(PacketContext<MapRequestC2S> ctx) {
+        if (Side.SERVER.equals(ctx.side())) {
+            net.minecraft.server.level.ServerLevel level = ctx.sender().serverLevel();
+            UUID networkId = ctx.message().mapInfo().networkId();
+            
+            ServerMapCache.generateMapIfNeeded(networkId, level)
+                .thenAccept(mapInfo -> {
+                    if (mapInfo != null) {
+                        MapResponseS2C response = new MapResponseS2C(mapInfo);
+                        Dispatcher.sendToClient(response, ctx.sender());
+                    }
+                });
+        }
+    }
 }

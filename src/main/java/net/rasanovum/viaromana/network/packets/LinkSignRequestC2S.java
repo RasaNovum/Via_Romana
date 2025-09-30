@@ -7,6 +7,8 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.rasanovum.viaromana.core.LinkHandler.LinkData;
 import net.rasanovum.viaromana.path.Node;
+import commonnetwork.networking.data.PacketContext;
+import commonnetwork.networking.data.Side;
 
 import java.util.UUID;
 
@@ -48,5 +50,22 @@ public record LinkSignRequestC2S(LinkData linkData, boolean isTempNode) implemen
     @Override
     public Type<? extends CustomPacketPayload> type() {
         return TYPE;
+    }
+
+    public static void handle(PacketContext<LinkSignRequestC2S> ctx) {
+        if (Side.SERVER.equals(ctx.side())) {
+            net.minecraft.server.level.ServerLevel level = ctx.sender().serverLevel();
+            LinkData linkData = ctx.message().linkData();
+
+            boolean success = net.rasanovum.viaromana.core.LinkHandler.linkSignToNode(level, linkData);
+
+            if (!success) {
+                net.rasanovum.viaromana.ViaRomana.LOGGER.warn("Failed to link sign at {} to node at {} for player {}",
+                    linkData.signPos(), linkData.nodePos(), ctx.sender().getName().getString());
+            } else {
+                net.rasanovum.viaromana.ViaRomana.LOGGER.debug("Successfully linked sign at {} to node at {} for player {}",
+                    linkData.signPos(), linkData.nodePos(), ctx.sender().getName().getString());
+            }
+        }
     }
 }

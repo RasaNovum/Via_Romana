@@ -5,6 +5,9 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
+import net.rasanovum.viaromana.client.gui.WarpBlockScreen;
+import commonnetwork.networking.data.PacketContext;
+import commonnetwork.networking.data.Side;
 
 /*
  * Instruct the client to open the warp block screen for the block at the given position.
@@ -27,5 +30,11 @@ public record OpenWarpBlockScreenS2C(BlockPos blockPos) implements CustomPacketP
     @Override
     public Type<? extends CustomPacketPayload> type() {
         return TYPE;
+    }
+
+    public static void handle(PacketContext<OpenWarpBlockScreenS2C> ctx) {
+        if (Side.CLIENT.equals(ctx.side())) {
+            net.minecraft.client.Minecraft.getInstance().setScreen(new WarpBlockScreen(ctx.message().blockPos()));
+        }
     }
 }

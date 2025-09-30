@@ -4,6 +4,8 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
+import commonnetwork.networking.data.PacketContext;
+import commonnetwork.networking.data.Side;
 
 /*
  * Unused as mixin to open sign GUI is already client-side, but keeping for future use
@@ -26,5 +28,11 @@ public record OpenLinkSignScreenS2C() implements CustomPacketPayload {
     @Override
     public Type<? extends CustomPacketPayload> type() {
         return TYPE;
+    }
+    
+    public static void handle(PacketContext<OpenLinkSignScreenS2C> ctx) {
+        if (Side.CLIENT.equals(ctx.side())) {
+            // Unused - screen opening is handled client-side via mixin
+        }
     }
 }
