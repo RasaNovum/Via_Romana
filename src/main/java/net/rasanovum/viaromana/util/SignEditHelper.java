@@ -87,7 +87,7 @@ public class SignEditHelper {
                 tooltip = "gui.viaromana.no_access_tooltip";
             }
         } else {
-            Optional<Node> nearestNode = clientPathData.getNearestNode(signPos, CommonConfig.node_utility_distance * 2, true, node -> !node.isLinked(), node -> !clientPathData.isNodeSignLinked(node.getBlockPos(), null));
+            Optional<Node> nearestNode = clientPathData.getNearestNode(signPos, CommonConfig.node_utility_distance * 2, 2.0f, true, node -> !node.isLinked(), node -> !clientPathData.isNodeSignLinked(node.getBlockPos(), null));
             boolean isNearNode = nearestNode.isPresent();
             buttonText = "gui.viaromana.add_to_path";
 

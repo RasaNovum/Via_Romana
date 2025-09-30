@@ -440,12 +440,21 @@ public final class PathGraph {
 
     // region Queries & Traversals
 
+    /*
+     * Finds the nearest node to a given position within a specified maximum distance that satisfies the provided filter.
+     */
     public Optional<Node> getNearestNode(BlockPos origin, double maxDistance, Predicate<Node> filter) {
-        double maxDistSqr = maxDistance * maxDistance;
+        return getNearestNode(origin, maxDistance, maxDistance, filter);
+    }
+
+    /*
+     * Finds the nearest node to a given position within specified horizontal and vertical distance limits that satisfies the provided filter.
+     */
+    public Optional<Node> getNearestNode(BlockPos origin, double maxDistance, double maxYDistance, Predicate<Node> filter) {
         return nodes.stream()
                 .filter(filter)
-                .filter(node -> ClientPathData.calculateDistance(node.getBlockPos(), origin) <= maxDistSqr)
-                .min(Comparator.comparingDouble(node -> ClientPathData.calculateDistance(node.getBlockPos(), origin)));
+                .filter(node -> ClientPathData.calculateDistance(node.getBlockPos(), origin, false) <= maxDistance * maxDistance && Math.abs(node.getBlockPos().getY() - origin.getY()) <= maxYDistance)
+                .min(Comparator.comparingDouble(node -> ClientPathData.calculateDistance(node.getBlockPos(), origin, true)));
     }
 
     public List<Node> getNetwork(Node start) {

@@ -34,4 +34,3 @@ public abstract class ServerLevelMixin {
         ServerMapCache.markChunkDirty(world, chunkPos);
     }
 }
-
