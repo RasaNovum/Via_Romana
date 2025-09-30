@@ -162,7 +162,8 @@ public class MapBakeWorker {
 
         } catch (IOException e) {
             ViaRomana.LOGGER.error("Failed to update map incrementally, performing a full re-bake.", e);
-            return bake(previousResult.networkId(), level, network.getMin(), network.getMax(), network.getNodesAsInfo());
+            PathGraph graph = PathGraph.getInstance(level);
+            return bake(previousResult.networkId(), level, network.getMin(), network.getMax(), graph.getNodesAsInfo(network));
         }
     }
 

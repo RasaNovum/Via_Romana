@@ -57,7 +57,7 @@ public record DestinationRequestC2S(BlockPos sourceSignPos) implements CustomPac
                 .toList();
 
             // Create network node info
-            java.util.List<DestinationResponseS2C.NodeNetworkInfo> networkInfos = cache.getNodesAsInfo();
+            java.util.List<DestinationResponseS2C.NodeNetworkInfo> networkInfos = graph.getNodesAsInfo(cache);
 
             DestinationResponseS2C response = new DestinationResponseS2C(
                 destInfos,

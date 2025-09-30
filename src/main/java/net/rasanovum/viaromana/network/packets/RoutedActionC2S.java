@@ -5,6 +5,7 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
+import net.rasanovum.viaromana.CommonConfig;
 
 /**
  * C2S action packet for path operations.
@@ -26,11 +27,33 @@ public record RoutedActionC2S(Operation op) implements CustomPacketPayload {
 
     public static void handle(commonnetwork.networking.data.PacketContext<RoutedActionC2S> ctx) {
         if (commonnetwork.networking.data.Side.SERVER.equals(ctx.side())) {
-            // Handle action request on server
-            // From ViaRomanaModPacketHandler.handleActionRequestC2S
-            // The logic is to handle the operation
-            // For now, placeholder
-            net.rasanovum.viaromana.ViaRomana.LOGGER.debug("Received RoutedActionC2S: {}", ctx.message().op());
+            ctx.sender().server.execute(() -> {
+                net.minecraft.server.level.ServerPlayer player = ctx.sender();
+                net.minecraft.server.level.ServerLevel level = player.serverLevel();
+                var storage = net.rasanovum.viaromana.storage.IPathStorage.get(level);
+                var graph = storage.graph();
+
+                java.util.Optional<net.rasanovum.viaromana.path.Node> nearestOpt = graph.getNearestNode(player.blockPosition(), CommonConfig.node_utility_distance, node -> true);
+
+                if (nearestOpt.isEmpty()) {
+                    net.rasanovum.viaromana.ViaRomana.LOGGER.warn("No nearby node found for action {} by player {}", ctx.message().op(), player.getName().getString());
+                    return;
+                }
+
+                net.rasanovum.viaromana.path.Node nearestNode = nearestOpt.get();
+
+                switch (ctx.message().op()) {
+                    case SEVER_NEAREST_NODE -> {
+                        graph.removeNode(nearestNode);
+                    }
+                    case REMOVE_BRANCH -> {
+                        graph.removeBranch(nearestNode);
+                    }
+                }
+
+                storage.setDirty();
+                net.rasanovum.viaromana.util.PathSyncUtils.syncPathGraphToAllPlayers(level);
+            });
         }
     }
 }
