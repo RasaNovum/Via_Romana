@@ -143,6 +143,13 @@ public class ClientPathData {
     public Optional<Node> getNearestNode(BlockPos origin, double maxDistance, double maxYDistance, boolean includeTemp) {
         return getNearestNode(origin, maxDistance, maxYDistance, includeTemp, node -> true, node -> true);
     }
+
+    /**
+     * Finds the nearest node to the given position, optionally including temporary nodes, with filtering.
+     */
+    public Optional<Node> getNearestNode(BlockPos origin, double maxDistance, boolean includeTemp, Predicate<Node> graphFilter, Predicate<Node> clientFilter) {
+        return getNearestNode(origin, maxDistance, maxDistance, includeTemp, graphFilter, clientFilter);
+    }
     
     /**
      * Finds the nearest node to the given position, optionally including temporary nodes.
