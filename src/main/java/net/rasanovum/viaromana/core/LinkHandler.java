@@ -28,8 +28,7 @@ public class LinkHandler {
      */
     public static boolean isSignBlock(LevelAccessor world, BlockPos blockPos) {
         BlockState targetBlock = world.getBlockState(blockPos);
-        if (targetBlock.is(TagKey.create(Registries.BLOCK, ResourceLocation.parse("via_romana:warp_block")))) return true;
-        return false;
+        return targetBlock.is(TagKey.create(Registries.BLOCK, ResourceLocation.parse("via_romana:warp_block")));
     }
 
     /**
@@ -44,7 +43,7 @@ public class LinkHandler {
             } else {
                 if (levelInstance instanceof ServerLevel serverLevel) {
                     IPathStorage storage = IPathStorage.get(serverLevel);
-                    return storage != null ? storage.graph() : null;
+                    return storage.graph();
                 }
             }
         }
@@ -90,8 +89,8 @@ public class LinkHandler {
     /**
      * Unlinks a sign from its associated node
      */
-    public static boolean unlinkSignFromNode(ServerLevel level, BlockPos signPos) {
-        if (!isSignBlock(level, signPos)) return false;
+    public static void unlinkSignFromNode(ServerLevel level, BlockPos signPos) {
+        if (!isSignBlock(level, signPos)) return;
         
         IPathStorage storage = IPathStorage.get(level);
         
@@ -103,11 +102,9 @@ public class LinkHandler {
             
             PathSyncUtils.syncPathGraphToAllPlayers(level);
             ViaRomanaLandmarkManager.removeDestinationLandmark(level, node);
-            
-            return true;
+
         }
-        
-        return false;
+
     }
     
     /**
