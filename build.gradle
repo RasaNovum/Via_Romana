@@ -20,7 +20,9 @@ repositories {
 	maven { url "https://api.modrinth.com/maven" }
 	maven { url "https://maven.parchmentmc.org" }
 	maven { url "https://raw.githubusercontent.com/SolidBlock-cn/mvn-repo/main" }
+	maven { url = "https://modmaven.k-4u.nl/" }
 	maven { url = "https://jm.gserv.me/repository/maven-public/" }
+	maven { url "https://cursemaven.com" }
 	mavenCentral()
 }
 
@@ -41,9 +43,11 @@ dependencies {
 	modImplementation libs.midnightlib
 	if (fabric) include libs.midnightlib
 
-	modImplementation libs.brrp
-	include libs.brrp
-	if (!fabric) shadow(libs.brrp) { transitive = false }
+	// modImplementation libs.brrp
+	// if (fabric) include libs.brrp
+	// if (!fabric) shadow(libs.brrp) { transitive = false }
+
+	modImplementation("curse.maven:selene-499980:7051233")
 
 	implementation 'mysticdrew:common-networking-common:1.0.16-1.21'
 	include 'mysticdrew:common-networking-common:1.0.16-1.21'
@@ -160,6 +164,7 @@ remapJar {
 tasks.withType(JavaCompile).configureEach {
 	it.options.encoding = "UTF-8"
 	it.options.release = 21
+	it.options.compilerArgs.add("-Xlint:none")
 }
 
 java {

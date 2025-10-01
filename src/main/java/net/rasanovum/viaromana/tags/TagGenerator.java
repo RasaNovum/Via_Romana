@@ -6,50 +6,48 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.TagBuilder;
+import net.mehvahdjukaar.moonlight.api.resources.SimpleTagBuilder;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.CommonConfig;
-import pers.solid.brrp.v1.api.RuntimeResourcePack;
-import net.minecraft.server.packs.PackType;
+import net.mehvahdjukaar.moonlight.api.resources.pack.DynamicDataPack;
 
 /**
- * Generates block, entity, and dimension tag files using BRRP.
+ * Generates block tags to Moonlight's DynamicDataPack.
+ * Called on init and on data pack reload.
  */
 public class TagGenerator {
-
-    public static void generateAllTags(RuntimeResourcePack pack) {
+    @SuppressWarnings("removal")
+    public static void generateAllTags(DynamicDataPack pack) {
         try {
-            pack.clearResources(PackType.SERVER_DATA);
+            pack.setClearOnReload(true);
             
             TagKey<Block> pathBlockTagKey = TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("via_romana", "path_block"));
             TagKey<Block> warpBlockTagKey = TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("via_romana", "warp_block"));
 
-            TagBuilder pathTagBuilder = generatePathBlockTagBuilder();
-            TagBuilder warpTagBuilder = generateWarpBlockTagBuilder();
+            SimpleTagBuilder pathTagBuilder = generatePathBlockTagBuilder(pathBlockTagKey);
+            SimpleTagBuilder warpTagBuilder = generateWarpBlockTagBuilder(warpBlockTagKey);
 
-            pack.addTag(pathBlockTagKey, pathTagBuilder);
-            pack.addTag(warpBlockTagKey, warpTagBuilder);
+            pack.addTag(pathTagBuilder, Registries.BLOCK);
+            pack.addTag(warpTagBuilder, Registries.BLOCK);
 
-            ViaRomana.LOGGER.info("Successfully generated dynamic tags to runtime resource pack");
+            ViaRomana.LOGGER.info("Successfully generated dynamic tags to Moonlight DynamicResourcePack");
         } catch (Exception e) {
             ViaRomana.LOGGER.error("Failed to generate tag files", e);
         }
     }
 
-    private static TagBuilder generatePathBlockTagBuilder() {
-        TagBuilder tagBuilder = generateBlockTagBuilder(CommonConfig.path_block_ids, CommonConfig.path_block_tags, CommonConfig.path_block_strings);
-        return tagBuilder;
+    private static SimpleTagBuilder generatePathBlockTagBuilder(TagKey<Block> tagKey) {
+        return generateBlockTagBuilder(tagKey, CommonConfig.path_block_ids, CommonConfig.path_block_tags, CommonConfig.path_block_strings);
     }
 
-    private static TagBuilder generateWarpBlockTagBuilder() {
-        TagBuilder tagBuilder = generateBlockTagBuilder(CommonConfig.warp_block_ids, CommonConfig.warp_block_tags, null);
-        return tagBuilder;
+    private static SimpleTagBuilder generateWarpBlockTagBuilder(TagKey<Block> tagKey) {
+        return generateBlockTagBuilder(tagKey, CommonConfig.warp_block_ids, CommonConfig.warp_block_tags, null);
     }
 
-    private static TagBuilder generateBlockTagBuilder(List<String> explicitIds, List<String> tagStrings, List<String> searchStrings) {
-        TagBuilder tagBuilder = TagBuilder.create();
+    private static SimpleTagBuilder generateBlockTagBuilder(TagKey<Block> tagKey, List<String> explicitIds, List<String> tagStrings, List<String> searchStrings) {
+        SimpleTagBuilder tagBuilder = SimpleTagBuilder.of(tagKey);
 
         // Add explicit block IDs from config
         for (String blockId : explicitIds) {
@@ -57,6 +55,7 @@ public class TagGenerator {
                 try {
                     ResourceLocation blockLocation = ResourceLocation.parse(blockId);
                     tagBuilder.addElement(blockLocation);
+                    ViaRomana.LOGGER.debug("Added explicit block {} to tag {}", blockId, tagKey.location());
                 } catch (Exception e) {
                     ViaRomana.LOGGER.warn("Invalid block ID in config: {}", blockId);
                 }
@@ -69,6 +68,7 @@ public class TagGenerator {
                 try {
                     ResourceLocation tagLocation = ResourceLocation.parse(tagString);
                     tagBuilder.addTag(tagLocation);
+                    ViaRomana.LOGGER.debug("Added tag reference {} to tag {}", tagString, tagKey.location());
                 } catch (Exception e) {
                     ViaRomana.LOGGER.warn("Invalid tag reference in config: {}", tagString);
                 }
@@ -86,12 +86,14 @@ public class TagGenerator {
                 for (String searchString : searchStrings) {
                     if (!searchString.isEmpty() && blockIdString.contains(searchString.toLowerCase())) {
                         tagBuilder.addElement(blockId);
+                        ViaRomana.LOGGER.debug("Added block {} via string match '{}' to tag {}", blockIdString, searchString, tagKey.location());
                         break;
                     }
                 }
             }
         }
 
+        ViaRomana.LOGGER.info("Generated tag {}", tagKey.location());
         return tagBuilder;
     }
 
