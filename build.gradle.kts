@@ -1,8 +1,9 @@
 import net.fabricmc.loom.task.RemapJarTask
+import org.gradle.api.provider.Provider
 
 plugins {
     `maven-publish`
-    id("fabric-loom") version "1.7.+"
+    id("fabric-loom") version "1.11-SNAPSHOT"
     id("com.modrinth.minotaur") version "2.+"
 }
 
@@ -22,7 +23,6 @@ repositories {
 }
 
 dependencies {
-    // Debug logging
     println("Project version: $version")
     println("Minecraft Version: ${stonecutter.current.version}")
     println("Mod Loader: ${property("deps.loader")}")
@@ -77,8 +77,11 @@ loom {
 
 tasks.processResources {
     inputs.property("minecraft", stonecutter.current.version)
+    inputs.property("loader", project.property("deps.fabric_loader"))
+    inputs.property("api", project.property("deps.fabric_api"))
 
     filesMatching("fabric.mod.json") { expand(mapOf(
+        "mc" to stonecutter.current.version,
         "modId" to rootProject.property("slug"),
         "version" to "${rootProject.property("slug")}+${rootProject.property("baseVersion")}+${stonecutter.current.version}",
         "modName" to rootProject.property("modName"),
@@ -89,9 +92,8 @@ tasks.processResources {
         "issues" to rootProject.property("issues"),
         "sources" to rootProject.property("sources"),
         "license" to rootProject.property("license"),
-        "mc" to stonecutter.current.version,
-        "fl" to rootProject.property("deps.fabric_loader"),
-        "fapi" to rootProject.property("deps.fabric_api")
+        "fl" to project.property("deps.fabric_loader"),
+        "fapi" to project.property("deps.fabric_api")
     )) }
 }
 

@@ -71,5 +71,20 @@
       <option name="name" value="maven6" />
       <option name="url" value="https://raw.githubusercontent.com/SolidBlock-cn/mvn-repo/main" />
     </remote-repository>
+    <remote-repository>
+      <option name="id" value="maven6" />
+      <option name="name" value="maven6" />
+      <option name="url" value="https://modmaven.k-4u.nl/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="maven7" />
+      <option name="name" value="maven7" />
+      <option name="url" value="https://jm.gserv.me/repository/maven-public/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="maven8" />
+      <option name="name" value="maven8" />
+      <option name="url" value="https://cursemaven.com" />
+    </remote-repository>
   </component>
 </project>
