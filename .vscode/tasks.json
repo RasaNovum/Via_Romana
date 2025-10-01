@@ -35,6 +35,28 @@
             }
         },
         {
+            "label": "Build Fabric 1.20.1",
+            "type": "shell",
+            "command": "cls;.\\gradlew :1.20.1-fabric:build",
+            "isBackground": false,
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Build Fabric 1.21.1",
+            "type": "shell",
+            "command": "cls;.\\gradlew :1.21.1-fabric:build",
+            "isBackground": false,
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
             "label": "Run Client",
             "type": "shell",
             "command": ".\\gradlew runClient",
