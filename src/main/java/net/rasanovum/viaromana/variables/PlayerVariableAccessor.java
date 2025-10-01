@@ -37,7 +37,6 @@ public class PlayerVariableAccessor {
 
     public void syncAndSave(Entity entity) {
         if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT && isLocalPlayer(entity)) {
-            // Use Dispatcher for client-to-server sending
             commonnetwork.api.Dispatcher.sendToServer(new ViaRomanaModVariables.PlayerVariablesSyncMessage(getVars(entity)));
         } else {
             sync(entity);

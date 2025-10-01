@@ -2,12 +2,13 @@ package net.rasanovum.viaromana.network;
 
 import commonnetwork.api.Network;
 import net.rasanovum.viaromana.ViaRomana;
+import net.rasanovum.viaromana.network.ViaRomanaModVariables.PlayerVariablesSyncMessage;
 import net.rasanovum.viaromana.network.packets.*;
 
 public class PacketRegistration {
     public void init() {
         ViaRomana.LOGGER.info("Registering network packets");
-        Network.registerPacket(ViaRomanaModVariables.PlayerVariablesSyncMessage.TYPE, ViaRomanaModVariables.PlayerVariablesSyncMessage.class, ViaRomanaModVariables.PlayerVariablesSyncMessage.STREAM_CODEC, ViaRomanaModVariables.PlayerVariablesSyncMessage::handle);
+        Network.registerPacket(PlayerVariablesSyncMessage.TYPE, PlayerVariablesSyncMessage.class, PlayerVariablesSyncMessage.STREAM_CODEC, PlayerVariablesSyncMessage::handle);
         Network.registerPacket(PathGraphSyncPacket.TYPE, PathGraphSyncPacket.class, PathGraphSyncPacket.STREAM_CODEC, PathGraphSyncPacket::handle);
         Network.registerPacket(OpenChartingScreenS2C.TYPE, OpenChartingScreenS2C.class, OpenChartingScreenS2C.STREAM_CODEC, OpenChartingScreenS2C::handle);
         Network.registerPacket(ChartedPathC2S.TYPE, ChartedPathC2S.class, ChartedPathC2S.STREAM_CODEC, ChartedPathC2S::handle);
