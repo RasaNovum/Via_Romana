@@ -19,6 +19,9 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.BlockPos;
 
 import java.util.concurrent.ConcurrentHashMap;
+
+import commonnetwork.api.Dispatcher;
+
 import java.util.UUID;
 import java.util.Map;
 import java.util.List;
@@ -29,7 +32,6 @@ import java.io.File;
 
 public class ViaRomanaModVariables {
     public static List<Object> ValidTagList = new ArrayList<>();
-    public static NetworkHandler networkHandler = null;
 
     public static ListTag saveNodeDataList(List<NodeData> nodeDataList) {
         ListTag listTag = new ListTag();
@@ -88,11 +90,7 @@ public class ViaRomanaModVariables {
 
         public void syncToClient(ServerPlayer player) {
             if (player == null) return;
-            if (networkHandler != null) {
-                networkHandler.sendToPlayer(player, new PlayerVariablesSyncMessage(this));
-            } else {
-                ViaRomana.LOGGER.warn("Network handler not initialized, cannot sync PlayerVariables for {}.", player.getName().getString());
-            }
+            Dispatcher.sendToClient(new PlayerVariablesSyncMessage(this), player);
         }
     }
 
@@ -274,17 +272,18 @@ public class ViaRomanaModVariables {
         public PlayerVariablesSyncMessage(PlayerVariables data) {
             this(data.writeNBT());
         }
-
-        public static void handleClient(PlayerVariablesSyncMessage message) {
-            clientPlayerVariables.readNBT(message.dataTag);
-            ViaRomana.LOGGER.debug("Client received and processed PlayerVariables sync.");
-        }
-
-        public static void handleServer(PlayerVariablesSyncMessage message, ServerPlayer player) {
-            if (player != null) {
-                PlayerVariables variables = getPlayerVariables(player);
-                variables.readNBT(message.dataTag);
-                ViaRomana.LOGGER.debug("Server received and processed PlayerVariables sync from {}", player.getName().getString());
+        
+        public static void handle(commonnetwork.networking.data.PacketContext<PlayerVariablesSyncMessage> ctx) {
+            if (commonnetwork.networking.data.Side.CLIENT.equals(ctx.side())) {
+                clientPlayerVariables.readNBT(ctx.message().dataTag);
+                ViaRomana.LOGGER.debug("Client received and processed PlayerVariables sync.");
+            } else {
+                ServerPlayer player = ctx.sender();
+                if (player != null) {
+                    PlayerVariables variables = getPlayerVariables(player);
+                    variables.readNBT(ctx.message().dataTag);
+                    ViaRomana.LOGGER.debug("Server received and processed PlayerVariables sync from {}", player.getName().getString());
+                }
             }
         }
     }

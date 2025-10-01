@@ -1,7 +1,6 @@
 package net.rasanovum.viaromana.client.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.language.I18n;
@@ -359,7 +358,7 @@ public class ChartingScreen extends Screen {
 
     private void sendRoutedAction(RoutedActionC2S.Operation operation) {
         RoutedActionC2S packet = new RoutedActionC2S(operation);
-        ClientPlayNetworking.send(packet);
+        commonnetwork.api.Dispatcher.sendToServer(packet);
         Objects.requireNonNull(minecraft).setScreen(null);
     }
     

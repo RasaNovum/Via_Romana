@@ -58,4 +58,47 @@ public record ChartedPathC2S(List<NodeData> chartedNodes) implements CustomPacke
     public List<NodeData> getChartedNodes() {
         return chartedNodes;
     }
+
+    public static void handle(commonnetwork.networking.data.PacketContext<ChartedPathC2S> ctx) {
+        if (commonnetwork.networking.data.Side.SERVER.equals(ctx.side())) {
+            net.minecraft.server.level.ServerLevel level = ctx.sender().serverLevel();
+            net.rasanovum.viaromana.storage.IPathStorage storage = net.rasanovum.viaromana.storage.IPathStorage.get(level);
+
+            java.util.List<NodeData> chartingNodes = ctx.message().getChartedNodes();
+
+            if (chartingNodes.isEmpty()) {
+                net.rasanovum.viaromana.ViaRomana.LOGGER.warn("Received empty charted path from player {}", ctx.sender().getName().getString());
+                return;
+            }
+
+            try {
+                storage.graph().createConnectedPath(chartingNodes);
+                storage.setDirty();
+
+                net.rasanovum.viaromana.util.PathSyncUtils.syncPathGraphToAllPlayers(level);
+
+                awardAdvancementIfNeeded(ctx.sender(), "via_romana:story/a_strand_type_game");
+
+                net.rasanovum.viaromana.ViaRomana.LOGGER.debug("Created charted path with {} nodes for player {}", chartingNodes.size(), ctx.sender().getName().getString());
+            } catch (Exception e) {
+                net.rasanovum.viaromana.ViaRomana.LOGGER.error("Failed to create charted path for player {}: {}", ctx.sender().getName().getString(), e.getMessage());
+            }
+        }
+    }
+
+    private static void awardAdvancementIfNeeded(net.minecraft.server.level.ServerPlayer player, String id) {
+        try {
+            net.minecraft.advancements.AdvancementHolder advancement = player.server.getAdvancements().get(net.minecraft.resources.ResourceLocation.parse(id));
+            if (advancement != null) {
+                net.minecraft.advancements.AdvancementProgress advancementProgress = player.getAdvancements().getOrStartProgress(advancement);
+                if (!advancementProgress.isDone()) {
+                    for (String c : advancementProgress.getRemainingCriteria()) {
+                        player.getAdvancements().award(advancement, c);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            net.rasanovum.viaromana.ViaRomana.LOGGER.warn("Failed to award advancement {} to player {}: {}", id, player.getName().getString(), e.getMessage());
+        }
+    }
 }

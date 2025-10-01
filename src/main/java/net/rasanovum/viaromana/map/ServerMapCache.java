@@ -155,7 +155,8 @@ public final class ServerMapCache {
                             newResult = worker.updateMap(previousResult, new HashSet<>(chunksToUpdate), level, network);
                         } else {
                             ViaRomana.LOGGER.debug("Performing full bake for network {}.", networkId);
-                            newResult = worker.bake(networkId, level, network.getMin(), network.getMax(), network.getNodesAsInfo());
+                            if (graph != null) graph.getNodesAsInfo(network).forEach(node -> SurveyorUtil.refreshChunkTerrain(level, new ChunkPos(node.position)));
+                            newResult = worker.bake(networkId, level, network.getMin(), network.getMax(), graph.getNodesAsInfo(network));
                         }
 
                         cache.put(networkId, newResult);
@@ -200,9 +201,9 @@ public final class ServerMapCache {
                     if (graph != null) {
                         PathGraph.NetworkCache network = graph.getNetworkCache(networkId);
                         if (network != null) {
-                            network.getNodesAsInfo().forEach(node -> SurveyorUtil.refreshChunkTerrain(level, new ChunkPos(node.position)));
+                            graph.getNodesAsInfo(network).forEach(node -> SurveyorUtil.refreshChunkTerrain(level, new ChunkPos(node.position)));
                             
-                            Set<ChunkPos> allChunks = network.getNodesAsInfo().stream()
+                            Set<ChunkPos> allChunks = graph.getNodesAsInfo(network).stream()
                                     .map(node -> new ChunkPos(node.position))
                                     .collect(Collectors.toSet());
                             return updateOrGenerateMapAsync(networkId, allChunks);

@@ -8,7 +8,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 import net.minecraft.server.level.ServerPlayer;
 import net.rasanovum.viaromana.network.packets.OpenChartingScreenS2C;
-import net.rasanovum.viaromana.network.ViaRomanaModVariables;
+import commonnetwork.api.Dispatcher;
 
 public class ChartingMap extends Item {
     
@@ -23,12 +23,7 @@ public class ChartingMap extends Item {
         if (player.getCooldowns().isOnCooldown(this)) return InteractionResultHolder.pass(itemStack);
         
         if (!level.isClientSide) {
-            // handleCharting(level, player);
-            // player.getCooldowns().addCooldown(this, 10);
-            
-            if (ViaRomanaModVariables.networkHandler != null) {
-                ViaRomanaModVariables.networkHandler.sendToPlayer((ServerPlayer) player, new OpenChartingScreenS2C());
-            }
+            Dispatcher.sendToClient(new OpenChartingScreenS2C(), (ServerPlayer) player);
         }
         
         return InteractionResultHolder.sidedSuccess(itemStack, level.isClientSide);

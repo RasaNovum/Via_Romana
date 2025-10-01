@@ -27,4 +27,12 @@ public record OpenChartingScreenS2C() implements CustomPacketPayload {
     public Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
+
+    public static void handle(commonnetwork.networking.data.PacketContext<OpenChartingScreenS2C> ctx) {
+        if (commonnetwork.networking.data.Side.CLIENT.equals(ctx.side())) {
+            net.minecraft.network.chat.Component title = net.minecraft.network.chat.Component.translatable("gui.viaromana.charting_screen.title");
+            net.rasanovum.viaromana.client.gui.ChartingScreen screen = new net.rasanovum.viaromana.client.gui.ChartingScreen(title);
+            net.minecraft.client.Minecraft.getInstance().setScreen(screen);
+        }
+    }
 }

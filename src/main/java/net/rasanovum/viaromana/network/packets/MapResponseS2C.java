@@ -52,4 +52,10 @@ public record MapResponseS2C(MapInfo mapInfo) implements CustomPacketPayload {
     public List<NodeNetworkInfo> getNetworkNodes() { return mapInfo.networkNodes(); }
 
     public MapInfo getMapInfo() { return mapInfo; }
+
+    public static void handle(commonnetwork.networking.data.PacketContext<MapResponseS2C> ctx) {
+        if (commonnetwork.networking.data.Side.CLIENT.equals(ctx.side())) {
+            net.rasanovum.viaromana.client.MapClient.handleMapResponse(ctx.message());
+        }
+    }
 }

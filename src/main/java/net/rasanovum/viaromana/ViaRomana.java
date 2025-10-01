@@ -14,12 +14,14 @@ import net.rasanovum.viaromana.core.DimensionHandler;
 import net.rasanovum.viaromana.core.ResetVariables;
 import net.rasanovum.viaromana.init.*;
 import net.rasanovum.viaromana.map.ServerMapCache;
-import net.rasanovum.viaromana.network.*;
+import net.rasanovum.viaromana.network.PacketRegistration;
+import net.rasanovum.viaromana.network.ViaRomanaModVariables;
 import net.rasanovum.viaromana.surveyor.ViaRomanaLandmarkManager;
 import net.rasanovum.viaromana.tags.TagGenerator;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
 import pers.solid.brrp.v1.api.RuntimeResourcePack;
 import pers.solid.brrp.v1.fabric.api.RRPCallback;
 
@@ -35,7 +37,7 @@ public class ViaRomana implements ModInitializer {
         MidnightConfig.init(MODID, CommonConfig.class);
         WorldSummary.enableTerrain();
 
-        PacketTypeRegistry.register();
+        new PacketRegistration().init();
 
         BlockInit.load();
         EffectInit.load();
@@ -43,7 +45,6 @@ public class ViaRomana implements ModInitializer {
         // SoundInit.load();
         TriggerInit.load();
 
-        ViaRomanaModPacketHandler.initialize();
         ViaRomanaLandmarkManager.initialize();
 
         RRPCallback.BEFORE_VANILLA.register(resources -> {
@@ -64,7 +65,9 @@ public class ViaRomana implements ModInitializer {
             ViaRomanaModVariables.playerLoggedOut(handler.player);
         });
         
-        ServerLifecycleEvents.SERVER_STARTING.register(ServerMapCache::init);
+        ServerLifecycleEvents.SERVER_STARTING.register(server -> {
+            ServerMapCache.init(server);
+        });
         
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
             ServerMapCache.processAllDirtyNetworks();

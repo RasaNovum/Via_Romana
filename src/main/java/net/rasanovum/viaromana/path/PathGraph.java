@@ -61,9 +61,18 @@ public final class PathGraph {
             return new BlockPos(bounds.maxX, bounds.maxY, bounds.maxZ);
         }
 
-        public List<DestinationResponseS2C.NodeNetworkInfo> getNodesAsInfo() {
+        public List<DestinationResponseS2C.NodeNetworkInfo> getNodesAsInfo(Long2IntOpenHashMap posToIndex, ObjectArrayList<Node> allNodes) {
             return nodePositions.stream()
-                    .map(pos -> new DestinationResponseS2C.NodeNetworkInfo(BlockPos.of(pos), 0, List.of()))
+                    .map(pos -> {
+                        if (posToIndex.containsKey(pos)) {
+                            int index = posToIndex.get(pos);
+                            Node node = allNodes.get(index);
+                            List<BlockPos> connections = node.getConnectedNodes().longStream().mapToObj(BlockPos::of).collect(Collectors.toList());
+                            return new DestinationResponseS2C.NodeNetworkInfo(BlockPos.of(pos), node.getClearance(), connections);
+                        } else {
+                            return new DestinationResponseS2C.NodeNetworkInfo(BlockPos.of(pos), 0, List.of());
+                        }
+                    })
                     .collect(Collectors.toList());
         }
     }
@@ -579,7 +588,7 @@ public final class PathGraph {
             ChunkPos minChunk = new ChunkPos(paddedMin);
             ChunkPos maxChunk = new ChunkPos(paddedMax);
 
-            Set<ChunkPos> allowed = ServerMapUtils.calculateFogOfWarChunks(cache.getNodesAsInfo(), minChunk, maxChunk);
+            Set<ChunkPos> allowed = ServerMapUtils.calculateFogOfWarChunks(cache.getNodesAsInfo(this.posToIndex, this.nodes), minChunk, maxChunk);
             return new FoWCache(minChunk, maxChunk, allowed);
         });
     }
@@ -624,4 +633,8 @@ public final class PathGraph {
         }
     }
     //endregion
+
+    public List<DestinationResponseS2C.NodeNetworkInfo> getNodesAsInfo(NetworkCache cache) {
+        return cache.getNodesAsInfo(this.posToIndex, this.nodes);
+    }
 }

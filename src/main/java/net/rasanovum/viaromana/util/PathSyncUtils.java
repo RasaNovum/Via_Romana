@@ -7,6 +7,7 @@ import net.rasanovum.viaromana.network.packets.PathGraphSyncPacket;
 import net.rasanovum.viaromana.path.PathGraph;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.CommonConfig;
+import commonnetwork.api.Dispatcher;
 
 /**
  * Utility class for synchronizing PathGraph data from server to clients.
@@ -33,7 +34,7 @@ public class PathSyncUtils {
             PathGraphSyncPacket packet = new PathGraphSyncPacket(graph);
 
             for (ServerPlayer player : level.getPlayers(player -> true)) {
-                NetworkUtils.sendToPlayer(player, packet);
+                Dispatcher.sendToClient(packet, player);
             }
 
             ViaRomana.LOGGER.info("Synced PathGraph with {} nodes to {} players", graph.size(), level.getPlayers(player -> true).size());
@@ -53,7 +54,7 @@ public class PathSyncUtils {
             if (storage == null) return;
             
             PathGraphSyncPacket packet = new PathGraphSyncPacket(storage.graph());
-            NetworkUtils.sendToPlayer(player, packet);
+            Dispatcher.sendToClient(packet, player);
             
             ViaRomana.LOGGER.debug("Synced PathGraph with {} nodes to player {}", storage.graph().size(), player.getName().getString());
                 

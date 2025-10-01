@@ -8,9 +8,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.rasanovum.viaromana.map.MapInfo;
 import net.rasanovum.viaromana.network.packets.MapRequestC2S;
 import net.rasanovum.viaromana.network.packets.MapResponseS2C;
-import net.rasanovum.viaromana.network.ViaRomanaModVariables;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.network.packets.DestinationResponseS2C.NodeNetworkInfo;
+import commonnetwork.api.Dispatcher;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -54,12 +54,8 @@ public class MapClient {
         
         pendingRequest = future;
         
-        if (ViaRomanaModVariables.networkHandler != null) {
-            MapRequestC2S packet = MapRequestC2S.create(networkId, minBounds, maxBounds, networkNodes);
-            ViaRomanaModVariables.networkHandler.sendToServer(packet);
-        } else {
-            future.complete(null);
-        }
+        MapRequestC2S packet = MapRequestC2S.create(networkId, minBounds, maxBounds, networkNodes);
+        Dispatcher.sendToServer(packet);
         
         return future;
     }

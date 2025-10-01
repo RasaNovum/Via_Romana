@@ -125,7 +125,7 @@ public class TeleportHelper {
     }
     
     /**
-     * Represents a teleport destination entry with metadata.
+     * Teleport destination with metadata.
      */
     public static class TeleportDestination {
         public final BlockPos position;

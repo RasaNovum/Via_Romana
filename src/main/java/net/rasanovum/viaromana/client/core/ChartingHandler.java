@@ -10,14 +10,13 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.rasanovum.viaromana.util.PathUtils;
-import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.client.HudMessageManager;
 import net.rasanovum.viaromana.client.data.ClientPathData;
 import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.core.LinkHandler.LinkData;
 import net.rasanovum.viaromana.network.packets.ChartedPathC2S;
 import net.rasanovum.viaromana.network.packets.LinkSignRequestC2S;
-import net.rasanovum.viaromana.network.ViaRomanaModVariables;
+import commonnetwork.api.Dispatcher;
 import net.rasanovum.viaromana.path.Node;
 import net.rasanovum.viaromana.path.Node.NodeData;
 import net.rasanovum.viaromana.variables.VariableAccess;
@@ -99,20 +98,12 @@ public final class ChartingHandler {
         if (player == null || chartingNodes == null || chartingNodes.isEmpty()) return;
 
         ChartedPathC2S packet = new ChartedPathC2S(chartingNodes);
-        if (ViaRomanaModVariables.networkHandler != null) {
-            ViaRomanaModVariables.networkHandler.sendToServer(packet);
-        } else {
-            ViaRomana.LOGGER.error("Failed to send charted path - NetworkHandler not available");
-        }
+        Dispatcher.sendToServer(packet);
 
         if (chartingLinks != null && !chartingLinks.isEmpty()) {
             for (LinkData link : chartingLinks) {
                 LinkSignRequestC2S linkPacket = new LinkSignRequestC2S(link, false);
-                if (ViaRomanaModVariables.networkHandler != null) {
-                    ViaRomanaModVariables.networkHandler.sendToServer(linkPacket);
-                } else {
-                    ViaRomana.LOGGER.error("Failed to send link packet - NetworkHandler not available");
-                }
+                Dispatcher.sendToServer(linkPacket);
             }
         }
 
