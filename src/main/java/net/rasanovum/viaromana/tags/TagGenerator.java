@@ -14,9 +14,11 @@ import net.rasanovum.viaromana.CommonConfig;
 import net.mehvahdjukaar.moonlight.api.resources.pack.DynamicDataPack;
 
 /**
- * Generates block tags using Moonlight's DynamicDataPack and SimpleTagBuilder.
+ * Generates block tags to Moonlight's DynamicDataPack.
+ * Called on init and on data pack reload.
  */
 public class TagGenerator {
+    @SuppressWarnings("removal")
     public static void generateAllTags(DynamicDataPack pack) {
         try {
             pack.setClearOnReload(true);

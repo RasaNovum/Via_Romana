@@ -17,7 +17,7 @@ import net.rasanovum.viaromana.init.*;
 import net.rasanovum.viaromana.map.ServerMapCache;
 import net.rasanovum.viaromana.network.*;
 import net.rasanovum.viaromana.surveyor.ViaRomanaLandmarkManager;
-import net.rasanovum.viaromana.tags.TagGenerator;
+import net.rasanovum.viaromana.tags.ServerResourcesGenerator;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -26,8 +26,10 @@ import org.apache.logging.log4j.Logger;
 public class ViaRomana implements ModInitializer {
     public static final Logger LOGGER = LogManager.getLogger();
     public static final String MODID = "via_romana";
+    @SuppressWarnings("removal")
     public static final DynamicDataPack DYNAMIC_PACK = new DynamicDataPack(ResourceLocation.fromNamespaceAndPath(MODID, "dynamic_tags"));
 
+    @SuppressWarnings("removal")
     @Override
     public void onInitialize() {
         LOGGER.info("Initializing ViaRomanaMod");
@@ -46,8 +48,8 @@ public class ViaRomana implements ModInitializer {
         ViaRomanaModPacketHandler.initialize();
         ViaRomanaLandmarkManager.initialize();
 
-        DYNAMIC_PACK.registerPack();
-        TagGenerator.generateAllTags(DYNAMIC_PACK);
+        ServerResourcesGenerator generator = new ServerResourcesGenerator(DYNAMIC_PACK);
+        generator.register();
 
         registerServerLifecycleEvents();
 
@@ -78,14 +80,7 @@ public class ViaRomana implements ModInitializer {
             ViaRomanaModVariables.playerRespawned(oldPlayer, newPlayer, keepInventory || !alive);
         });
 
-        ServerLifecycleEvents.START_DATA_PACK_RELOAD.register((server, resourceManager) -> {
-            try {
-                MidnightConfig.init(MODID, CommonConfig.class);
-                TagGenerator.generateAllTags(DYNAMIC_PACK);
-            } catch (Exception e) {
-                LOGGER.error("Failed to reload MidnightConfig", e);
-            }
-        });
+        // ServerLifecycleEvents.START_DATA_PACK_RELOAD.register((server, resourceManager) -> { });
 
         ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> {
             ServerMapCache.shutdown();
