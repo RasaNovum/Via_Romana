@@ -11,6 +11,7 @@ import java.util.function.Consumer;
 
 @SuppressWarnings("removal")
 public class ServerResourcesGenerator extends DynServerResourcesGenerator {
+    @SuppressWarnings("deprecation")
     public ServerResourcesGenerator(DynamicDataPack pack) {
         super(pack);
     }
@@ -20,6 +21,7 @@ public class ServerResourcesGenerator extends DynServerResourcesGenerator {
         return ViaRomana.LOGGER;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void regenerateDynamicAssets(Consumer<ResourceGenTask> executor) {
         ResourceGenTask task = (manager, sink) -> {

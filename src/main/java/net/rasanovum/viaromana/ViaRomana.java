@@ -30,7 +30,6 @@ public class ViaRomana implements ModInitializer {
     @SuppressWarnings("removal")
     public static final DynamicDataPack DYNAMIC_PACK = new DynamicDataPack(ResourceLocation.fromNamespaceAndPath(MODID, "dynamic_tags"));
 
-    @SuppressWarnings("removal")
     @Override
     public void onInitialize() {
         LOGGER.info("Initializing ViaRomanaMod");
