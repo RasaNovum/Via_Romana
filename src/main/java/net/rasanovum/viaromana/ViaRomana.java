@@ -8,6 +8,7 @@ import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.mehvahdjukaar.moonlight.api.resources.pack.DynamicDataPack;
 import net.minecraft.resources.ResourceLocation;
 import net.rasanovum.viaromana.command.ViaRomanaCommands;
 import net.rasanovum.viaromana.core.DimensionHandler;
@@ -20,13 +21,12 @@ import net.rasanovum.viaromana.tags.TagGenerator;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import pers.solid.brrp.v1.api.RuntimeResourcePack;
-import pers.solid.brrp.v1.fabric.api.RRPCallback;
 
+@SuppressWarnings("deprecation")
 public class ViaRomana implements ModInitializer {
     public static final Logger LOGGER = LogManager.getLogger();
     public static final String MODID = "via_romana";
-    public static final RuntimeResourcePack RUNTIME_PACK = RuntimeResourcePack.create(ResourceLocation.parse("via_romana:runtime_pack"));
+    public static final DynamicDataPack DYNAMIC_PACK = new DynamicDataPack(ResourceLocation.fromNamespaceAndPath(MODID, "dynamic_tags"));
 
     @Override
     public void onInitialize() {
@@ -46,12 +46,11 @@ public class ViaRomana implements ModInitializer {
         ViaRomanaModPacketHandler.initialize();
         ViaRomanaLandmarkManager.initialize();
 
-        RRPCallback.BEFORE_VANILLA.register(resources -> {
-            TagGenerator.generateAllTags(RUNTIME_PACK);
-            resources.add(RUNTIME_PACK);
-        });
+        DYNAMIC_PACK.registerPack();
+        TagGenerator.generateAllTags(DYNAMIC_PACK);
 
         registerServerLifecycleEvents();
+
     }
 
     private void registerServerLifecycleEvents() {
@@ -64,7 +63,9 @@ public class ViaRomana implements ModInitializer {
             ViaRomanaModVariables.playerLoggedOut(handler.player);
         });
         
-        ServerLifecycleEvents.SERVER_STARTING.register(ServerMapCache::init);
+        ServerLifecycleEvents.SERVER_STARTING.register(server -> {
+            ServerMapCache.init(server);
+        });
         
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
             ServerMapCache.processAllDirtyNetworks();
@@ -77,19 +78,19 @@ public class ViaRomana implements ModInitializer {
             ViaRomanaModVariables.playerRespawned(oldPlayer, newPlayer, keepInventory || !alive);
         });
 
-        ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> {
-            if (success) {
-                try {
-                    MidnightConfig.init(MODID, CommonConfig.class);
-                    LOGGER.info("Via Romana config reloaded and synced to players.");
-                } catch (Exception e) {
-                    LOGGER.error("Failed to reload MidnightConfig", e);
-                }
-
-                ServerMapCache.shutdown();
-                ServerMapCache.clear();
-                ServerMapCache.init(server);
+        ServerLifecycleEvents.START_DATA_PACK_RELOAD.register((server, resourceManager) -> {
+            try {
+                MidnightConfig.init(MODID, CommonConfig.class);
+                TagGenerator.generateAllTags(DYNAMIC_PACK);
+            } catch (Exception e) {
+                LOGGER.error("Failed to reload MidnightConfig", e);
             }
+        });
+
+        ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> {
+            ServerMapCache.shutdown();
+            ServerMapCache.clear();
+            ServerMapCache.init(server);
         });
 
         ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register((player, origin, destination) -> {
