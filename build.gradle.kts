@@ -27,6 +27,7 @@ repositories {
     maven("https://jm.gserv.me/repository/maven-public/")
     maven("https://cursemaven.com")
     maven("https://maven.su5ed.dev/releases")
+    maven("https://maven.neoforged.net/releases/")
     mavenCentral()
 }
 
@@ -50,6 +51,7 @@ dependencies {
     }
 
     if (property("deps.loader") == "neoforge") {
+        modImplementation("net.neoforged:neoforge:${property("deps.neoforge_version")}")
         modImplementation("org.sinytra.forgified-fabric-api:forgified-fabric-api:${property("deps.fabric_api")}")
     }
 
