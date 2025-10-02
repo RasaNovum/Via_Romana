@@ -16,7 +16,7 @@ import net.rasanovum.viaromana.util.VersionUtils;
  * Request the server to unlink the sign at the given position.
  */
 //? if <1.21 {
-/*public record UnlinkSignRequestC2S(BlockPos signPos) {
+/*public record SignUnlinkRequestC2S(BlockPos signPos) {
 *///?} else {
 public record SignUnlinkRequestC2S(BlockPos signPos) implements CustomPacketPayload {
 //?}

@@ -19,7 +19,7 @@ import java.util.UUID;
  * Request the server to link a sign to a node with the provided link data.
  */
 //? if <1.21 {
-/*public record LinkSignRequestC2S(LinkData linkData, boolean isTempNode) {
+/*public record SignLinkRequestC2S(LinkData linkData, boolean isTempNode) {
 *///?} else {
 public record SignLinkRequestC2S(LinkData linkData, boolean isTempNode) implements CustomPacketPayload {
 //?}
