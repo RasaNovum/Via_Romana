@@ -4,13 +4,13 @@ import net.rasanovum.viaromana.storage.IPathStorage;
 import net.rasanovum.viaromana.surveyor.ViaRomanaLandmarkManager;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.util.PathSyncUtils;
+import net.rasanovum.viaromana.util.VersionUtils;
 import net.rasanovum.viaromana.path.Node;
 import net.rasanovum.viaromana.path.PathGraph;
 import net.rasanovum.viaromana.client.data.ClientPathData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
@@ -28,7 +28,7 @@ public class LinkHandler {
      */
     public static boolean isSignBlock(LevelAccessor world, BlockPos blockPos) {
         BlockState targetBlock = world.getBlockState(blockPos);
-        return targetBlock.is(TagKey.create(Registries.BLOCK, ResourceLocation.parse("via_romana:warp_block")));
+        return targetBlock.is(TagKey.create(Registries.BLOCK, VersionUtils.getLocation("via_romana:warp_block")));
     }
 
     /**

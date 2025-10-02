@@ -10,6 +10,7 @@ import net.minecraft.world.entity.player.Player;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.client.MapClient;
 import net.rasanovum.viaromana.network.packets.DestinationResponseS2C.NodeNetworkInfo;
+import net.rasanovum.viaromana.util.VersionUtils;
 
 import java.io.IOException;
 import java.util.List;
@@ -56,7 +57,7 @@ public class MapRenderer implements AutoCloseable {
     private static ResourceLocation[] createTileLocations(String prefix, int count) {
         var locations = new ResourceLocation[count];
         for (int i = 0; i < count; i++) {
-            locations[i] = ResourceLocation.parse("via_romana:textures/screens/background_tile/" + prefix + (i + 1) + ".png");
+            locations[i] = VersionUtils.getLocation("via_romana:textures/screens/background_tile/" + prefix + (i + 1) + ".png");
         }
         return locations;
     }

@@ -39,7 +39,7 @@ public record ChartedPathC2S(List<NodeData> chartedNodes) implements CustomPacke
     /*public static final ResourceLocation TYPE = VersionUtils.getLocation("via_romana:charted_path_c2s");
     public static final Object STREAM_CODEC = null;
     *///?} else {
-    public static final CustomPacketPayload.Type<ChartedPathC2S> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.parse("via_romana:charted_path_c2s"));
+    public static final CustomPacketPayload.Type<ChartedPathC2S> TYPE = new CustomPacketPayload.Type<>(VersionUtils.getLocation("via_romana:charted_path_c2s"));
     
     public static final StreamCodec<FriendlyByteBuf, ChartedPathC2S> STREAM_CODEC = new StreamCodec<>() {
         @Override
@@ -126,7 +126,7 @@ public record ChartedPathC2S(List<NodeData> chartedNodes) implements CustomPacke
                 }
             }
             *///?} else {
-            ResourceLocation advancementId = ResourceLocation.parse("via_romana:a_strand_type_game");
+            ResourceLocation advancementId = VersionUtils.getLocation("via_romana:a_strand_type_game");
             AdvancementHolder advancement = player.server.getAdvancements().get(advancementId);
             if (advancement != null) {
                 AdvancementProgress advancementProgress = player.getAdvancements().getOrStartProgress(advancement);

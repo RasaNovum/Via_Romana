@@ -10,6 +10,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.rasanovum.viaromana.core.LinkHandler;
 import commonnetwork.networking.data.PacketContext;
 import commonnetwork.networking.data.Side;
+import net.rasanovum.viaromana.util.VersionUtils;
 
 /*
  * Request the server to unlink the sign at the given position.
@@ -23,7 +24,7 @@ public record SignUnlinkRequestC2S(BlockPos signPos) implements CustomPacketPayl
     /*public static final ResourceLocation TYPE = VersionUtils.getLocation("via_romana:unlink_sign_request");
     public static final Object STREAM_CODEC = null;
     *///?} else {
-    public static final CustomPacketPayload.Type<SignUnlinkRequestC2S> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.parse("via_romana:unlink_sign_request"));
+    public static final CustomPacketPayload.Type<SignUnlinkRequestC2S> TYPE = new CustomPacketPayload.Type<>(VersionUtils.getLocation("via_romana:unlink_sign_request"));
 
     public static final StreamCodec<FriendlyByteBuf, SignUnlinkRequestC2S> STREAM_CODEC = StreamCodec.composite(
         BlockPos.STREAM_CODEC, SignUnlinkRequestC2S::signPos,

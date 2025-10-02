@@ -24,7 +24,7 @@ public record RoutedActionC2S(Operation op) implements CustomPacketPayload {
     /*public static final ResourceLocation TYPE = VersionUtils.getLocation("viaromana:action_request_c2s");
     public static final Object STREAM_CODEC = null;
     *///?} else {
-    public static final CustomPacketPayload.Type<RoutedActionC2S> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.parse("viaromana:action_request_c2s"));
+    public static final CustomPacketPayload.Type<RoutedActionC2S> TYPE = new CustomPacketPayload.Type<>(VersionUtils.getLocation("viaromana:action_request_c2s"));
 
     public static final StreamCodec<FriendlyByteBuf, RoutedActionC2S> STREAM_CODEC = StreamCodec.composite(
         ByteBufCodecs.VAR_INT.map(i -> Operation.values()[i], Operation::ordinal), RoutedActionC2S::op,

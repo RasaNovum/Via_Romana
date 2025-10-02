@@ -24,7 +24,7 @@ public record TeleportRequestC2S(BlockPos originSignPos, BlockPos destinationPos
     /*public static final ResourceLocation TYPE = VersionUtils.getLocation("viaromana:teleport_request_c2s");
     public static final Object STREAM_CODEC = null;
     *///?} else {
-    public static final CustomPacketPayload.Type<TeleportRequestC2S> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.parse("viaromana:teleport_request_c2s"));
+    public static final CustomPacketPayload.Type<TeleportRequestC2S> TYPE = new CustomPacketPayload.Type<>(VersionUtils.getLocation("viaromana:teleport_request_c2s"));
 
     public static final StreamCodec<FriendlyByteBuf, TeleportRequestC2S> STREAM_CODEC = StreamCodec.composite(
         BlockPos.STREAM_CODEC, TeleportRequestC2S::originSignPos,

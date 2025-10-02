@@ -4,10 +4,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 import net.rasanovum.viaromana.ViaRomana;
+import net.rasanovum.viaromana.util.VersionUtils;
+
 import com.mojang.blaze3d.systems.RenderSystem;
 
 public class VignetteRenderer {
-    private static final ResourceLocation VIGNETTE_TEXTURE = ResourceLocation.parse("via_romana:textures/screens/overlay_vignette.png");
+    private static final ResourceLocation VIGNETTE_TEXTURE = VersionUtils.getLocation("via_romana:textures/screens/overlay_vignette.png");
 
     public static void renderVignette(GuiGraphics guiGraphics) {
         try {

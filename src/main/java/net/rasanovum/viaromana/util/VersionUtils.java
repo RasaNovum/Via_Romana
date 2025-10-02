@@ -8,7 +8,7 @@ public class VersionUtils {
         /*return new ResourceLocation(location);
         *///?} else {
         return ResourceLocation.parse(location);
-        //?}
+         //?}
     }
 
     public static ResourceLocation getLocation(String base, String path) {

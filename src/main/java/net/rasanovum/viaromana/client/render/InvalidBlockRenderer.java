@@ -15,11 +15,12 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.items.ChartingMap;
 import net.rasanovum.viaromana.util.PathUtils;
+import net.rasanovum.viaromana.util.VersionUtils;
 import net.rasanovum.viaromana.variables.VariableAccess;
 import net.minecraft.world.phys.Vec3;
 
 public class InvalidBlockRenderer {
-    private static final ResourceLocation BARRIER_TEXTURE = ResourceLocation.parse("minecraft:textures/item/barrier.png");
+    private static final ResourceLocation BARRIER_TEXTURE = VersionUtils.getLocation("minecraft:textures/item/barrier.png");
     private static final int FADE_BUFFER = 3;
 
     private static float getAlpha() {

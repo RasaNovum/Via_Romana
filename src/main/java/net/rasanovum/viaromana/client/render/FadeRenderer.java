@@ -1,5 +1,6 @@
 package net.rasanovum.viaromana.client.render;
 
+import net.rasanovum.viaromana.util.VersionUtils;
 import net.rasanovum.viaromana.variables.VariableAccess;
 
 import net.minecraft.world.entity.player.Player;
@@ -37,7 +38,7 @@ public class FadeRenderer {
             RenderSystem.enableBlend();
             RenderSystem.defaultBlendFunc();
             RenderSystem.setShaderColor(0, 0, 0, alpha);
-            ResourceLocation blackTexture = ResourceLocation.parse("via_romana:textures/screens/black.png");
+            ResourceLocation blackTexture = VersionUtils.getLocation("via_romana:textures/screens/black.png");
             guiGraphics.blit(blackTexture, 0, 0, 0, 0, screenWidth, screenHeight, screenWidth, screenHeight);
             RenderSystem.setShaderColor(1, 1, 1, 1);
         }

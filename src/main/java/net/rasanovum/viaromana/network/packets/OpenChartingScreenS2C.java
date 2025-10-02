@@ -20,7 +20,7 @@ public record OpenChartingScreenS2C() implements CustomPacketPayload {
     /*public static final ResourceLocation TYPE = VersionUtils.getLocation("via_romana:open_charting_screen_s2c");
     public static final Object STREAM_CODEC = null;
     *///?} else {
-    public static final CustomPacketPayload.Type<OpenChartingScreenS2C> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.parse("via_romana:open_charting_screen_s2c"));
+    public static final CustomPacketPayload.Type<OpenChartingScreenS2C> TYPE = new CustomPacketPayload.Type<>(VersionUtils.getLocation("via_romana:open_charting_screen_s2c"));
 
     public static final StreamCodec<FriendlyByteBuf, OpenChartingScreenS2C> STREAM_CODEC = new StreamCodec<>() {
         @Override

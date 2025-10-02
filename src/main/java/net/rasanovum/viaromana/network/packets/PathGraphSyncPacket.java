@@ -24,7 +24,7 @@ public record PathGraphSyncPacket(CompoundTag pathGraphData) implements CustomPa
     /*public static final ResourceLocation TYPE = VersionUtils.getLocation("via_romana:path_graph_sync_s2c");
     public static final Object STREAM_CODEC = null;
     *///?} else {
-    public static final CustomPacketPayload.Type<PathGraphSyncPacket> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.parse("via_romana:path_graph_sync_s2c"));
+    public static final CustomPacketPayload.Type<PathGraphSyncPacket> TYPE = new CustomPacketPayload.Type<>(VersionUtils.getLocation("via_romana:path_graph_sync_s2c"));
 
     public static final StreamCodec<FriendlyByteBuf, PathGraphSyncPacket> STREAM_CODEC = new StreamCodec<>() {
         @Override

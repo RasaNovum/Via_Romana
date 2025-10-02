@@ -24,7 +24,7 @@ public record DestinationRequestC2S(BlockPos sourceSignPos) implements CustomPac
     /*public static final ResourceLocation TYPE = VersionUtils.getLocation("viaromana:destination_request_c2s");
     public static final Object STREAM_CODEC = null;
     *///?} else {
-    public static final CustomPacketPayload.Type<DestinationRequestC2S> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.parse("viaromana:destination_request_c2s"));
+    public static final CustomPacketPayload.Type<DestinationRequestC2S> TYPE = new CustomPacketPayload.Type<>(VersionUtils.getLocation("viaromana:destination_request_c2s"));
 
     public static final StreamCodec<FriendlyByteBuf, DestinationRequestC2S> STREAM_CODEC = StreamCodec.composite(
         BlockPos.STREAM_CODEC, DestinationRequestC2S::sourceSignPos,

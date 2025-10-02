@@ -14,6 +14,7 @@ import net.rasanovum.viaromana.network.packets.DestinationResponseS2C;
 import net.rasanovum.viaromana.network.packets.SignValidationRequestC2S;
 import net.rasanovum.viaromana.network.packets.TeleportRequestC2S;
 import net.rasanovum.viaromana.teleport.TeleportHelper;
+import net.rasanovum.viaromana.util.VersionUtils;
 
 import java.awt.Point;
 import java.util.*;
@@ -259,7 +260,7 @@ public class TeleportMapScreen extends Screen {
                             .map(hovered -> hovered.position.equals(dest.position))
                             .orElse(false);
 
-                    ResourceLocation markerTexture = ResourceLocation.parse("via_romana:textures/screens/marker_" + dest.icon.toString().toLowerCase() + ".png");
+                    ResourceLocation markerTexture = VersionUtils.getLocation("via_romana:textures/screens/marker_" + dest.icon.toString().toLowerCase() + ".png");
                     int x = screenPos.x - MARKER_SIZE / 2;
                     int y = screenPos.y - MARKER_SIZE / 2;
 

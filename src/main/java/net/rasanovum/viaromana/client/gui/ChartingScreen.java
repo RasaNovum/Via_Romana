@@ -17,6 +17,7 @@ import net.rasanovum.viaromana.client.gui.elements.MapSquareButton;
 import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.network.packets.RoutedActionC2S;
 import net.rasanovum.viaromana.util.PathUtils;
+import net.rasanovum.viaromana.util.VersionUtils;
 import net.rasanovum.viaromana.variables.VariableAccess;
 
 import java.util.List;
@@ -33,39 +34,39 @@ public class ChartingScreen extends Screen {
     private static final int LARGE_BUTTON_SIZE = 80;
 
     private static final class Textures {
-        static final ResourceLocation BACKGROUND = ResourceLocation.parse("via_romana:textures/screens/background_map.png");
-        static final ResourceLocation CHARTING_OVERLAY = ResourceLocation.parse("via_romana:textures/screens/background_map_charting.png");
-        static final ResourceLocation MAP_CANCEL = ResourceLocation.parse("via_romana:textures/screens/element_cancel.png");
-        static final ResourceLocation MAP_TUTORIAL = ResourceLocation.parse("via_romana:textures/screens/element_tutorial.png");
-        static final ResourceLocation MAP_TUTORIAL_BACK = ResourceLocation.parse("via_romana:textures/screens/element_tutorial_back.png");
-        static final ResourceLocation MAP_TUTORIAL_NEXT = ResourceLocation.parse("via_romana:textures/screens/element_tutorial_next.png");
-        static final ResourceLocation MAP_TUTORIAL_RETURN = ResourceLocation.parse("via_romana:textures/screens/element_return.png");
-        static final ResourceLocation CHART_START_TILE = ResourceLocation.parse("via_romana:textures/screens/chart_start_tile.png");
-        static final ResourceLocation CHART_START_FRAME = ResourceLocation.parse("via_romana:textures/screens/chart_start_frame.png");
-        static final ResourceLocation CHART_FINISH_TILE = ResourceLocation.parse("via_romana:textures/screens/chart_finish_tile.png");
-        static final ResourceLocation CHART_FINISH_FRAME = ResourceLocation.parse("via_romana:textures/screens/chart_finish_frame.png");
-        static final ResourceLocation SEVER_PATH_TILE = ResourceLocation.parse("via_romana:textures/screens/chart_sever_tile.png");
-        static final ResourceLocation SEVER_PATH_FRAME = ResourceLocation.parse("via_romana:textures/screens/chart_sever_frame.png");
-        static final ResourceLocation DELETE_BRANCH_TILE = ResourceLocation.parse("via_romana:textures/screens/chart_delete_branch_tile.png");
-        static final ResourceLocation DELETE_BRANCH_FRAME = ResourceLocation.parse("via_romana:textures/screens/chart_delete_branch_frame.png");
-        static final ResourceLocation SEAL_APPROVE = ResourceLocation.parse("via_romana:textures/screens/seal_approve.png");
-        static final ResourceLocation SEAL_CANCEL = ResourceLocation.parse("via_romana:textures/screens/seal_cancel.png");
-        static final ResourceLocation TUTORIAL_1 = ResourceLocation.parse("via_romana:textures/screens/tutorial_1.png");
-        static final ResourceLocation TUTORIAL_2 = ResourceLocation.parse("via_romana:textures/screens/tutorial_2.png");
-        static final ResourceLocation TUTORIAL_3 = ResourceLocation.parse("via_romana:textures/screens/tutorial_3.png");
-        static final ResourceLocation TUTORIAL_4 = ResourceLocation.parse("via_romana:textures/screens/tutorial_4.png");
-        static final ResourceLocation TUTORIAL_5 = ResourceLocation.parse("via_romana:textures/screens/tutorial_5.png");
-        static final ResourceLocation TUTORIAL_6 = ResourceLocation.parse("via_romana:textures/screens/tutorial_6.png");
-        static final ResourceLocation TUTORIAL_7 = ResourceLocation.parse("via_romana:textures/screens/tutorial_7.png");
-        static final ResourceLocation TUTORIAL_8 = ResourceLocation.parse("via_romana:textures/screens/tutorial_8.png");
+        static final ResourceLocation BACKGROUND = VersionUtils.getLocation("via_romana:textures/screens/background_map.png");
+        static final ResourceLocation CHARTING_OVERLAY = VersionUtils.getLocation("via_romana:textures/screens/background_map_charting.png");
+        static final ResourceLocation MAP_CANCEL = VersionUtils.getLocation("via_romana:textures/screens/element_cancel.png");
+        static final ResourceLocation MAP_TUTORIAL = VersionUtils.getLocation("via_romana:textures/screens/element_tutorial.png");
+        static final ResourceLocation MAP_TUTORIAL_BACK = VersionUtils.getLocation("via_romana:textures/screens/element_tutorial_back.png");
+        static final ResourceLocation MAP_TUTORIAL_NEXT = VersionUtils.getLocation("via_romana:textures/screens/element_tutorial_next.png");
+        static final ResourceLocation MAP_TUTORIAL_RETURN = VersionUtils.getLocation("via_romana:textures/screens/element_return.png");
+        static final ResourceLocation CHART_START_TILE = VersionUtils.getLocation("via_romana:textures/screens/chart_start_tile.png");
+        static final ResourceLocation CHART_START_FRAME = VersionUtils.getLocation("via_romana:textures/screens/chart_start_frame.png");
+        static final ResourceLocation CHART_FINISH_TILE = VersionUtils.getLocation("via_romana:textures/screens/chart_finish_tile.png");
+        static final ResourceLocation CHART_FINISH_FRAME = VersionUtils.getLocation("via_romana:textures/screens/chart_finish_frame.png");
+        static final ResourceLocation SEVER_PATH_TILE = VersionUtils.getLocation("via_romana:textures/screens/chart_sever_tile.png");
+        static final ResourceLocation SEVER_PATH_FRAME = VersionUtils.getLocation("via_romana:textures/screens/chart_sever_frame.png");
+        static final ResourceLocation DELETE_BRANCH_TILE = VersionUtils.getLocation("via_romana:textures/screens/chart_delete_branch_tile.png");
+        static final ResourceLocation DELETE_BRANCH_FRAME = VersionUtils.getLocation("via_romana:textures/screens/chart_delete_branch_frame.png");
+        static final ResourceLocation SEAL_APPROVE = VersionUtils.getLocation("via_romana:textures/screens/seal_approve.png");
+        static final ResourceLocation SEAL_CANCEL = VersionUtils.getLocation("via_romana:textures/screens/seal_cancel.png");
+        static final ResourceLocation TUTORIAL_1 = VersionUtils.getLocation("via_romana:textures/screens/tutorial_1.png");
+        static final ResourceLocation TUTORIAL_2 = VersionUtils.getLocation("via_romana:textures/screens/tutorial_2.png");
+        static final ResourceLocation TUTORIAL_3 = VersionUtils.getLocation("via_romana:textures/screens/tutorial_3.png");
+        static final ResourceLocation TUTORIAL_4 = VersionUtils.getLocation("via_romana:textures/screens/tutorial_4.png");
+        static final ResourceLocation TUTORIAL_5 = VersionUtils.getLocation("via_romana:textures/screens/tutorial_5.png");
+        static final ResourceLocation TUTORIAL_6 = VersionUtils.getLocation("via_romana:textures/screens/tutorial_6.png");
+        static final ResourceLocation TUTORIAL_7 = VersionUtils.getLocation("via_romana:textures/screens/tutorial_7.png");
+        static final ResourceLocation TUTORIAL_8 = VersionUtils.getLocation("via_romana:textures/screens/tutorial_8.png");
     }
 
     private static final class Sounds {
-        static final ResourceLocation SEVER_PATH = ResourceLocation.parse("minecraft:entity.sheep.shear");
-        static final ResourceLocation DELETE_BRANCH_PROMPT = ResourceLocation.parse("minecraft:item.flintandsteel.use");
-        static final ResourceLocation DELETE_BRANCH_CONFIRM = ResourceLocation.parse("minecraft:block.fire.ambient");
-        static final ResourceLocation DELETE_BRANCH_CANCEL = ResourceLocation.parse("minecraft:block.fire.extinguish");
-        static final ResourceLocation START_CHARTING = ResourceLocation.parse("minecraft:item.book.page_turn");
+        static final ResourceLocation SEVER_PATH = VersionUtils.getLocation("minecraft:entity.sheep.shear");
+        static final ResourceLocation DELETE_BRANCH_PROMPT = VersionUtils.getLocation("minecraft:item.flintandsteel.use");
+        static final ResourceLocation DELETE_BRANCH_CONFIRM = VersionUtils.getLocation("minecraft:block.fire.ambient");
+        static final ResourceLocation DELETE_BRANCH_CANCEL = VersionUtils.getLocation("minecraft:block.fire.extinguish");
+        static final ResourceLocation START_CHARTING = VersionUtils.getLocation("minecraft:item.book.page_turn");
     }
     // endregion
 

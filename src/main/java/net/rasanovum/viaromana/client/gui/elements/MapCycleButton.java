@@ -8,6 +8,7 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.rasanovum.viaromana.client.gui.GuiConstants;
+import net.rasanovum.viaromana.util.VersionUtils;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -122,13 +123,13 @@ public class MapCycleButton<T> extends AbstractButton {
             int iconY = checkboxY - 6;
 
             if (this.isSelected) {
-                guiGraphics.blit(ResourceLocation.parse("via_romana:textures/screens/element_check.png"), iconX, iconY, 0, 0, iconSize, iconSize, iconSize, iconSize);
+                guiGraphics.blit(VersionUtils.getLocation("via_romana:textures/screens/element_check.png"), iconX, iconY, 0, 0, iconSize, iconSize, iconSize, iconSize);
             } else {
                 guiGraphics.pose().pushPose();
                 RenderSystem.enableBlend();
                 RenderSystem.defaultBlendFunc();
                 RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 0.3f);
-                guiGraphics.blit(ResourceLocation.parse("via_romana:textures/screens/element_check.png"), iconX, iconY, 0, 0, iconSize, iconSize, iconSize, iconSize);
+                guiGraphics.blit(VersionUtils.getLocation("via_romana:textures/screens/element_check.png"), iconX, iconY, 0, 0, iconSize, iconSize, iconSize, iconSize);
                 RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
                 RenderSystem.disableBlend();
                 guiGraphics.pose().popPose();

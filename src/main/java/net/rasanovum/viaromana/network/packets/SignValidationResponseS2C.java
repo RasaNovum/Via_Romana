@@ -24,7 +24,7 @@ public record SignValidationResponseS2C(BlockPos nodePos, boolean isValid) imple
     /*public static final ResourceLocation TYPE = VersionUtils.getLocation("viaromana:sign_validation_s2c");
     public static final Object STREAM_CODEC = null;
     *///?} else {
-    public static final CustomPacketPayload.Type<SignValidationResponseS2C> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.parse("viaromana:sign_validation_s2c"));
+    public static final CustomPacketPayload.Type<SignValidationResponseS2C> TYPE = new CustomPacketPayload.Type<>(VersionUtils.getLocation("viaromana:sign_validation_s2c"));
 
     public static final StreamCodec<FriendlyByteBuf, SignValidationResponseS2C> STREAM_CODEC = StreamCodec.composite(
         BlockPos.STREAM_CODEC, SignValidationResponseS2C::nodePos,

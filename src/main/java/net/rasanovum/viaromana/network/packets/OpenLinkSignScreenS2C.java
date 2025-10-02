@@ -19,7 +19,7 @@ public record OpenLinkSignScreenS2C() implements CustomPacketPayload {
     /*public static final ResourceLocation TYPE = VersionUtils.getLocation("via_romana:open_link_sign_screen_s2c");
     public static final Object STREAM_CODEC = null;
     *///?} else {
-    public static final CustomPacketPayload.Type<OpenLinkSignScreenS2C> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.parse("via_romana:open_link_sign_screen_s2c"));
+    public static final CustomPacketPayload.Type<OpenLinkSignScreenS2C> TYPE = new CustomPacketPayload.Type<>(VersionUtils.getLocation("via_romana:open_link_sign_screen_s2c"));
 
     public static final StreamCodec<FriendlyByteBuf, OpenLinkSignScreenS2C> STREAM_CODEC = new StreamCodec<>() {
         @Override

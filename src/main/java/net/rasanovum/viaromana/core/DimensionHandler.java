@@ -29,7 +29,7 @@ public class DimensionHandler {
 		if (entity == null) return false;
 
 		// if (world instanceof ServerLevel serverLevel) {
-		// 	TagKey<DimensionType> CHARTABLE_DIMENSIONS = TagKey.create(Registries.DIMENSION_TYPE, ResourceLocation.parse("via_romana:chartable"));
+		// 	TagKey<DimensionType> CHARTABLE_DIMENSIONS = TagKey.create(Registries.DIMENSION_TYPE, VersionUtils.getLocation("via_romana:chartable"));
 		// 	return serverLevel.dimensionTypeRegistration().is(CHARTABLE_DIMENSIONS);
 		// }
 		

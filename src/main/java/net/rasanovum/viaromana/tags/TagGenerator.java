@@ -12,6 +12,7 @@ import net.minecraft.world.level.block.Block;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.CommonConfig;
 import net.mehvahdjukaar.moonlight.api.resources.pack.DynamicDataPack;
+import net.rasanovum.viaromana.util.VersionUtils;
 
 /**
  * Generates block tags to Moonlight's DynamicDataPack.
@@ -53,7 +54,7 @@ public class TagGenerator {
         for (String blockId : explicitIds) {
             if (!blockId.isEmpty() && !isBlacklistedBlock(blockId)) {
                 try {
-                    ResourceLocation blockLocation = ResourceLocation.parse(blockId);
+                    ResourceLocation blockLocation = VersionUtils.getLocation(blockId);
                     tagBuilder.addElement(blockLocation);
                     ViaRomana.LOGGER.debug("Added explicit block {} to tag {}", blockId, tagKey.location());
                 } catch (Exception e) {
@@ -66,7 +67,7 @@ public class TagGenerator {
         for (String tagString : tagStrings) {
             if (!tagString.isEmpty() && isModLoadedForTag(tagString) && !isBlacklistedBlock(tagString)) {
                 try {
-                    ResourceLocation tagLocation = ResourceLocation.parse(tagString);
+                    ResourceLocation tagLocation = VersionUtils.getLocation(tagString);
                     tagBuilder.addTag(tagLocation);
                     ViaRomana.LOGGER.debug("Added tag reference {} to tag {}", tagString, tagKey.location());
                 } catch (Exception e) {
@@ -99,7 +100,7 @@ public class TagGenerator {
 
     private static boolean isModLoadedForTag(String tagString) {
         try {
-            ResourceLocation tagLocation = ResourceLocation.parse(tagString);
+            ResourceLocation tagLocation = VersionUtils.getLocation(tagString);
             String modId = tagLocation.getNamespace();
             return "minecraft".equals(modId) || FabricLoader.getInstance().isModLoaded(modId);
         } catch (Exception e) {

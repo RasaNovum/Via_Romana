@@ -6,12 +6,13 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.rasanovum.viaromana.util.VersionUtils;
 
 /**
  * Screen that opens when right-clicking a warp block, made for modpack developers
  */
 public class WarpBlockScreen extends Screen {
-    private static final ResourceLocation WARP_BLOCK_TEXTURE = ResourceLocation.parse("via_romana:textures/screens/warp_block_texture.png");
+    private static final ResourceLocation WARP_BLOCK_TEXTURE = VersionUtils.getLocation("via_romana:textures/screens/warp_block_texture.png");
     private final BlockPos blockPos;
 
     public WarpBlockScreen(BlockPos blockPos) {

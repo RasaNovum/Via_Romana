@@ -21,6 +21,7 @@ import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.items.ChartingMap;
 import net.rasanovum.viaromana.path.Node;
 import net.rasanovum.viaromana.path.PathGraph;
+import net.rasanovum.viaromana.util.VersionUtils;
 import net.rasanovum.viaromana.variables.VariableAccess;
 
 import java.util.*;
@@ -50,7 +51,7 @@ public class NodeRenderer {
     private static final float CROSS_SIN = (float) Math.sin(CROSS_ANGLE_RADIANS);
     private static final int DEFAULT_BEAM_COLOR = ColorUtil.rgbToHex(255, 255, 255);
     private static final int CHARTING_BEAM_COLOR = ColorUtil.rgbToHex(0, 255, 0);
-    private static final ResourceLocation BEAM_TEXTURE = ResourceLocation.parse("via_romana:textures/effect/node_beam.png");
+    private static final ResourceLocation BEAM_TEXTURE = VersionUtils.getLocation("via_romana:textures/effect/node_beam.png");
     private static final int SOUND_INTERVAL_TICKS = 40;
 
     private static int getPulseDistance() { return CommonConfig.node_utility_distance; }

@@ -31,6 +31,6 @@ public class EffectUtils {
     }
 
     private static Holder<MobEffect> getEffectByName(String effectName) {
-        return BuiltInRegistries.MOB_EFFECT.getHolder(ResourceLocation.parse("via_romana:" + effectName)).orElse(null);
+        return BuiltInRegistries.MOB_EFFECT.getHolder(VersionUtils.getLocation("via_romana:" + effectName)).orElse(null);
     }
 }

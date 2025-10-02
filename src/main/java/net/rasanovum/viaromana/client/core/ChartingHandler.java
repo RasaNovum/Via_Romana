@@ -11,6 +11,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.rasanovum.viaromana.network.packets.SignLinkRequestC2S;
 import net.rasanovum.viaromana.util.PathUtils;
+import net.rasanovum.viaromana.util.VersionUtils;
 import net.rasanovum.viaromana.client.HudMessageManager;
 import net.rasanovum.viaromana.client.data.ClientPathData;
 import net.rasanovum.viaromana.CommonConfig;
@@ -58,7 +59,7 @@ public final class ChartingHandler {
         if (!(level instanceof Level lvl)) return;
 
         var pos  = BlockPos.containing(entity.getX(), entity.getY(), entity.getZ());
-        var snd  = BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse("minecraft:ui.cartography_table.take_result"));
+        var snd  = BuiltInRegistries.SOUND_EVENT.get(VersionUtils.getLocation("minecraft:ui.cartography_table.take_result"));
 
         if (lvl.isClientSide()) {
             lvl.playLocalSound(entity.getX(), entity.getY(), entity.getZ(), snd, SoundSource.PLAYERS, 1, 1, false);

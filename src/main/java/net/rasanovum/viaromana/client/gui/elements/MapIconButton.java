@@ -7,6 +7,7 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.rasanovum.viaromana.path.Node;
+import net.rasanovum.viaromana.util.VersionUtils;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
@@ -59,7 +60,7 @@ public class MapIconButton extends AbstractButton {
             case PORTAL -> "marker_portal";
             case BOOK -> "marker_book";
         };
-        return ResourceLocation.parse("via_romana:textures/screens/" + textureName + ".png");
+        return VersionUtils.getLocation("via_romana:textures/screens/" + textureName + ".png");
     }
 
     @Override
@@ -77,7 +78,7 @@ public class MapIconButton extends AbstractButton {
         guiGraphics.blit(iconTexture, iconX, iconY, 0, 0, ICON_SIZE, ICON_SIZE, ICON_SIZE, ICON_SIZE);
 
         if (this.isSelected || this.isHovered()) {
-            ResourceLocation circleTexture = ResourceLocation.parse("via_romana:textures/screens/element_circle.png");
+            ResourceLocation circleTexture = VersionUtils.getLocation("via_romana:textures/screens/element_circle.png");
             int circleX = centerX - CIRCLE_SIZE / 2;
             int circleY = centerY - CIRCLE_SIZE / 2;
             

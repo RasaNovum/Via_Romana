@@ -27,7 +27,7 @@ public record MapResponseS2C(MapInfo mapInfo) implements CustomPacketPayload {
     /*public static final ResourceLocation TYPE = VersionUtils.getLocation("via_romana:map_response_s2c");
     public static final Object STREAM_CODEC = null;
     *///?} else {
-    public static final CustomPacketPayload.Type<MapResponseS2C> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.parse("via_romana:map_response_s2c"));
+    public static final CustomPacketPayload.Type<MapResponseS2C> TYPE = new CustomPacketPayload.Type<>(VersionUtils.getLocation("via_romana:map_response_s2c"));
 
     public static final StreamCodec<FriendlyByteBuf, MapResponseS2C> STREAM_CODEC = new StreamCodec<>() {
         @Override

@@ -16,6 +16,7 @@ import net.rasanovum.viaromana.client.data.ClientPathData;
 import net.rasanovum.viaromana.core.LinkHandler;
 import net.rasanovum.viaromana.path.Node;
 import net.rasanovum.viaromana.path.PathGraph;
+import net.rasanovum.viaromana.util.VersionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +43,7 @@ public final class NodeConnectionRenderer {
     private static final int SUB_SEGMENTS = 4;
     private static final float VERTICAL_WANDER_SCALE = 0.4f;
 
-    private static final ResourceLocation CONNECTION_TEXTURE = ResourceLocation.parse("via_romana:textures/effect/connection_ribbon.png");
+    private static final ResourceLocation CONNECTION_TEXTURE = VersionUtils.getLocation("via_romana:textures/effect/connection_ribbon.png");
     private static RenderType getRenderType() {
         boolean shadersInUse = false;
         try {

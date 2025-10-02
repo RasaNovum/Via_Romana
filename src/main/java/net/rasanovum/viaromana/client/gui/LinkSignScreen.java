@@ -12,6 +12,7 @@ import net.rasanovum.viaromana.core.LinkHandler;
 import net.rasanovum.viaromana.network.packets.SignLinkRequestC2S;
 import net.rasanovum.viaromana.network.packets.SignUnlinkRequestC2S;
 import net.rasanovum.viaromana.path.Node;
+import net.rasanovum.viaromana.util.VersionUtils;
 import commonnetwork.api.Dispatcher;
 
 import java.util.Arrays;
@@ -24,7 +25,7 @@ public class LinkSignScreen extends Screen {
     private static final int BACKGROUND_HEIGHT = 256;
     private static final int USABLE_WIDTH = 230;
     private static final int USABLE_HEIGHT = 160;
-    private static final ResourceLocation BACKGROUND_TEXTURE = ResourceLocation.parse("via_romana:textures/screens/background_map.png");
+    private static final ResourceLocation BACKGROUND_TEXTURE = VersionUtils.getLocation("via_romana:textures/screens/background_map.png");
     // endregion
 
     // region UI State
@@ -140,7 +141,7 @@ public class LinkSignScreen extends Screen {
                     commonnetwork.api.Dispatcher.sendToServer(new SignUnlinkRequestC2S(this.signPos));
                     this.onClose();
                 },
-                ResourceLocation.parse("via_romana:textures/screens/element_unlink.png")
+                VersionUtils.getLocation("via_romana:textures/screens/element_unlink.png")
             );
             this.addRenderableWidget(this.unlinkButton);
         }

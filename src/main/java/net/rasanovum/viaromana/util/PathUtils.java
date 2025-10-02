@@ -28,7 +28,7 @@ public class PathUtils {
 
         BlockState blockState = world.getBlockState(targetBlock);
 
-        if (blockState.is(TagKey.create(Registries.BLOCK, ResourceLocation.parse("via_romana:path_block")))) return true;
+        if (blockState.is(TagKey.create(Registries.BLOCK, VersionUtils.getLocation("via_romana:path_block")))) return true;
 
         return false;
     }
@@ -88,7 +88,7 @@ public class PathUtils {
             mutablePos.set(entityX, y, entityZ);
             BlockState blockState = world.getBlockState(mutablePos);
             
-            if (!world.isEmptyBlock(mutablePos) && !blockState.is(TagKey.create(Registries.BLOCK, ResourceLocation.parse("minecraft:leaves")))) {
+            if (!world.isEmptyBlock(mutablePos) && !blockState.is(TagKey.create(Registries.BLOCK, VersionUtils.getLocation("minecraft:leaves")))) {
                 return clearance;
             }
             

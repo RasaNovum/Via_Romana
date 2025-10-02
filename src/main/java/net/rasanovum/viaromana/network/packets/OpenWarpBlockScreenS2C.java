@@ -24,7 +24,7 @@ public record OpenWarpBlockScreenS2C(BlockPos blockPos) implements CustomPacketP
     /*public static final ResourceLocation TYPE = VersionUtils.getLocation("via_romana:open_warp_block_screen_s2c");
     public static final Object STREAM_CODEC = null;
     *///?} else {
-    public static final CustomPacketPayload.Type<OpenWarpBlockScreenS2C> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.parse("via_romana:open_warp_block_screen_s2c"));
+    public static final CustomPacketPayload.Type<OpenWarpBlockScreenS2C> TYPE = new CustomPacketPayload.Type<>(VersionUtils.getLocation("via_romana:open_warp_block_screen_s2c"));
 
     public static final StreamCodec<FriendlyByteBuf, OpenWarpBlockScreenS2C> STREAM_CODEC = new StreamCodec<>() {
         @Override

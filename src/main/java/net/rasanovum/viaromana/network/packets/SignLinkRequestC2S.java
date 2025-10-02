@@ -11,6 +11,7 @@ import net.rasanovum.viaromana.core.LinkHandler.LinkData;
 import net.rasanovum.viaromana.path.Node;
 import commonnetwork.networking.data.PacketContext;
 import commonnetwork.networking.data.Side;
+import net.rasanovum.viaromana.util.VersionUtils;
 
 import java.util.UUID;
 
@@ -26,7 +27,7 @@ public record SignLinkRequestC2S(LinkData linkData, boolean isTempNode) implemen
     /*public static final ResourceLocation TYPE = VersionUtils.getLocation("via_romana:link_sign_request");
     public static final Object STREAM_CODEC = null;
     *///?} else {
-    public static final CustomPacketPayload.Type<SignLinkRequestC2S> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.parse("via_romana:link_sign_request"));
+    public static final CustomPacketPayload.Type<SignLinkRequestC2S> TYPE = new CustomPacketPayload.Type<>(VersionUtils.getLocation("via_romana:link_sign_request"));
 
     public static final StreamCodec<FriendlyByteBuf, SignLinkRequestC2S> STREAM_CODEC = new StreamCodec<>() {
         @Override

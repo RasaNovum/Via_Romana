@@ -31,7 +31,7 @@ public record MapRequestC2S(MapInfo mapInfo) implements CustomPacketPayload {
     /*public static final ResourceLocation TYPE = VersionUtils.getLocation("via_romana:map_request_c2s");
     public static final Object STREAM_CODEC = null;
     *///?} else {
-    public static final CustomPacketPayload.Type<MapRequestC2S> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.parse("via_romana:map_request_c2s"));
+    public static final CustomPacketPayload.Type<MapRequestC2S> TYPE = new CustomPacketPayload.Type<>(VersionUtils.getLocation("via_romana:map_request_c2s"));
 
     public static final StreamCodec<FriendlyByteBuf, MapRequestC2S> STREAM_CODEC = new StreamCodec<>() {
         @Override

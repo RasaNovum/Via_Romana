@@ -40,7 +40,7 @@ public record DestinationResponseS2C(
     /*public static final ResourceLocation TYPE = VersionUtils.getLocation("via_romana:destination_response");
     public static final Object STREAM_CODEC = null;
     *///?} else {
-    public static final CustomPacketPayload.Type<DestinationResponseS2C> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.parse("via_romana:destination_response"));
+    public static final CustomPacketPayload.Type<DestinationResponseS2C> TYPE = new CustomPacketPayload.Type<>(VersionUtils.getLocation("via_romana:destination_response"));
 
     public static final StreamCodec<FriendlyByteBuf, DestinationResponseS2C> STREAM_CODEC = new StreamCodec<>() {
         @Override

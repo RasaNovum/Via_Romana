@@ -14,6 +14,7 @@ import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.path.Node;
 import net.rasanovum.viaromana.path.PathGraph;
 import net.rasanovum.viaromana.storage.IPathStorage;
+import net.rasanovum.viaromana.util.VersionUtils;
 
 import java.util.Optional;
 
@@ -22,7 +23,7 @@ import java.util.Optional;
  */
 public record ViaRomanaLandmark(BlockPos pos, Component name, DyeColor color) implements Landmark<ViaRomanaLandmark> {
     public static final LandmarkType<ViaRomanaLandmark> TYPE = new SimpleLandmarkType<>(
-        ResourceLocation.parse("via_romana:destination_landmark"),
+        VersionUtils.getLocation("via_romana:destination_landmark"),
         pos -> RecordCodecBuilder.create(instance -> instance.group(
             Codec.STRING.optionalFieldOf("name").forGetter(landmark -> 
                 Optional.ofNullable(landmark.name()).map(Component::getString)),

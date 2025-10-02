@@ -3,6 +3,7 @@ package net.rasanovum.viaromana.network;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.path.Node.NodeData;
 import net.rasanovum.viaromana.util.PathSyncUtils;
+import net.rasanovum.viaromana.util.VersionUtils;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.server.level.ServerPlayer;
@@ -273,7 +274,7 @@ public class ViaRomanaModVariables {
         /*public static final ResourceLocation TYPE = net.rasanovum.viaromana.util.VersionUtils.getLocation("via_romana:player_variables_sync");
         public static final Object STREAM_CODEC = null;
         *///?} else {
-        public static final CustomPacketPayload.Type<PlayerVariablesSyncMessage> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.parse("via_romana:player_variables_sync"));
+        public static final CustomPacketPayload.Type<PlayerVariablesSyncMessage> TYPE = new CustomPacketPayload.Type<>(VersionUtils.getLocation("via_romana:player_variables_sync"));
 
         public static final StreamCodec<FriendlyByteBuf, PlayerVariablesSyncMessage> STREAM_CODEC = new StreamCodec<>() {
             @Override

@@ -27,7 +27,7 @@ public record SignValidationRequestC2S(BlockPos nodePos) implements CustomPacket
     /*public static final ResourceLocation TYPE = VersionUtils.getLocation("viaromana:sign_validation_c2s");
     public static final Object STREAM_CODEC = null;
     *///?} else {
-    public static final CustomPacketPayload.Type<SignValidationRequestC2S> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.parse("viaromana:sign_validation_c2s"));
+    public static final CustomPacketPayload.Type<SignValidationRequestC2S> TYPE = new CustomPacketPayload.Type<>(VersionUtils.getLocation("viaromana:sign_validation_c2s"));
 
     public static final StreamCodec<FriendlyByteBuf, SignValidationRequestC2S> STREAM_CODEC = StreamCodec.composite(
         BlockPos.STREAM_CODEC, SignValidationRequestC2S::nodePos,
