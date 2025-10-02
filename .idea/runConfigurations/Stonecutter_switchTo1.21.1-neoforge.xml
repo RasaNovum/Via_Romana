@@ -1,0 +1,22 @@
+<configuration name="Switch to 1.21.1-neoforge" type="GradleRunConfiguration" factoryName="Gradle" folderName="Stonecutter">
+    <ExternalSystemSettings>
+        <option name="executionName"/>
+        <option name="externalProjectPath" value="$PROJECT_DIR$"/>
+        <option name="externalSystemIdString" value="GRADLE"/>
+        <option name="scriptParameters"/>
+        <option name="taskDescriptions">
+            <list/>
+        </option>
+        <option name="taskNames">
+            <list>
+                <option value=":stonecutterSwitchTo1.21.1-neoforge"/>
+            </list>
+        </option>
+        <option name="vmOptions"/>
+    </ExternalSystemSettings>
+    <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+    <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+    <DebugAllEnabled>false</DebugAllEnabled>
+    <RunAsTest>false</RunAsTest>
+    <method v="2"/>
+</configuration>

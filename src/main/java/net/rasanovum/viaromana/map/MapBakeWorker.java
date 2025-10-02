@@ -1,9 +1,5 @@
 package net.rasanovum.viaromana.map;
 
-import folk.sisby.surveyor.terrain.ChunkSummary;
-import folk.sisby.surveyor.terrain.LayerSummary;
-import folk.sisby.surveyor.terrain.WorldTerrainSummary;
-import folk.sisby.surveyor.util.RegistryPalette;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
@@ -15,6 +11,13 @@ import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.network.packets.DestinationResponseS2C.NodeNetworkInfo;
 import net.rasanovum.viaromana.path.PathGraph;
 import net.rasanovum.viaromana.surveyor.SurveyorUtil;
+
+//? if fabric {
+import folk.sisby.surveyor.terrain.ChunkSummary;
+import folk.sisby.surveyor.terrain.LayerSummary;
+import folk.sisby.surveyor.terrain.WorldTerrainSummary;
+import folk.sisby.surveyor.util.RegistryPalette;
+//?}
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;

@@ -18,5 +18,6 @@ stonecutter {
     create(rootProject) {
         vers("1.21.1-fabric", "1.21.1")
         vers("1.20.1-fabric", "1.20.1")
+        vers("1.21.1-neoforge", "1.21.1")
     }
 }

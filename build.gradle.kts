@@ -10,6 +10,13 @@ plugins {
 val modId = property("slug").toString()
 val version = "${property("slug")}+${property("baseVersion")}+${property("deps.minecraft")}"
 
+stonecutter {
+    val loader = property("deps.loader").toString()
+    constants.match(
+        loader, "fabric", "neoforge"
+    )
+}
+
 repositories {
     maven("https://repo.sleeping.town/")
     maven("https://maven.terraformersmc.com/")
@@ -19,6 +26,7 @@ repositories {
     maven("https://modmaven.k-4u.nl/")
     maven("https://jm.gserv.me/repository/maven-public/")
     maven("https://cursemaven.com")
+    maven("https://maven.su5ed.dev/releases")
     mavenCentral()
 }
 
@@ -39,6 +47,13 @@ dependencies {
         modImplementation("folk.sisby:surveyor:${property("deps.surveyor")}")
 
         include("folk.sisby:surveyor:${property("deps.surveyor")}")
+        // modCompileOnly("maven.modrinth:iris:${property("deps.iris")}")
+        annotationProcessor("net.fabricmc:sponge-mixin:0.12.5+mixin.0.8.5")
+    }
+
+    if (property("deps.loader") == "neoforge") {
+        modImplementation("org.sinytra.forgified-fabric-api:forgified-fabric-api:${property("deps.fabric_api")}")
+
         // modCompileOnly("maven.modrinth:iris:${property("deps.iris")}")
         annotationProcessor("net.fabricmc:sponge-mixin:0.12.5+mixin.0.8.5")
     }

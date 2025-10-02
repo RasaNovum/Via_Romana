@@ -1,12 +1,15 @@
 package net.rasanovum.viaromana.surveyor;
 
-import folk.sisby.surveyor.WorldSummary;
-import folk.sisby.surveyor.terrain.WorldTerrainSummary;
 import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.rasanovum.viaromana.ViaRomana;
+
+//? if fabric {
+import folk.sisby.surveyor.WorldSummary;
+import folk.sisby.surveyor.terrain.WorldTerrainSummary;
+//?}
 
 /**
  * Utility class for interacting with the Surveyor mod.
