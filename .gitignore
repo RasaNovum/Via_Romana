@@ -10,3 +10,4 @@ build/
 src/main/generated/.cache/e646a25c339e0de009e09bd202d29c54614fe197
 .idea/runConfigurations/Minecraft_Server.xml
 /.idea
+.idea/modules/versions/1.21.1-fabric/via-romana.1.21.1-fabric.main.iml
