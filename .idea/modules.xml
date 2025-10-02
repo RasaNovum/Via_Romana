@@ -6,6 +6,8 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/versions/1.20.1-fabric/via-romana.1.20.1-fabric.test.iml" filepath="$PROJECT_DIR$/.idea/modules/versions/1.20.1-fabric/via-romana.1.20.1-fabric.test.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/versions/1.21.1-fabric/via-romana.1.21.1-fabric.main.iml" filepath="$PROJECT_DIR$/.idea/modules/versions/1.21.1-fabric/via-romana.1.21.1-fabric.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/versions/1.21.1-fabric/via-romana.1.21.1-fabric.test.iml" filepath="$PROJECT_DIR$/.idea/modules/versions/1.21.1-fabric/via-romana.1.21.1-fabric.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/via_romana.main.iml" filepath="$PROJECT_DIR$/.idea/modules/via_romana.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/via_romana.test.iml" filepath="$PROJECT_DIR$/.idea/modules/via_romana.test.iml" />
     </modules>
   </component>
 </project>
