@@ -37,6 +37,7 @@ public class WarpBlockScreen extends Screen {
         this.addRenderableWidget(doneButton);
     }
 
+    //? if >1.21
     @Override
     public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         // Skip 1.21 background rendering
@@ -55,6 +56,7 @@ public class WarpBlockScreen extends Screen {
         int drawX = (this.width - textureSize) / 2;
         int drawY = (this.height - textureSize) / 2 - 18;
 
+        //? if >1.21
         this.renderTransparentBackground(guiGraphics);
 
         guiGraphics.blit(WARP_BLOCK_TEXTURE, drawX, drawY, 0, 0, textureSize, textureSize, 128, 128);

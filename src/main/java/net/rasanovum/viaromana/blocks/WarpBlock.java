@@ -2,6 +2,8 @@ package net.rasanovum.viaromana.blocks;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
+//? if <1.21
+/*import net.minecraft.world.InteractionHand;*/
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -22,7 +24,11 @@ public class WarpBlock extends Block {
     }
 
     @Override
-    public InteractionResult /*? <=1.21 {*/ /*use *//*?} else {*/ useWithoutItem /*?}*/(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+    //? if <1.21 {
+    /*public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+    *///?} else {
+    public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+    //?}
         if (!level.isClientSide() && player instanceof ServerPlayer serverPlayer) {
             OpenWarpBlockScreenS2C packet = new OpenWarpBlockScreenS2C(pos);
             Dispatcher.sendToClient(packet, serverPlayer);
