@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Random;
 
 import net.rasanovum.viaromana.core.LinkHandler.LinkData;
+import org.joml.Matrix4f;
 
 /**
  * Renders ribbons between connected path nodes.
@@ -252,7 +253,7 @@ public final class NodeConnectionRenderer {
         addDoubleSidedQuad(pose, consumer, p0, p1, rotatedOffset0, rotatedOffset1, v0, v1, alpha0, alpha1, rotatedNormal0, r, g, b);
     }
 
-    private static void addDoubleSidedQuad(PoseStack.Pose pose, VertexConsumer c, Vec3 p0, Vec3 p1, Vec3 n0, Vec3 n1, float v0, float v1, float alpha0, float alpha1, Vec3 frontNormal, float r, float g, float b) {
+    private static void addDoubleSidedQuad(PoseStack.Pose pose, VertexConsumer consumer, Vec3 p0, Vec3 p1, Vec3 n0, Vec3 n1, float v0, float v1, float alpha0, float alpha1, Vec3 frontNormal, float r, float g, float b) {
         Vec3 e1s = p0.subtract(n0), e1e = p1.subtract(n1);
         Vec3 e2s = p0.add(n0), e2e = p1.add(n1);
         int overlay = 0;
@@ -261,26 +262,26 @@ public final class NodeConnectionRenderer {
         int color0 = ((int)(alpha0 * 255) << 24) | rgb;
         int color1 = ((int)(alpha1 * 255) << 24) | rgb;
         
-        put(c, pose, e1s, color0, 0, v0, overlay, light, frontNormal);
-        put(c, pose, e1e, color1, 0, v1, overlay, light, frontNormal);
-        put(c, pose, e2e, color1, 1, v1, overlay, light, frontNormal);
-        put(c, pose, e2s, color0, 1, v0, overlay, light, frontNormal);
+        put(pose, consumer, e1s, color0, 0, v0, overlay, light, frontNormal);
+        put(pose, consumer, e1e, color1, 0, v1, overlay, light, frontNormal);
+        put(pose, consumer, e2e, color1, 1, v1, overlay, light, frontNormal);
+        put(pose, consumer, e2s, color0, 1, v0, overlay, light, frontNormal);
         
         Vec3 backNormal = frontNormal.scale(-1);
         
-        put(c, pose, e2s, color0, 0, v0, overlay, light, backNormal);
-        put(c, pose, e2e, color1, 0, v1, overlay, light, backNormal);
-        put(c, pose, e1e, color1, 1, v1, overlay, light, backNormal);
-        put(c, pose, e1s, color0, 1, v0, overlay, light, backNormal);
+        put(pose, consumer, e2s, color0, 0, v0, overlay, light, backNormal);
+        put(pose, consumer, e2e, color1, 0, v1, overlay, light, backNormal);
+        put(pose, consumer, e1e, color1, 1, v1, overlay, light, backNormal);
+        put(pose, consumer, e1s, color0, 1, v0, overlay, light, backNormal);
     }
     
-    private static void put(VertexConsumer c, PoseStack.Pose pose, Vec3 pos, int color, float u, float v, int overlay, int light, Vec3 normal) {
-        c.addVertex(pose, (float)pos.x, (float)pos.y, (float)pos.z)
-         .setColor(color)
-         .setUv(u, v)
-         .setOverlay(overlay)
-         .setLight(light)
-         .setNormal((float)normal.x, (float)normal.y, (float)normal.z);
+    private static void put(PoseStack.Pose pose, VertexConsumer consumer, Vec3 pos, int color, float u, float v, int overlay, int light, Vec3 normal) {
+        //? if <1.21 {
+        /*Matrix4f matrix = pose.pose();
+        consumer.vertex(matrix, (float)pos.x, (float)pos.y, (float)pos.z).color(color).uv(u, v).overlayCoords(0).uv2(0xF000F0).normal((float)normal.x, (float)normal.y, (float)normal.z).endVertex();
+        *///?} else {
+        consumer.addVertex(pose, (float)pos.x, (float)pos.y, (float)pos.z).setColor(color).setUv(u, v).setOverlay(overlay).setLight(light).setNormal((float)normal.x, (float)normal.y, (float)normal.z);
+        //?}
     }
 
     private static Vec3 rotateAroundAxis(Vec3 v, Vec3 axis, float angle) {

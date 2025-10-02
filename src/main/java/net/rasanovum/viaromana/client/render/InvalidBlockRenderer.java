@@ -84,14 +84,8 @@ public class InvalidBlockRenderer {
 
                     poseStack.pushPose();
                     poseStack.translate(pos.getX(), pos.getY(), pos.getZ());
-
-                    //? if <1.21 {
-                    /*Matrix4f matrix = poseStack.last().pose();
-                    renderTopFace(matrix, consumer, 0, 1, topY, 0, 1, fadeAlpha);
-                    *///?} elif =1.21.1 {
                     PoseStack.Pose blockPose = poseStack.last();
                     renderTopFace(blockPose, consumer, 0, 1, topY, 0, 1, fadeAlpha);
-                     //?}
 
                     poseStack.popPose();
                 }
@@ -102,7 +96,7 @@ public class InvalidBlockRenderer {
         bufferSource.endBatch(RenderType.entityTranslucentCull(BARRIER_TEXTURE));
     }
 
-    private static void renderTopFace(Object object, VertexConsumer consumer, float minX, float maxX, float y, float minZ, float maxZ, float alpha) {
+    private static void renderTopFace(PoseStack.Pose pose, VertexConsumer consumer, float minX, float maxX, float y, float minZ, float maxZ, float alpha) {
         int light = 15728880;
         int overlay = 655360;
         float yOffset = y + 0.06f;
@@ -110,15 +104,16 @@ public class InvalidBlockRenderer {
         int color = ((int)(alpha * 255) << 24) | ((int)(1.0f * 255) << 16) | ((int)(1.0f * 255) << 8) | (int)(1.0f * 255);
 
         //? if <1.21 {
-        /*consumer.vertex((Matrix4f) object, minX, yOffset, minZ).color(1.0f, 1.0f, 1.0f, alpha).uv(0, 0).overlayCoords(overlay).uv2(light).normal(0, 1, 0).endVertex();
-        consumer.vertex((Matrix4f) object, minX, yOffset, maxZ).color(1.0f, 1.0f, 1.0f, alpha).uv(0, 1).overlayCoords(overlay).uv2(light).normal(0, 1, 0).endVertex();
-        consumer.vertex((Matrix4f) object, maxX, yOffset, maxZ).color(1.0f, 1.0f, 1.0f, alpha).uv(1, 1).overlayCoords(overlay).uv2(light).normal(0, 1, 0).endVertex();
-        consumer.vertex((Matrix4f) object, maxX, yOffset, minZ).color(1.0f, 1.0f, 1.0f, alpha).uv(1, 0).overlayCoords(overlay).uv2(light).normal(0, 1, 0).endVertex();
+        /*Matrix4f matrix = pose.pose();
+        consumer.vertex(matrix, minX, yOffset, minZ).color(1.0f, 1.0f, 1.0f, alpha).uv(0, 0).overlayCoords(overlay).uv2(light).normal(0, 1, 0).endVertex();
+        consumer.vertex(matrix, minX, yOffset, maxZ).color(1.0f, 1.0f, 1.0f, alpha).uv(0, 1).overlayCoords(overlay).uv2(light).normal(0, 1, 0).endVertex();
+        consumer.vertex(matrix, maxX, yOffset, maxZ).color(1.0f, 1.0f, 1.0f, alpha).uv(1, 1).overlayCoords(overlay).uv2(light).normal(0, 1, 0).endVertex();
+        consumer.vertex(matrix, maxX, yOffset, minZ).color(1.0f, 1.0f, 1.0f, alpha).uv(1, 0).overlayCoords(overlay).uv2(light).normal(0, 1, 0).endVertex();
         *///?} else {
-        consumer.addVertex((PoseStack.Pose) object, minX, yOffset, minZ).setColor(color).setUv(0, 0).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
-        consumer.addVertex((PoseStack.Pose) object, minX, yOffset, maxZ).setColor(color).setUv(0, 1).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
-        consumer.addVertex((PoseStack.Pose) object, maxX, yOffset, maxZ).setColor(color).setUv(1, 1).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
-        consumer.addVertex((PoseStack.Pose) object, maxX, yOffset, minZ).setColor(color).setUv(1, 0).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+        consumer.addVertex(pose, minX, yOffset, minZ).setColor(color).setUv(0, 0).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+        consumer.addVertex(pose, minX, yOffset, maxZ).setColor(color).setUv(0, 1).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+        consumer.addVertex(pose, maxX, yOffset, maxZ).setColor(color).setUv(1, 1).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+        consumer.addVertex(pose, maxX, yOffset, minZ).setColor(color).setUv(1, 0).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
         //?}
 
     }

@@ -23,6 +23,7 @@ import net.rasanovum.viaromana.path.Node;
 import net.rasanovum.viaromana.path.PathGraph;
 import net.rasanovum.viaromana.util.VersionUtils;
 import net.rasanovum.viaromana.variables.VariableAccess;
+import org.joml.Matrix4f;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -311,15 +312,27 @@ public class NodeRenderer {
     }
 
     private static void renderSegment(PoseStack.Pose pose, VertexConsumer consumer, float x1, float y0, float z1, float x2, float y1, float z2, int color0, int color1, float v0, float v1, int overlay, int light) {
+        //? if <1.21 {
+        /*Matrix4f matrix = pose.pose();
+        consumer.vertex(matrix, x1, y0, z1).color(color0).uv(0, v0).overlayCoords(overlay).uv2(light).normal(1,0,0).endVertex();
+        consumer.vertex(matrix, x2, y0, z2).color(color0).uv(1, v0).overlayCoords(overlay).uv2(light).normal(1,0,0).endVertex();
+        consumer.vertex(matrix, x2, y1, z2).color(color1).uv(1, v1).overlayCoords(overlay).uv2(light).normal(1,0,0).endVertex();
+        consumer.vertex(matrix, x1, y1, z1).color(color1).uv(0, v1).overlayCoords(overlay).uv2(light).normal(1,0,0).endVertex();
+        consumer.vertex(matrix, x2, y0, z2).color(color0).uv(0, v0).overlayCoords(overlay).uv2(light).normal(-1,0,0).endVertex();
+        consumer.vertex(matrix, x1, y0, z1).color(color0).uv(1, v0).overlayCoords(overlay).uv2(light).normal(-1,0,0).endVertex();
+        consumer.vertex(matrix, x1, y1, z1).color(color1).uv(1, v1).overlayCoords(overlay).uv2(light).normal(-1,0,0).endVertex();
+        consumer.vertex(matrix, x2, y1, z2).color(color1).uv(0, v1).overlayCoords(overlay).uv2(light).normal(-1,0,0).endVertex();
+        *///?} else {
         consumer.addVertex(pose, x1, y0, z1).setColor(color0).setUv(0, v0).setOverlay(overlay).setLight(light).setNormal(1, 0, 0);
         consumer.addVertex(pose, x2, y0, z2).setColor(color0).setUv(1, v0).setOverlay(overlay).setLight(light).setNormal(1, 0, 0);
         consumer.addVertex(pose, x2, y1, z2).setColor(color1).setUv(1, v1).setOverlay(overlay).setLight(light).setNormal(1, 0, 0);
         consumer.addVertex(pose, x1, y1, z1).setColor(color1).setUv(0, v1).setOverlay(overlay).setLight(light).setNormal(1, 0, 0);
-        
         consumer.addVertex(pose, x2, y0, z2).setColor(color0).setUv(0, v0).setOverlay(overlay).setLight(light).setNormal(-1, 0, 0);
         consumer.addVertex(pose, x1, y0, z1).setColor(color0).setUv(1, v0).setOverlay(overlay).setLight(light).setNormal(-1, 0, 0);
         consumer.addVertex(pose, x1, y1, z1).setColor(color1).setUv(1, v1).setOverlay(overlay).setLight(light).setNormal(-1, 0, 0);
         consumer.addVertex(pose, x2, y1, z2).setColor(color1).setUv(0, v1).setOverlay(overlay).setLight(light).setNormal(-1, 0, 0);
+        //?}
+
     }
     
     private static double calculateValueWithFade(double distance, double maxValue) {
