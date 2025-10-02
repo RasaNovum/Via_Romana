@@ -24,8 +24,8 @@ public class TagGenerator {
         try {
             pack.setClearOnReload(true);
             
-            TagKey<Block> pathBlockTagKey = TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("via_romana", "path_block"));
-            TagKey<Block> warpBlockTagKey = TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("via_romana", "warp_block"));
+            TagKey<Block> pathBlockTagKey = TagKey.create(Registries.BLOCK, VersionUtils.getLocation("via_romana:path_block"));
+            TagKey<Block> warpBlockTagKey = TagKey.create(Registries.BLOCK, VersionUtils.getLocation("via_romana:warp_block"));
 
             SimpleTagBuilder pathTagBuilder = generatePathBlockTagBuilder(pathBlockTagKey);
             SimpleTagBuilder warpTagBuilder = generateWarpBlockTagBuilder(warpBlockTagKey);

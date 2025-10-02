@@ -22,7 +22,7 @@ public class WarpBlock extends Block {
     }
 
     @Override
-    public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+    public InteractionResult /*? <=1.21 {*/ /*use *//*?} else {*/ useWithoutItem /*?}*/(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         if (!level.isClientSide() && player instanceof ServerPlayer serverPlayer) {
             OpenWarpBlockScreenS2C packet = new OpenWarpBlockScreenS2C(pos);
             Dispatcher.sendToClient(packet, serverPlayer);

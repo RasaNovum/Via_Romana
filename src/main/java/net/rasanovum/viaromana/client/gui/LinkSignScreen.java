@@ -156,6 +156,7 @@ public class LinkSignScreen extends Screen {
         this.destinationNameField.tick();
     }
 
+    //? if >1.21
     @Override
     public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         // Skip 1.21 background rendering
@@ -172,6 +173,7 @@ public class LinkSignScreen extends Screen {
         int usableY = panelY + (BACKGROUND_HEIGHT - USABLE_HEIGHT) / 2;
         usableY -= 8;
 
+        //? if >1.21
         this.renderTransparentBackground(guiGraphics);
         
         guiGraphics.blit(BACKGROUND_TEXTURE, panelX, panelY, 0, 0, BACKGROUND_WIDTH, BACKGROUND_HEIGHT, BACKGROUND_WIDTH, BACKGROUND_HEIGHT);

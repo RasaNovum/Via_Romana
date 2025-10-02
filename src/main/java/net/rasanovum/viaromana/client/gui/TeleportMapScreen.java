@@ -125,6 +125,7 @@ public class TeleportMapScreen extends Screen {
     //endregion
 
     //region Main Render Loop
+    //? if >1.21
     @Override
     public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         // Skip 1.21 background rendering
@@ -136,6 +137,7 @@ public class TeleportMapScreen extends Screen {
 
         if (this.mapTexture == null || this.minecraft == null || this.minecraft.player == null || this.mapRenderer == null) return;
 
+        //? if >1.21
         this.renderBlurredBackground(partialTicks);
         
         this.mapRenderer.render(guiGraphics, this.width, this.height, this.minecraft.player);
@@ -291,7 +293,11 @@ public class TeleportMapScreen extends Screen {
         worldToScreen(player.blockPosition()).ifPresent(screenPos -> {
             int x = screenPos.x - PLAYER_MARKER_SIZE / 2;
             int y = screenPos.y - PLAYER_MARKER_SIZE / 2;
+            //? if <1.21 {
+            /*ResourceLocation skin = this.minecraft.getSkinManager().getInsecureSkinLocation(player.getGameProfile());
+            *///?} else {
             ResourceLocation skin = this.minecraft.getSkinManager().getInsecureSkin(player.getGameProfile()).texture();
+            //?}
 
             guiGraphics.pose().pushPose();
             RenderSystem.enableBlend();

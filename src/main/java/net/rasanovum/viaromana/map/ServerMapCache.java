@@ -226,7 +226,11 @@ public final class ServerMapCache {
             try (InputStream pngStream = Files.newInputStream(pngPath);
                 InputStream metaStream = Files.newInputStream(metaPath)) {
                 png = pngStream.readAllBytes();
+                //? if <1.21 {
+                /*tag = NbtIo.readCompressed(metaStream, new NbtAccounter(Long.MAX_VALUE));
+                *///?} else {
                 tag = NbtIo.readCompressed(metaStream, new NbtAccounter(Long.MAX_VALUE, Integer.MAX_VALUE));
+                //?}
             } catch (NoSuchFileException e) {
                 return Optional.empty();
             }

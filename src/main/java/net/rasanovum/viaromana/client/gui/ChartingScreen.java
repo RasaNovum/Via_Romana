@@ -98,6 +98,7 @@ public class ChartingScreen extends Screen {
         this.syncScreenState();
     }
 
+    //? if >1.21
     @Override
     public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         renderBackgroundTexture(guiGraphics);
@@ -116,6 +117,7 @@ public class ChartingScreen extends Screen {
         if (this.currentScreenState == ScreenState.TUTORIAL) {
             renderTutorialContent(guiGraphics);
         } else if (this.currentScreenState == ScreenState.DELETE_APPROVAL) {
+            //? if >1.21
             this.minecraft.gameRenderer.processBlurEffect(partialTick);
             this.minecraft.getMainRenderTarget().bindWrite(false);
             
