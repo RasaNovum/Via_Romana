@@ -2,10 +2,13 @@ package net.rasanovum.viaromana.network.packets;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
+//? if >=1.21 {
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+//?}
 import net.rasanovum.viaromana.path.Node;
+import net.rasanovum.viaromana.util.VersionUtils;
 import commonnetwork.networking.data.PacketContext;
 import commonnetwork.networking.data.Side;
 
@@ -16,6 +19,15 @@ import java.util.UUID;
 /*
  * Response from the server containing the list of available destinations, sign position, source node position, network nodes, and network ID.
  */
+//? if <1.21 {
+/*public record DestinationResponseS2C(
+    List<DestinationInfo> destinations,
+    BlockPos signPos,
+    BlockPos sourceNodePos,
+    List<NodeNetworkInfo> networkNodes,
+    UUID networkId
+) {
+*///?} else {
 public record DestinationResponseS2C(
     List<DestinationInfo> destinations,
     BlockPos signPos,
@@ -23,6 +35,11 @@ public record DestinationResponseS2C(
     List<NodeNetworkInfo> networkNodes,
     UUID networkId
 ) implements CustomPacketPayload {
+//?}
+    //? if <1.21 {
+    /*public static final ResourceLocation TYPE = VersionUtils.getLocation("via_romana:destination_response");
+    public static final Object STREAM_CODEC = null;
+    *///?} else {
     public static final CustomPacketPayload.Type<DestinationResponseS2C> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.parse("via_romana:destination_response"));
 
     public static final StreamCodec<FriendlyByteBuf, DestinationResponseS2C> STREAM_CODEC = new StreamCodec<>() {
@@ -86,10 +103,71 @@ public record DestinationResponseS2C(
             }
         }
     };
+    //?}
 
+    //? if >=1.21 {
     @Override
     public Type<? extends CustomPacketPayload> type() {
         return TYPE;
+    }
+    //?}
+
+    public static void encode(FriendlyByteBuf buf, DestinationResponseS2C packet) {
+        buf.writeBlockPos(packet.signPos);
+        buf.writeBlockPos(packet.sourceNodePos);
+        buf.writeUUID(packet.networkId);
+
+        buf.writeInt(packet.destinations.size());
+        for (DestinationInfo dest : packet.destinations) {
+            buf.writeBlockPos(dest.position);
+            buf.writeUtf(dest.name);
+            buf.writeDouble(dest.distance);
+            buf.writeUtf(dest.icon.name());
+        }
+
+        buf.writeInt(packet.networkNodes.size());
+        for (NodeNetworkInfo node : packet.networkNodes) {
+            buf.writeBlockPos(node.position);
+            buf.writeFloat(node.clearance);
+            buf.writeInt(node.connections.size());
+            for (BlockPos connection : node.connections) {
+                buf.writeBlockPos(connection);
+            }
+        }
+    }
+
+    public static DestinationResponseS2C decode(FriendlyByteBuf buf) {
+        BlockPos signPos = buf.readBlockPos();
+        BlockPos sourceNodePos = buf.readBlockPos();
+        UUID networkId = buf.readUUID();
+
+        int size = buf.readInt();
+        List<DestinationInfo> destinations = new ArrayList<>(size);
+        for (int i = 0; i < size; i++) {
+            destinations.add(new DestinationInfo(
+                buf.readBlockPos(),
+                buf.readUtf(),
+                buf.readDouble(),
+                Node.Icon.valueOf(buf.readUtf())
+            ));
+        }
+
+        int networkSize = buf.readInt();
+        List<NodeNetworkInfo> networkNodes = new ArrayList<>(networkSize);
+        for (int i = 0; i < networkSize; i++) {
+            BlockPos pos = buf.readBlockPos();
+            float clearance = buf.readFloat();
+
+            int connectionCount = buf.readInt();
+            List<BlockPos> connections = new ArrayList<>(connectionCount);
+            for (int j = 0; j < connectionCount; j++) {
+                connections.add(buf.readBlockPos());
+            }
+
+            networkNodes.add(new NodeNetworkInfo(pos, clearance, connections));
+        }
+
+        return new DestinationResponseS2C(destinations, signPos, sourceNodePos, networkNodes, networkId);
     }
 
     public static void handle(PacketContext<DestinationResponseS2C> ctx) {

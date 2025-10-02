@@ -2,11 +2,14 @@ package net.rasanovum.viaromana.network.packets;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
+//? if >=1.21 {
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+//?}
 import net.rasanovum.viaromana.core.LinkHandler.LinkData;
 import net.rasanovum.viaromana.path.Node;
+import net.rasanovum.viaromana.util.VersionUtils;
 import commonnetwork.networking.data.PacketContext;
 import commonnetwork.networking.data.Side;
 
@@ -15,7 +18,15 @@ import java.util.UUID;
 /*
  * Request the server to link a sign to a node with the provided link data.
  */
+//? if <1.21 {
+/*public record LinkSignRequestC2S(LinkData linkData, boolean isTempNode) {
+*///?} else {
 public record LinkSignRequestC2S(LinkData linkData, boolean isTempNode) implements CustomPacketPayload {
+//?}
+    //? if <1.21 {
+    /*public static final ResourceLocation TYPE = VersionUtils.getLocation("via_romana:link_sign_request");
+    public static final Object STREAM_CODEC = null;
+    *///?} else {
     public static final CustomPacketPayload.Type<LinkSignRequestC2S> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.parse("via_romana:link_sign_request"));
 
     public static final StreamCodec<FriendlyByteBuf, LinkSignRequestC2S> STREAM_CODEC = new StreamCodec<>() {
@@ -46,10 +57,38 @@ public record LinkSignRequestC2S(LinkData linkData, boolean isTempNode) implemen
             buffer.writeBoolean(packet.isTempNode);
         }
     };
+    //?}
 
+    //? if >=1.21 {
     @Override
     public Type<? extends CustomPacketPayload> type() {
         return TYPE;
+    }
+    //?}
+
+    public static void encode(FriendlyByteBuf buf, LinkSignRequestC2S packet) {
+        buf.writeBlockPos(packet.linkData.nodePos());
+        buf.writeBlockPos(packet.linkData.signPos());
+        buf.writeEnum(packet.linkData.linkType());
+        buf.writeBoolean(packet.linkData.owner() != null);
+        if (packet.linkData.owner() != null) {
+            buf.writeUUID(packet.linkData.owner());
+        }
+        buf.writeUtf(packet.linkData.destinationName());
+        buf.writeEnum(packet.linkData.icon());
+        buf.writeBoolean(packet.isTempNode);
+    }
+
+    public static LinkSignRequestC2S decode(FriendlyByteBuf buf) {
+        BlockPos nodePos = buf.readBlockPos();
+        BlockPos signPos = buf.readBlockPos();
+        Node.LinkType linkType = buf.readEnum(Node.LinkType.class);
+        UUID owner = buf.readBoolean() ? buf.readUUID() : null;
+        String destinationName = buf.readUtf();
+        Node.Icon icon = buf.readEnum(Node.Icon.class);
+        LinkData linkData = new LinkData(signPos, nodePos, linkType, icon, destinationName, owner);
+        boolean isTempNode = buf.readBoolean();
+        return new LinkSignRequestC2S(linkData, isTempNode);
     }
 
     public static void handle(PacketContext<LinkSignRequestC2S> ctx) {

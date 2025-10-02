@@ -28,21 +28,46 @@ import java.util.List;
 /**
  * Packet sent from client to server when a player finishes charting a path.
  * Contains all the temporary nodes/links that should be made permanent
- * and connected as a path on the server-side PathGraph.
+ * and be connected as a path on the server-side PathGraph.
  */
-public class ChartedPathC2S {
-    public static final ResourceLocation CHANNEL = VersionUtils.getLocation("via_romana:charted_path_c2s");
-    //? if >1.21
-    public static final StreamCodec<FriendlyByteBuf, ChartedPathC2S> STREAM_CODEC = StreamCodec.ofMember(ChartedPathC2S::encode, ChartedPathC2S::decode);
-    private final List<NodeData> chartedNodes;
+//? if <1.21 {
+/*public record ChartedPathC2S(List<NodeData> chartedNodes) {
+*///?} else {
+public record ChartedPathC2S(List<NodeData> chartedNodes) implements CustomPacketPayload {
+//?}
+    //? if <1.21 {
+    /*public static final ResourceLocation TYPE = VersionUtils.getLocation("via_romana:charted_path_c2s");
+    public static final Object STREAM_CODEC = null;
+    *///?} else {
+    public static final CustomPacketPayload.Type<ChartedPathC2S> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.parse("via_romana:charted_path_c2s"));
+    
+    public static final StreamCodec<FriendlyByteBuf, ChartedPathC2S> STREAM_CODEC = new StreamCodec<>() {
+        @Override
+        public ChartedPathC2S decode(FriendlyByteBuf buffer) {
+            return ChartedPathC2S.decode(buffer);
+        }
+
+        @Override
+        public void encode(FriendlyByteBuf buffer, ChartedPathC2S packet) {
+            ChartedPathC2S.encode(buffer, packet);
+        }
+    };
+    //?}
 
     public ChartedPathC2S(List<NodeData> chartedNodes) {
         this.chartedNodes = chartedNodes != null ? List.copyOf(chartedNodes) : List.of();
     }
 
-    public void encode(FriendlyByteBuf buffer) {
-        buffer.writeInt(this.chartedNodes.size());
-        for (NodeData nodeData : this.chartedNodes) {
+    //? if >=1.21 {
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+    //?}
+
+    public static void encode(FriendlyByteBuf buffer, ChartedPathC2S packet) {
+        buffer.writeInt(packet.chartedNodes.size());
+        for (NodeData nodeData : packet.chartedNodes) {
             buffer.writeBlockPos(nodeData.pos());
             buffer.writeFloat(nodeData.quality());
             buffer.writeFloat(nodeData.clearance());
@@ -61,26 +86,12 @@ public class ChartedPathC2S {
         return new ChartedPathC2S(nodes);
     }
 
-    //? if <1.21 {
-    /*public static ResourceLocation type() {
-        return CHANNEL;
-    }
-    *///?} else {
-    public static CustomPacketPayload.Type<CustomPacketPayload> type() {
-        return new CustomPacketPayload.Type<>(CHANNEL);
-    }
-    //?}
-
-    public List<NodeData> getChartedNodes() {
-        return chartedNodes;
-    }
-
     public static void handle(PacketContext<ChartedPathC2S> ctx) {
         if (Side.SERVER.equals(ctx.side())) {
             ServerLevel level = ctx.sender().serverLevel();
             IPathStorage storage = IPathStorage.get(level);
 
-            List<NodeData> chartingNodes = ctx.message().getChartedNodes();
+            List<NodeData> chartingNodes = ctx.message().chartedNodes();
 
             if (chartingNodes.isEmpty()) {
                 ViaRomana.LOGGER.warn("Received empty charted path from player {}", ctx.sender().getName().getString());

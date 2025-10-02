@@ -8,9 +8,11 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
+//? if >=1.21 {
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+//?}
 import net.minecraft.nbt.Tag;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.NbtAccounter;
@@ -18,6 +20,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.BlockPos;
 
+import java.io.InputStream;
 import java.util.concurrent.ConcurrentHashMap;
 
 import commonnetwork.api.Dispatcher;
@@ -29,6 +32,7 @@ import java.util.ArrayList;
 
 import java.io.IOException;
 import java.io.File;
+import java.nio.file.Files;
 
 public class ViaRomanaModVariables {
     public static List<Object> ValidTagList = new ArrayList<>();
@@ -211,7 +215,7 @@ public class ViaRomanaModVariables {
                 file.renameTo(backupFile);
             }
 
-            NbtIo.writeCompressed(nbt, file.toPath());
+            NbtIo.writeCompressed(nbt, Files.newOutputStream(file.toPath()));
 
         } catch (IOException e) {
             ViaRomana.LOGGER.error("Failed to save player variables NBT for " + fileName, e);
@@ -226,13 +230,21 @@ public class ViaRomanaModVariables {
 
         if (file.exists()) {
             try {
+                //? if <1.21 {
+                /*return NbtIo.readCompressed((InputStream) file.toPath());
+                *///?} else {
                 return NbtIo.readCompressed(file.toPath(), NbtAccounter.unlimitedHeap());
+                //?}
             } catch (IOException e) {
                 ViaRomana.LOGGER.error("Failed to load player variables NBT from " + file.getName() + ", trying backup.", e);
                 if (backupFile.exists()) {
                     try {
                         ViaRomana.LOGGER.warn("Attempting to load from backup file: {}", backupFile.getName());
+                        //? if <1.21 {
+                        /*return NbtIo.readCompressed((InputStream) backupFile.toPath());
+                        *///?} else {
                         return NbtIo.readCompressed(backupFile.toPath(), NbtAccounter.unlimitedHeap());
+                        //?}
                     } catch (IOException e2) {
                         ViaRomana.LOGGER.error("Failed to load player variables NBT from backup " + backupFile.getName() + " as well.", e2);
                     }
@@ -241,7 +253,11 @@ public class ViaRomanaModVariables {
         } else if (backupFile.exists()) {
             try {
                 ViaRomana.LOGGER.warn("Main file {} missing, attempting to load from backup file: {}", file.getName(), backupFile.getName());
+                //? if <1.21 {
+                /*return NbtIo.readCompressed((InputStream) backupFile.toPath());
+                *///?} else {
                 return NbtIo.readCompressed(backupFile.toPath(), NbtAccounter.unlimitedHeap());
+                //?}
             } catch (IOException e) {
                 ViaRomana.LOGGER.error("Failed to load player variables NBT from backup " + backupFile.getName(), e);
             }
@@ -249,7 +265,15 @@ public class ViaRomanaModVariables {
         return null;
     }
 
+    //? if <1.21 {
+    /*public static record PlayerVariablesSyncMessage(CompoundTag dataTag) {
+    *///?} else {
     public static record PlayerVariablesSyncMessage(CompoundTag dataTag) implements CustomPacketPayload {
+    //?}
+        //? if <1.21 {
+        /*public static final ResourceLocation TYPE = net.rasanovum.viaromana.util.VersionUtils.getLocation("via_romana:player_variables_sync");
+        public static final Object STREAM_CODEC = null;
+        *///?} else {
         public static final CustomPacketPayload.Type<PlayerVariablesSyncMessage> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.parse("via_romana:player_variables_sync"));
 
         public static final StreamCodec<FriendlyByteBuf, PlayerVariablesSyncMessage> STREAM_CODEC = new StreamCodec<>() {
@@ -263,14 +287,25 @@ public class ViaRomanaModVariables {
                 buffer.writeNbt(packet.dataTag);
             }
         };
+        //?}
 
+        //? if >=1.21 {
         @Override
         public Type<? extends CustomPacketPayload> type() {
             return TYPE;
         }
+        //?}
 
         public PlayerVariablesSyncMessage(PlayerVariables data) {
             this(data.writeNBT());
+        }
+
+        public static void encode(FriendlyByteBuf buf, PlayerVariablesSyncMessage packet) {
+            buf.writeNbt(packet.dataTag);
+        }
+
+        public static PlayerVariablesSyncMessage decode(FriendlyByteBuf buf) {
+            return new PlayerVariablesSyncMessage(buf.readNbt());
         }
         
         public static void handle(commonnetwork.networking.data.PacketContext<PlayerVariablesSyncMessage> ctx) {
