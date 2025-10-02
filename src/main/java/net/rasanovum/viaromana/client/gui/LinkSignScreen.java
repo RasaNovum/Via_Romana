@@ -9,8 +9,8 @@ import net.minecraft.world.entity.player.Player;
 import net.rasanovum.viaromana.client.data.ClientPathData;
 import net.rasanovum.viaromana.client.gui.elements.*;
 import net.rasanovum.viaromana.core.LinkHandler;
-import net.rasanovum.viaromana.network.packets.LinkSignRequestC2S;
-import net.rasanovum.viaromana.network.packets.UnlinkSignRequestC2S;
+import net.rasanovum.viaromana.network.packets.SignLinkRequestC2S;
+import net.rasanovum.viaromana.network.packets.SignUnlinkRequestC2S;
 import net.rasanovum.viaromana.path.Node;
 import commonnetwork.api.Dispatcher;
 
@@ -137,7 +137,7 @@ public class LinkSignScreen extends Screen {
             Component.translatable("gui.viaromana.unlink_button"),
             Component.translatable("gui.viaromana.unlink_tooltip"),
                 (value) -> {
-                    commonnetwork.api.Dispatcher.sendToServer(new UnlinkSignRequestC2S(this.signPos));
+                    commonnetwork.api.Dispatcher.sendToServer(new SignUnlinkRequestC2S(this.signPos));
                     this.onClose();
                 },
                 ResourceLocation.parse("via_romana:textures/screens/element_unlink.png")
@@ -217,7 +217,7 @@ public class LinkSignScreen extends Screen {
             owner
         );
 
-        LinkSignRequestC2S packet = new LinkSignRequestC2S(linkData, this.isTempNode);
+        SignLinkRequestC2S packet = new SignLinkRequestC2S(linkData, this.isTempNode);
         Dispatcher.sendToServer(packet);
         
         ClientPathData clientPathData = ClientPathData.getInstance();

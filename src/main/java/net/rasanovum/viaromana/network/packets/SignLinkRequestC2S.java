@@ -9,7 +9,6 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 //?}
 import net.rasanovum.viaromana.core.LinkHandler.LinkData;
 import net.rasanovum.viaromana.path.Node;
-import net.rasanovum.viaromana.util.VersionUtils;
 import commonnetwork.networking.data.PacketContext;
 import commonnetwork.networking.data.Side;
 
@@ -21,17 +20,17 @@ import java.util.UUID;
 //? if <1.21 {
 /*public record LinkSignRequestC2S(LinkData linkData, boolean isTempNode) {
 *///?} else {
-public record LinkSignRequestC2S(LinkData linkData, boolean isTempNode) implements CustomPacketPayload {
+public record SignLinkRequestC2S(LinkData linkData, boolean isTempNode) implements CustomPacketPayload {
 //?}
     //? if <1.21 {
     /*public static final ResourceLocation TYPE = VersionUtils.getLocation("via_romana:link_sign_request");
     public static final Object STREAM_CODEC = null;
     *///?} else {
-    public static final CustomPacketPayload.Type<LinkSignRequestC2S> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.parse("via_romana:link_sign_request"));
+    public static final CustomPacketPayload.Type<SignLinkRequestC2S> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.parse("via_romana:link_sign_request"));
 
-    public static final StreamCodec<FriendlyByteBuf, LinkSignRequestC2S> STREAM_CODEC = new StreamCodec<>() {
+    public static final StreamCodec<FriendlyByteBuf, SignLinkRequestC2S> STREAM_CODEC = new StreamCodec<>() {
         @Override
-        public LinkSignRequestC2S decode(FriendlyByteBuf buffer) {
+        public SignLinkRequestC2S decode(FriendlyByteBuf buffer) {
             BlockPos nodePos = buffer.readBlockPos();
             BlockPos signPos = buffer.readBlockPos();
             Node.LinkType linkType = buffer.readEnum(Node.LinkType.class);
@@ -40,11 +39,11 @@ public record LinkSignRequestC2S(LinkData linkData, boolean isTempNode) implemen
             Node.Icon icon = buffer.readEnum(Node.Icon.class);
             LinkData linkData = new LinkData(signPos, nodePos, linkType, icon, destinationName, owner);
             boolean isTempNode = buffer.readBoolean();
-            return new LinkSignRequestC2S(linkData, isTempNode);
+            return new SignLinkRequestC2S(linkData, isTempNode);
         }
 
         @Override
-        public void encode(FriendlyByteBuf buffer, LinkSignRequestC2S packet) {
+        public void encode(FriendlyByteBuf buffer, SignLinkRequestC2S packet) {
             buffer.writeBlockPos(packet.linkData.nodePos());
             buffer.writeBlockPos(packet.linkData.signPos());
             buffer.writeEnum(packet.linkData.linkType());
@@ -66,7 +65,7 @@ public record LinkSignRequestC2S(LinkData linkData, boolean isTempNode) implemen
     }
     //?}
 
-    public static void encode(FriendlyByteBuf buf, LinkSignRequestC2S packet) {
+    public static void encode(FriendlyByteBuf buf, SignLinkRequestC2S packet) {
         buf.writeBlockPos(packet.linkData.nodePos());
         buf.writeBlockPos(packet.linkData.signPos());
         buf.writeEnum(packet.linkData.linkType());
@@ -79,7 +78,7 @@ public record LinkSignRequestC2S(LinkData linkData, boolean isTempNode) implemen
         buf.writeBoolean(packet.isTempNode);
     }
 
-    public static LinkSignRequestC2S decode(FriendlyByteBuf buf) {
+    public static SignLinkRequestC2S decode(FriendlyByteBuf buf) {
         BlockPos nodePos = buf.readBlockPos();
         BlockPos signPos = buf.readBlockPos();
         Node.LinkType linkType = buf.readEnum(Node.LinkType.class);
@@ -88,10 +87,10 @@ public record LinkSignRequestC2S(LinkData linkData, boolean isTempNode) implemen
         Node.Icon icon = buf.readEnum(Node.Icon.class);
         LinkData linkData = new LinkData(signPos, nodePos, linkType, icon, destinationName, owner);
         boolean isTempNode = buf.readBoolean();
-        return new LinkSignRequestC2S(linkData, isTempNode);
+        return new SignLinkRequestC2S(linkData, isTempNode);
     }
 
-    public static void handle(PacketContext<LinkSignRequestC2S> ctx) {
+    public static void handle(PacketContext<SignLinkRequestC2S> ctx) {
         if (Side.SERVER.equals(ctx.side())) {
             net.minecraft.server.level.ServerLevel level = ctx.sender().serverLevel();
             LinkData linkData = ctx.message().linkData();

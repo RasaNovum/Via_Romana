@@ -51,13 +51,13 @@ public class PacketRegistration {
         registerPacket(RoutedActionC2S.TYPE, RoutedActionC2S.class, RoutedActionC2S::encode, RoutedActionC2S::decode, RoutedActionC2S.STREAM_CODEC, RoutedActionC2S::handle);
         registerPacket(DestinationRequestC2S.TYPE, DestinationRequestC2S.class, DestinationRequestC2S::encode, DestinationRequestC2S::decode, DestinationRequestC2S.STREAM_CODEC, DestinationRequestC2S::handle);
         registerPacket(DestinationResponseS2C.TYPE, DestinationResponseS2C.class, DestinationResponseS2C::encode, DestinationResponseS2C::decode, DestinationResponseS2C.STREAM_CODEC, DestinationResponseS2C::handle);
-        registerPacket(LinkSignRequestC2S.TYPE, LinkSignRequestC2S.class, LinkSignRequestC2S::encode, LinkSignRequestC2S::decode, LinkSignRequestC2S.STREAM_CODEC, LinkSignRequestC2S::handle);
+        registerPacket(SignLinkRequestC2S.TYPE, SignLinkRequestC2S.class, SignLinkRequestC2S::encode, SignLinkRequestC2S::decode, SignLinkRequestC2S.STREAM_CODEC, SignLinkRequestC2S::handle);
         registerPacket(MapRequestC2S.TYPE, MapRequestC2S.class, MapRequestC2S::encode, MapRequestC2S::decode, MapRequestC2S.STREAM_CODEC, MapRequestC2S::handle);
         registerPacket(OpenWarpBlockScreenS2C.TYPE, OpenWarpBlockScreenS2C.class, OpenWarpBlockScreenS2C::encode, OpenWarpBlockScreenS2C::decode, OpenWarpBlockScreenS2C.STREAM_CODEC, OpenWarpBlockScreenS2C::handle);
         registerPacket(SignValidationRequestC2S.TYPE, SignValidationRequestC2S.class, SignValidationRequestC2S::encode, SignValidationRequestC2S::decode, SignValidationRequestC2S.STREAM_CODEC, SignValidationRequestC2S::handle);
         registerPacket(SignValidationResponseS2C.TYPE, SignValidationResponseS2C.class, SignValidationResponseS2C::encode, SignValidationResponseS2C::decode, SignValidationResponseS2C.STREAM_CODEC, SignValidationResponseS2C::handle);
         registerPacket(TeleportRequestC2S.TYPE, TeleportRequestC2S.class, TeleportRequestC2S::encode, TeleportRequestC2S::decode, TeleportRequestC2S.STREAM_CODEC, TeleportRequestC2S::handle);
-        registerPacket(UnlinkSignRequestC2S.TYPE, UnlinkSignRequestC2S.class, UnlinkSignRequestC2S::encode, UnlinkSignRequestC2S::decode, UnlinkSignRequestC2S.STREAM_CODEC, UnlinkSignRequestC2S::handle);
+        registerPacket(SignUnlinkRequestC2S.TYPE, SignUnlinkRequestC2S.class, SignUnlinkRequestC2S::encode, SignUnlinkRequestC2S::decode, SignUnlinkRequestC2S.STREAM_CODEC, SignUnlinkRequestC2S::handle);
         registerPacket(OpenLinkSignScreenS2C.TYPE, OpenLinkSignScreenS2C.class, OpenLinkSignScreenS2C::encode, OpenLinkSignScreenS2C::decode, OpenLinkSignScreenS2C.STREAM_CODEC, OpenLinkSignScreenS2C::handle);
     }
 }
