@@ -13,15 +13,30 @@ public final class PathStorageImpl extends SavedData implements IPathStorage {
         super();
     }
 
+    @Override public PathGraph graph() { return graph; }
+    @Override public void setDirty() { setDirty(true); }
+
+    //? if <1.21 {
+    /*public static PathStorageImpl load(CompoundTag nbt) {
+        PathStorageImpl storage = new PathStorageImpl();
+        storage.graph.deserialize(nbt);
+        storage.setDirty();
+        return storage;
+    }
+
+    @Override public CompoundTag save(CompoundTag nbt) { return graph.serialize(nbt); }
+
+    public static IPathStorage get(Level level) {
+        return level.getServer().overworld().getDataStorage().computeIfAbsent(PathStorageImpl::load, PathStorageImpl::new, "viaromana_paths");
+    }
+    *///?} else {
     public PathStorageImpl(CompoundTag nbt, HolderLookup.Provider provider) {
         this();
         graph.deserialize(nbt);
         setDirty();
     }
-    
+
     @Override public CompoundTag save(CompoundTag nbt, HolderLookup.Provider provider) { return graph.serialize(nbt); }
-    @Override public PathGraph graph() { return graph; }
-    @Override public void setDirty() { setDirty(true); }
 
     public static IPathStorage get(Level level) {
         return level.getServer().overworld().getDataStorage().computeIfAbsent(
@@ -33,4 +48,5 @@ public final class PathStorageImpl extends SavedData implements IPathStorage {
             "viaromana_paths"
         );
     }
+     //?}
 }

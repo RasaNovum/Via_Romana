@@ -227,7 +227,7 @@ public final class ServerMapCache {
                 InputStream metaStream = Files.newInputStream(metaPath)) {
                 png = pngStream.readAllBytes();
                 //? if <1.21 {
-                /*tag = NbtIo.readCompressed(metaStream, new NbtAccounter(Long.MAX_VALUE));
+                /*tag = NbtIo.readCompressed(metaStream);
                 *///?} else {
                 tag = NbtIo.readCompressed(metaStream, new NbtAccounter(Long.MAX_VALUE, Integer.MAX_VALUE));
                 //?}

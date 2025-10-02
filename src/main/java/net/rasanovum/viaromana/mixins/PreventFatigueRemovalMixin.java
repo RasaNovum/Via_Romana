@@ -1,5 +1,6 @@
 package net.rasanovum.viaromana.mixins;
 
+import net.minecraft.nbt.NbtIo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.At;
@@ -18,8 +19,13 @@ public abstract class PreventFatigueRemovalMixin {
     private MobEffectInstance viaRomana$storedFatigueEffect = null;
     
     @Inject(method = "removeEffect", at = @At("HEAD"), cancellable = true)
+    //? if <1.21 {
+    /*private void viaRomana$preventNonCommandRemoval(MobEffect effect, CallbackInfoReturnable<Boolean> cir) {
+        if (effect == EffectInit.TRAVELLERS_FATIGUE) {
+    *///?} else {
     private void viaRomana$preventNonCommandRemoval(Holder<MobEffect> effect, CallbackInfoReturnable<Boolean> cir) {
         if (effect.value() == EffectInit.TRAVELLERS_FATIGUE) {
+     //?}
             StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
             for (StackTraceElement element : stackTrace) {
                 String className = element.getClassName();
@@ -39,7 +45,11 @@ public abstract class PreventFatigueRemovalMixin {
     @Inject(method = "removeAllEffects", at = @At("HEAD"))
     private void viaRomana$storeFatigueEffect(CallbackInfoReturnable<Boolean> cir) {
         LivingEntity self = (LivingEntity) (Object) this;
+        //? if <1.21 {
+        /*MobEffectInstance fatigueEffect = self.getEffect(EffectInit.TRAVELLERS_FATIGUE);
+        *///?} else {
         MobEffectInstance fatigueEffect = self.getEffect(Holder.direct(EffectInit.TRAVELLERS_FATIGUE));
+        //?}
         
         if (fatigueEffect != null) {
             StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
@@ -68,7 +78,11 @@ public abstract class PreventFatigueRemovalMixin {
     @Inject(method = "removeAllEffects", at = @At("RETURN"))
     private void viaRomana$restoreTravellerFatigue(CallbackInfoReturnable<Boolean> cir) {
         LivingEntity self = (LivingEntity) (Object) this;
+        //? if <1.21 {
+        /*if (cir.getReturnValue() && viaRomana$storedFatigueEffect != null && !self.hasEffect(EffectInit.TRAVELLERS_FATIGUE)) {
+        *///?} else {
         if (cir.getReturnValue() && viaRomana$storedFatigueEffect != null && !self.hasEffect(Holder.direct(EffectInit.TRAVELLERS_FATIGUE))) {
+        //?}
             self.addEffect(viaRomana$storedFatigueEffect);
             viaRomana$storedFatigueEffect = null;
         }
