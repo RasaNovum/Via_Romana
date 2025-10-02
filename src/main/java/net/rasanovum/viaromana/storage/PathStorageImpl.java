@@ -16,6 +16,7 @@ public final class PathStorageImpl extends SavedData implements IPathStorage {
     public PathStorageImpl(CompoundTag nbt, HolderLookup.Provider provider) {
         this();
         graph.deserialize(nbt);
+        setDirty();
     }
     
     @Override public CompoundTag save(CompoundTag nbt, HolderLookup.Provider provider) { return graph.serialize(nbt); }

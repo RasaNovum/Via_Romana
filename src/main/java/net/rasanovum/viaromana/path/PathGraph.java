@@ -617,7 +617,13 @@ public final class PathGraph {
         removeAllNodes();
         ListTag list = root.getList("nodes", Tag.TAG_COMPOUND);
         for (Tag raw : list) {
-            nodes.add(new Node((CompoundTag) raw));
+            CompoundTag nodeTag = (CompoundTag) raw;
+            long pos = nodeTag.getLong("pos");
+            
+            // Skip phantom nodes
+            if (pos == BlockPos.ZERO.asLong()) continue;
+            
+            nodes.add(new Node(nodeTag));
         }
         rebuildIndices();
     }
