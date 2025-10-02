@@ -619,9 +619,8 @@ public final class PathGraph {
         for (Tag raw : list) {
             CompoundTag nodeTag = (CompoundTag) raw;
             long pos = nodeTag.getLong("pos");
-            
-            // Skip phantom nodes
-            if (pos == BlockPos.ZERO.asLong()) continue;
+
+            if (pos == BlockPos.ZERO.asLong()) continue; // Skip phantom nodes
             
             nodes.add(new Node(nodeTag));
         }
