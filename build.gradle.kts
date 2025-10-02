@@ -44,21 +44,18 @@ dependencies {
     if (property("deps.loader") == "fabric") {
         modImplementation("net.fabricmc:fabric-loader:${property("deps.fabric_loader")}")
         modImplementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
-        modImplementation("folk.sisby:surveyor:${property("deps.surveyor")}")
 
+        modImplementation("folk.sisby:surveyor:${property("deps.surveyor")}")
         include("folk.sisby:surveyor:${property("deps.surveyor")}")
-        compileOnly("net.fabricmc:sponge-mixin:0.12.5+mixin.0.8.5")
-        annotationProcessor("net.fabricmc:sponge-mixin:0.12.5+mixin.0.8.5")
-        // modCompileOnly("maven.modrinth:iris:${property("deps.iris")}")
     }
 
     if (property("deps.loader") == "neoforge") {
         modImplementation("org.sinytra.forgified-fabric-api:forgified-fabric-api:${property("deps.fabric_api")}")
-
-        compileOnly("net.fabricmc:sponge-mixin:0.12.5+mixin.0.8.5")
-        annotationProcessor("net.fabricmc:sponge-mixin:0.12.5+mixin.0.8.5")
-        // modCompileOnly("maven.modrinth:iris:${property("deps.iris")}")
     }
+
+    // modCompileOnly("maven.modrinth:iris:${property("deps.iris")}")
+    compileOnly("net.fabricmc:sponge-mixin:0.12.5+mixin.0.8.5")
+    annotationProcessor("net.fabricmc:sponge-mixin:0.12.5+mixin.0.8.5")
 
     modImplementation("mysticdrew:common-networking-common:${property("deps.commonnetworking")}")
     modImplementation("maven.modrinth:midnightlib:${property("deps.midnightlib")}")
