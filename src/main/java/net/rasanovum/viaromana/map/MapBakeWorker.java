@@ -13,10 +13,15 @@ import net.rasanovum.viaromana.path.PathGraph;
 import net.rasanovum.viaromana.surveyor.SurveyorUtil;
 
 //? if fabric {
-/*import folk.sisby.surveyor.terrain.ChunkSummary;
+import folk.sisby.surveyor.terrain.ChunkSummary;
 import folk.sisby.surveyor.terrain.LayerSummary;
 import folk.sisby.surveyor.terrain.WorldTerrainSummary;
 import folk.sisby.surveyor.util.RegistryPalette;
+//?} elif neoforge {
+/*import net.rasanovum.viaromana.terrain.ChunkSummary;
+import net.rasanovum.viaromana.terrain.LayerSummary;
+import net.rasanovum.viaromana.terrain.WorldTerrainSummary;
+import net.rasanovum.viaromana.terrain.RegistryPalette;
 *///?}
 
 import java.awt.Graphics2D;
@@ -218,7 +223,11 @@ public class MapBakeWorker {
         LayerSummary.Raw layer = summary.toSingleLayer(null, null, level.getMaxBuildHeight());
         if (layer == null) return;
         
+        //? if fabric {
         var blockPalette = terrain.getBlockPalette(new ChunkPos(cx, cz));
+        //?} elif neoforge {
+        /*var blockPalette = summary.palette().view();
+        *///?}
         int worldTop = level.getMaxBuildHeight();
         
         int[] heights = new int[256];

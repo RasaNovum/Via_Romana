@@ -14,17 +14,17 @@ import net.rasanovum.viaromana.storage.IPathStorage;
 import net.rasanovum.viaromana.util.VersionUtils;
 
 //? if fabric {
-/*import folk.sisby.surveyor.landmark.Landmark;
+import folk.sisby.surveyor.landmark.Landmark;
 import folk.sisby.surveyor.landmark.LandmarkType;
 import folk.sisby.surveyor.landmark.SimpleLandmarkType;
-*///?}
+//?}
 
 import java.util.Optional;
 
 //? if fabric {
-/*/^*
+/**
  * Landmark for displaying destinations on surveyor-compatible maps.
- ^/
+ */
 public record ViaRomanaLandmark(BlockPos pos, Component name, DyeColor color) implements Landmark<ViaRomanaLandmark> {
     public static final LandmarkType<ViaRomanaLandmark> TYPE = new SimpleLandmarkType<>(
         VersionUtils.getLocation("via_romana:destination_landmark"),
@@ -42,9 +42,9 @@ public record ViaRomanaLandmark(BlockPos pos, Component name, DyeColor color) im
         ))
     );
 
-    /^*
+    /**
      * Creates a landmark for a linked destination node
-     ^/
+     */
     public static ViaRomanaLandmark createDestination(ServerLevel level, Node node, BlockPos pos) {
         Component name = node.getDestinationName()
             .map(Component::literal)
@@ -88,4 +88,4 @@ public record ViaRomanaLandmark(BlockPos pos, Component name, DyeColor color) im
         return color;
     }
 }
-*///?}
+//?}

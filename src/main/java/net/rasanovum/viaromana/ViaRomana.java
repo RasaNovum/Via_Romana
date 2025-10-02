@@ -1,6 +1,8 @@
 package net.rasanovum.viaromana;
 
 import eu.midnightdust.lib.config.MidnightConfig;
+import net.mehvahdjukaar.moonlight.api.resources.pack.DynamicDataPack;
+//? if fabric
 import folk.sisby.surveyor.WorldSummary;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -8,8 +10,6 @@ import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.mehvahdjukaar.moonlight.api.resources.pack.DynamicDataPack;
-import net.minecraft.resources.ResourceLocation;
 import net.rasanovum.viaromana.command.ViaRomanaCommands;
 import net.rasanovum.viaromana.core.DimensionHandler;
 import net.rasanovum.viaromana.core.ResetVariables;
@@ -36,6 +36,7 @@ public class ViaRomana implements ModInitializer {
         LOGGER.info("Initializing ViaRomanaMod");
 
         MidnightConfig.init(MODID, CommonConfig.class);
+        //? if fabric
         WorldSummary.enableTerrain();
 
         new PacketRegistration().init();

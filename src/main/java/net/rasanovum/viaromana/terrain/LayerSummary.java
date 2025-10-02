@@ -3,7 +3,7 @@ package net.rasanovum.viaromana.terrain;
 import java.util.BitSet;
 
 //? if neoforge {
-public class LayerSummary {
+/*public class LayerSummary {
     public static record Raw(BitSet exists, int[] depths, int[] blocks, int[] waterDepths) {
         public Raw {
             if (waterDepths == null) {
@@ -15,4 +15,4 @@ public class LayerSummary {
         }
     }
 }
-//?}
+*///?}

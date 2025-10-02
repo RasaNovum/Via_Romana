@@ -1,5 +1,6 @@
 package net.rasanovum.viaromana.mixins;
 
+//? if fabric {
 import folk.sisby.surveyor.Surveyor;
 import folk.sisby.surveyor.util.RegistryPalette;
 import org.spongepowered.asm.mixin.Mixin;
@@ -23,3 +24,4 @@ public class RegistryPaletteMixin {
         return inverse[value];
     }
 }
+//?}

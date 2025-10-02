@@ -8,10 +8,10 @@ import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.path.Node;
 
 //? if fabric {
-/*import folk.sisby.surveyor.WorldSummary;
+import folk.sisby.surveyor.WorldSummary;
 import folk.sisby.surveyor.landmark.Landmarks;
 import folk.sisby.surveyor.landmark.WorldLandmarks;
-*///?}
+//?}
 
 /**
  * Manages destination landmarks with the Surveyor API.
@@ -21,9 +21,9 @@ public class ViaRomanaLandmarkManager {
     
     public static void initialize() {
         //? if fabric {
-        /*Landmarks.register(ViaRomanaLandmark.TYPE);
+        Landmarks.register(ViaRomanaLandmark.TYPE);
         ViaRomana.LOGGER.info("Initialized Via Romana Destination landmark type.");
-        *///?}
+        //?}
     }
 
     /**
@@ -31,7 +31,7 @@ public class ViaRomanaLandmarkManager {
      */
     public static void addDestinationLandmark(Level level, Node node) {
         //? if fabric {
-        /*if (!CommonConfig.enable_surveyor_landmark) return;
+        if (!CommonConfig.enable_surveyor_landmark) return;
         if (!(level instanceof ServerLevel serverLevel)) return;
 
         try {
@@ -51,7 +51,7 @@ public class ViaRomanaLandmarkManager {
         } catch (Exception e) {
             ViaRomana.LOGGER.warn("Failed to add destination landmark", e);
         }
-        *///?}
+        //?}
     }
 
     /**
@@ -59,7 +59,7 @@ public class ViaRomanaLandmarkManager {
      */
     public static void removeDestinationLandmark(Level level, Node node) {
         //? if fabric {
-        /*if (!CommonConfig.enable_surveyor_landmark) return;
+        if (!CommonConfig.enable_surveyor_landmark) return;
         if (!(level instanceof ServerLevel serverLevel)) return;
         
         try {
@@ -72,6 +72,6 @@ public class ViaRomanaLandmarkManager {
         } catch (Exception e) {
             ViaRomana.LOGGER.warn("Failed to remove destination landmark", e);
         }
-        *///?}
+        //?}
     }
 }
