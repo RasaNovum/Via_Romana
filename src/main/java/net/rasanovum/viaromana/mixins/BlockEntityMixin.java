@@ -10,6 +10,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.rasanovum.viaromana.storage.ICustomDataHolder;
 import net.minecraft.nbt.CompoundTag;
+//? if >1.21
 import net.minecraft.core.HolderLookup;
 
 @Mixin(BlockEntity.class)
@@ -18,21 +19,34 @@ public class BlockEntityMixin implements ICustomDataHolder {
 	private CompoundTag fabricData = new CompoundTag();
 
 	@Inject(method = "saveAdditional", at = @At("RETURN"))
+	//? if <1.21 {
+	/*private void onSaveAdditional(CompoundTag nbt, CallbackInfo ci) {
+	*///?} else {
 	private void onSaveAdditional(CompoundTag nbt, HolderLookup.Provider registries, CallbackInfo ci) {
+	//?}
 		if (!fabricData.isEmpty()) {
 			nbt.put("FabricData", fabricData);
 		}
 	}
 
+	//? if <1.21 {
+	/*@Inject(method = "load", at = @At("RETURN"))
+	private void onLoad(CompoundTag nbt, CallbackInfo ci) {
+	*///?} else {
 	@Inject(method = "loadAdditional", at = @At("RETURN"))
 	private void onLoad(CompoundTag nbt, HolderLookup.Provider registries, CallbackInfo ci) {
+	//?}
 		if (nbt.contains("FabricData")) {
 			fabricData = nbt.getCompound("FabricData");
 		}
 	}
 
 	@Inject(method = "saveWithoutMetadata", at = @At("RETURN"), cancellable = true)
+	//? if <1.21 {
+	/*private void onSaveWithoutMetadata(CallbackInfoReturnable<CompoundTag> cir) {
+	*///?} else {
 	private void onSaveWithoutMetadata(HolderLookup.Provider registries, CallbackInfoReturnable<CompoundTag> cir) {
+	//?}
 		CompoundTag nbt = cir.getReturnValue();
 		if (!fabricData.isEmpty()) {
 			nbt.put("FabricData", fabricData);
