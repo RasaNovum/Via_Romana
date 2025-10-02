@@ -47,21 +47,22 @@ dependencies {
         modImplementation("folk.sisby:surveyor:${property("deps.surveyor")}")
 
         include("folk.sisby:surveyor:${property("deps.surveyor")}")
-        // modCompileOnly("maven.modrinth:iris:${property("deps.iris")}")
+        compileOnly("net.fabricmc:sponge-mixin:0.12.5+mixin.0.8.5")
         annotationProcessor("net.fabricmc:sponge-mixin:0.12.5+mixin.0.8.5")
+        // modCompileOnly("maven.modrinth:iris:${property("deps.iris")}")
     }
 
     if (property("deps.loader") == "neoforge") {
         modImplementation("org.sinytra.forgified-fabric-api:forgified-fabric-api:${property("deps.fabric_api")}")
 
-        // modCompileOnly("maven.modrinth:iris:${property("deps.iris")}")
         compileOnly("net.fabricmc:sponge-mixin:0.12.5+mixin.0.8.5")
         annotationProcessor("net.fabricmc:sponge-mixin:0.12.5+mixin.0.8.5")
+        // modCompileOnly("maven.modrinth:iris:${property("deps.iris")}")
     }
 
     modImplementation("mysticdrew:common-networking-common:${property("deps.commonnetworking")}")
     modImplementation("maven.modrinth:midnightlib:${property("deps.midnightlib")}")
-    modImplementation("curse.maven:selene-499980:7051233")
+    modImplementation("curse.maven:selene-499980:${property("deps.moonlightlib")}")
 
     include("maven.modrinth:midnightlib:${property("deps.midnightlib")}")
     include("mysticdrew:common-networking-common:${property("deps.commonnetworking")}")
