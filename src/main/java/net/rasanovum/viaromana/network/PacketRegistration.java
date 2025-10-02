@@ -58,5 +58,6 @@ public class PacketRegistration {
         registerPacket(SignValidationResponseS2C.TYPE, SignValidationResponseS2C.class, SignValidationResponseS2C::encode, SignValidationResponseS2C::decode, SignValidationResponseS2C.STREAM_CODEC, SignValidationResponseS2C::handle);
         registerPacket(TeleportRequestC2S.TYPE, TeleportRequestC2S.class, TeleportRequestC2S::encode, TeleportRequestC2S::decode, TeleportRequestC2S.STREAM_CODEC, TeleportRequestC2S::handle);
         registerPacket(UnlinkSignRequestC2S.TYPE, UnlinkSignRequestC2S.class, UnlinkSignRequestC2S::encode, UnlinkSignRequestC2S::decode, UnlinkSignRequestC2S.STREAM_CODEC, UnlinkSignRequestC2S::handle);
+        registerPacket(OpenLinkSignScreenS2C.TYPE, OpenLinkSignScreenS2C.class, OpenLinkSignScreenS2C::encode, OpenLinkSignScreenS2C::decode, OpenLinkSignScreenS2C.STREAM_CODEC, OpenLinkSignScreenS2C::handle);
     }
 }

@@ -20,7 +20,6 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.BlockPos;
 
-import java.io.InputStream;
 import java.util.concurrent.ConcurrentHashMap;
 
 import commonnetwork.api.Dispatcher;
@@ -231,7 +230,7 @@ public class ViaRomanaModVariables {
         if (file.exists()) {
             try {
                 //? if <1.21 {
-                /*return NbtIo.readCompressed((InputStream) file.toPath());
+                /*return NbtIo.readCompressed(Files.newInputStream(file.toPath()));
                 *///?} else {
                 return NbtIo.readCompressed(file.toPath(), NbtAccounter.unlimitedHeap());
                 //?}
@@ -241,7 +240,7 @@ public class ViaRomanaModVariables {
                     try {
                         ViaRomana.LOGGER.warn("Attempting to load from backup file: {}", backupFile.getName());
                         //? if <1.21 {
-                        /*return NbtIo.readCompressed((InputStream) backupFile.toPath());
+                        /*return NbtIo.readCompressed(Files.newInputStream(backupFile.toPath()));
                         *///?} else {
                         return NbtIo.readCompressed(backupFile.toPath(), NbtAccounter.unlimitedHeap());
                         //?}
@@ -254,7 +253,7 @@ public class ViaRomanaModVariables {
             try {
                 ViaRomana.LOGGER.warn("Main file {} missing, attempting to load from backup file: {}", file.getName(), backupFile.getName());
                 //? if <1.21 {
-                /*return NbtIo.readCompressed((InputStream) backupFile.toPath());
+                /*return NbtIo.readCompressed(Files.newInputStream(backupFile.toPath()));
                 *///?} else {
                 return NbtIo.readCompressed(backupFile.toPath(), NbtAccounter.unlimitedHeap());
                 //?}
