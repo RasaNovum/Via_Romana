@@ -27,11 +27,11 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 //? if fabric {
-import net.rasanovum.viaromana.surveyor.ViaRomanaLandmark;
+/*import net.rasanovum.viaromana.surveyor.ViaRomanaLandmark;
 import folk.sisby.surveyor.WorldSummary;
 import folk.sisby.surveyor.landmark.Landmark;
 import folk.sisby.surveyor.landmark.WorldLandmarks;
-//?}
+*///?}
 
 public final class PathGraph {
     private final ObjectArrayList<Node> nodes = new ObjectArrayList<>();
@@ -217,7 +217,7 @@ public final class PathGraph {
     
     public void updateAllNetworkColors(ServerLevel level) {
         //? if fabric {
-        WorldLandmarks worldLandmarks;
+        /*WorldLandmarks worldLandmarks;
         try {
             worldLandmarks = WorldSummary.of(level).landmarks();
         } catch (Exception e) {
@@ -246,7 +246,7 @@ public final class PathGraph {
             }
             processedNetworks.add(cache.id());
         }
-        //?}
+        *///?}
     }
 
     //endregion
