@@ -11,7 +11,7 @@ import net.rasanovum.viaromana.path.Node;
 import folk.sisby.surveyor.WorldSummary;
 import folk.sisby.surveyor.landmark.Landmarks;
 import folk.sisby.surveyor.landmark.WorldLandmarks;
-//? }
+//?}
 
 /**
  * Manages destination landmarks with the Surveyor API.

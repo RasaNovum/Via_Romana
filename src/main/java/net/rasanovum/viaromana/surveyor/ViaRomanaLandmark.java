@@ -21,6 +21,7 @@ import folk.sisby.surveyor.landmark.SimpleLandmarkType;
 
 import java.util.Optional;
 
+//? if fabric {
 /**
  * Landmark for displaying destinations on surveyor-compatible maps.
  */
@@ -87,3 +88,4 @@ public record ViaRomanaLandmark(BlockPos pos, Component name, DyeColor color) im
         return color;
     }
 }
+//?}

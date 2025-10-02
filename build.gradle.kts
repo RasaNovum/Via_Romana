@@ -55,6 +55,7 @@ dependencies {
         modImplementation("org.sinytra.forgified-fabric-api:forgified-fabric-api:${property("deps.fabric_api")}")
 
         // modCompileOnly("maven.modrinth:iris:${property("deps.iris")}")
+        compileOnly("net.fabricmc:sponge-mixin:0.12.5+mixin.0.8.5")
         annotationProcessor("net.fabricmc:sponge-mixin:0.12.5+mixin.0.8.5")
     }
 
