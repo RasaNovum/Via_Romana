@@ -72,15 +72,19 @@ public class ChunkPngUtil {
                 BlockState surfaceState = chunk.getBlockState(blockPos);
                 blockStates[idx] = surfaceState;
 
-                // Water depth
                 int waterDepth = 0;
                 FluidState fluid = surfaceState.getFluidState();
-                if (fluid.is(FluidTags.WATER)) waterDepth = 1;
-                for (int wy = surfaceY + 1; wy < maxY && wy < surfaceY + 9; wy++) {
-                    blockPos = blockPos.atY(wy);
-                    BlockState wState = chunk.getBlockState(blockPos);
-                    if (wState.getFluidState().is(FluidTags.WATER)) waterDepth++;
-                    else break;
+                if (fluid.is(FluidTags.WATER)) {
+                    waterDepth = 1;
+                    for (int wy = surfaceY - 1; wy >= minY && waterDepth < 8; wy--) {
+                        BlockPos checkPos = new BlockPos(chunkMinX + lx, wy, chunkMinZ + lz);
+                        BlockState wState = chunk.getBlockState(checkPos);
+                        if (wState.getFluidState().is(FluidTags.WATER)) {
+                            waterDepth++;
+                        } else {
+                            break;
+                        }
+                    }
                 }
                 waterDepths[idx] = waterDepth;
 
@@ -90,9 +94,9 @@ public class ChunkPngUtil {
         }
 
         // Encode to PNG bytes
-        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-            ImageIO.write(img, "PNG", baos);
-            return baos.toByteArray();
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            ImageIO.write(img, "PNG", outputStream);
+            return outputStream.toByteArray();
         } catch (IOException e) {
             ViaRomana.LOGGER.error("PNG encode failed for {}", pos, e);
             return new byte[0];
