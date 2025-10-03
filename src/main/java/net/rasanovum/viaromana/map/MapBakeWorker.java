@@ -148,10 +148,19 @@ public class MapBakeWorker {
         int scaledChunkSize = 16 / scaleFactor;
         
         BlockPos paddedMin = previousResult.minBounds();
+        BlockPos paddedMax = previousResult.maxBounds();
         ChunkPos minChunk = new ChunkPos(paddedMin);
+        ChunkPos maxChunk = new ChunkPos(paddedMax);
         
         int chunksUpdated = 0;
+        int chunksSkipped = 0;
         for (ChunkPos dirtyPos : dirtyChunks) {
+            if (dirtyPos.x < minChunk.x || dirtyPos.x > maxChunk.x || 
+                dirtyPos.z < minChunk.z || dirtyPos.z > maxChunk.z) {
+                chunksSkipped++;
+                continue;
+            }
+            
             // Render dirty chunk
             byte[] chunkPixels = ChunkPixelUtil.renderChunkPixels(level, dirtyPos);
             if (chunkPixels.length != 256) continue;
@@ -166,12 +175,26 @@ public class MapBakeWorker {
             int baseX = (dirtyPos.x - minChunk.x) * scaledChunkSize;
             int baseZ = (dirtyPos.z - minChunk.z) * scaledChunkSize;
             
+            // Double-check bounds to prevent ArrayIndexOutOfBounds
+            if (baseX < 0 || baseZ < 0 || baseX + scaledChunkSize > pixelWidth || 
+                baseZ + scaledChunkSize > previousResult.pixelHeight()) {
+                ViaRomana.LOGGER.warn("Chunk {} out of splice bounds, skipping (baseX={}, baseZ={}, width={}, height={})", 
+                    dirtyPos, baseX, baseZ, pixelWidth, previousResult.pixelHeight());
+                chunksSkipped++;
+                continue;
+            }
+            
             for (int dz = 0; dz < scaledChunkSize; dz++) {
                 int srcIdx = dz * scaledChunkSize;
                 int dstIdx = (baseZ + dz) * pixelWidth + baseX;
                 System.arraycopy(chunkPixels, srcIdx, updatedPixels, dstIdx, scaledChunkSize);
             }
             chunksUpdated++;
+        }
+        
+        // If we skipped chunks due to bounds mismatch, log it
+        if (chunksSkipped > 0) {
+            ViaRomana.LOGGER.info("Skipped {} dirty chunks outside cached bounds (likely network resize)", chunksSkipped);
         }
         long spliceTime = System.nanoTime() - spliceStartTime;
         long totalUpdateTime = System.nanoTime() - updateStartTime;
@@ -199,38 +222,72 @@ public class MapBakeWorker {
     private int processChunkPixels(byte[] fullPixels, ServerLevel level, ChunkPos min, ChunkPos max, 
                                     Set<ChunkPos> allowedChunks, int scaleFactor, int pixelWidth) {
         int chunksWithData = 0;
+        int chunksFromCache = 0;
+        int chunksRendered = 0;
         int scaledChunkSize = 16 / scaleFactor;
+        
+        long lastLogTime = System.nanoTime();
+        int processedCount = 0;
+        int totalChunks = allowedChunks.size();
 
         for (ChunkPos chunkPos : allowedChunks) {
+            // Progress logging every 500 chunks or every 2 seconds
+            processedCount++;
+            long now = System.nanoTime();
+            if (processedCount % 500 == 0 || (now - lastLogTime) > 2_000_000_000L) {
+                ViaRomana.LOGGER.info("[PERF] Baking progress: {}/{} chunks ({} cached, {} rendered)", 
+                    processedCount, totalChunks, chunksFromCache, chunksRendered);
+                lastLogTime = now;
+            }
+            
             // Skip chunks outside bounds
             if (chunkPos.x < min.x || chunkPos.x > max.x || chunkPos.z < min.z || chunkPos.z > max.z) {
                 continue;
             }
 
+            // Try to get chunk (will force load if needed for full bakes)
+            // First check cache to avoid rendering if data exists
+            Optional<byte[]> cachedPixels = ChunkPixelUtil.getPixelBytes(level, chunkPos);
+            if (cachedPixels.isPresent()) {
+                byte[] chunkPixels = cachedPixels.get();
+                chunksFromCache++;
+                
+                if (chunkPixels.length != 256) {
+                    LevelChunk chunk = level.getChunk(chunkPos.x, chunkPos.z);
+                    chunkPixels = ChunkPixelUtil.renderChunkPixels(level, chunkPos);
+                    chunksRendered++;
+                    chunksFromCache--;
+                    ChunkPixelUtil.setPixelBytes(level, chunkPos, chunkPixels);
+                }
+                
+                if (scaleFactor > 1) {
+                    chunkPixels = ChunkPixelUtil.scalePixels(chunkPixels, scaleFactor);
+                }
+                
+                int baseX = (chunkPos.x - min.x) * scaledChunkSize;
+                int baseZ = (chunkPos.z - min.z) * scaledChunkSize;
+                for (int dz = 0; dz < scaledChunkSize; dz++) {
+                    int srcIdx = dz * scaledChunkSize;
+                    int dstIdx = (baseZ + dz) * pixelWidth + baseX;
+                    System.arraycopy(chunkPixels, srcIdx, fullPixels, dstIdx, scaledChunkSize);
+                }
+                chunksWithData++;
+                continue;
+            }
+            
             LevelChunk chunk = level.getChunk(chunkPos.x, chunkPos.z);
             if (chunk == null) {
                 ViaRomana.LOGGER.warn("Failed to load chunk {} for pixel composite", chunkPos);
                 continue;
             }
-
-            Optional<byte[]> optPixels = ChunkPixelUtil.getPixelBytes(level, chunkPos);
-            byte[] chunkPixels;
             
-            if (optPixels.isEmpty()) {
-                chunkPixels = ChunkPixelUtil.renderChunkPixels(level, chunkPos);
-                if (chunkPixels.length == 256) {
-                    ChunkPixelUtil.setPixelBytes(level, chunkPos, chunkPixels);
-                } else {
-                    ViaRomana.LOGGER.warn("Chunk {} failed to render (invalid size: {}), skipping", chunkPos, chunkPixels.length);
-                    continue;
-                }
+            byte[] chunkPixels = ChunkPixelUtil.renderChunkPixels(level, chunkPos);
+            chunksRendered++;
+            if (chunkPixels.length == 256) {
+                ChunkPixelUtil.setPixelBytes(level, chunkPos, chunkPixels);
             } else {
-                chunkPixels = optPixels.get();
-                if (chunkPixels.length != 256) {
-                    ViaRomana.LOGGER.warn("Chunk {} has invalid cached pixel data (size: {}), re-rendering", chunkPos, chunkPixels.length);
-                    chunkPixels = ChunkPixelUtil.renderChunkPixels(level, chunkPos);
-                    ChunkPixelUtil.setPixelBytes(level, chunkPos, chunkPixels);
-                }
+                ViaRomana.LOGGER.warn("Chunk {} failed to render (invalid size: {}), skipping", chunkPos, chunkPixels.length);
+                continue;
             }
 
             if (scaleFactor > 1) { // Scale if needed
@@ -250,7 +307,8 @@ public class MapBakeWorker {
             chunksWithData++;
         }
 
-        ViaRomana.LOGGER.info("Render attempt complete: {}/{} chunks had pixel data", chunksWithData, allowedChunks.size());
+        ViaRomana.LOGGER.info("Render attempt complete: {}/{} chunks had pixel data ({} cached, {} freshly rendered)", 
+            chunksWithData, allowedChunks.size(), chunksFromCache, chunksRendered);
         
         if (chunksWithData == 0 && !allowedChunks.isEmpty()) {
             ViaRomana.LOGGER.warn("Map Bake: No chunk pixel data was available for the requested map area. The map may appear blank.");
