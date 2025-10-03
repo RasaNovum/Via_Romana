@@ -8,9 +8,9 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.MapColor;
-import net.minecraft.world.level.material.FluidState;
 import net.minecraft.tags.FluidTags;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.init.MapInit;
@@ -33,7 +33,6 @@ public class ChunkPngUtil {
      */
     public static byte[] renderChunkPngBytes(ServerLevel level, ChunkPos pos) {
         LevelChunk chunk = level.getChunk(pos.x, pos.z);
-        if (chunk == null) return new byte[0];
 
         int maxY = level.getMaxBuildHeight();
         int minY = chunk.getMinBuildHeight();
@@ -41,7 +40,7 @@ public class ChunkPngUtil {
 
         int[] heights = new int[256];
         BitSet exists = new BitSet(256);
-        BlockState[] blockStates = new BlockState[256]; // Store BlockStates instead of IDs
+        BlockState[] blockStates = new BlockState[256];
         int[] waterDepths = new int[256];
 
         int chunkMinX = chunk.getPos().getMinBlockX();
@@ -73,8 +72,7 @@ public class ChunkPngUtil {
                 blockStates[idx] = surfaceState;
 
                 int waterDepth = 0;
-                FluidState fluid = surfaceState.getFluidState();
-                if (fluid.is(FluidTags.WATER)) {
+                if (surfaceState.is(Blocks.WATER)) {
                     waterDepth = 1;
                     for (int wy = surfaceY - 1; wy >= minY && waterDepth < 8; wy--) {
                         BlockPos checkPos = new BlockPos(chunkMinX + lx, wy, chunkMinZ + lz);
@@ -118,13 +116,7 @@ public class ChunkPngUtil {
             if (state == null || state.isAir()) return -1;
             
             mapColor = state.getMapColor(level, blockPos);
-            if (mapColor == null) {
-                ViaRomana.LOGGER.warn("No MapColor for block state {}; fallback to STONE", state);
-                mapColor = MapColor.STONE;
-                brightness = MapColor.Brightness.NORMAL;
-            } else {
-                brightness = calculateTerrainBrightness(heights, idx);
-            }
+            brightness = calculateTerrainBrightness(heights, idx);
         }
 
         int mcColor = mapColor.calculateRGBColor(brightness);
