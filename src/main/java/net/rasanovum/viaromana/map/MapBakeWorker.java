@@ -176,11 +176,9 @@ public class MapBakeWorker {
     }
 
     private void processSurveyorChunks(BufferedImage img, ServerLevel level, WorldTerrainSummary terrain, ChunkPos min, ChunkPos max, Set<ChunkPos> allowedChunks, int scaleFactor) {
-        ViaRomana.LOGGER.debug("Processing Surveyor chunks: area from {} to {}, {} allowed chunks, scale factor {}", 
-                             min, max, allowedChunks.size(), scaleFactor);
+        ViaRomana.LOGGER.debug("Processing Surveyor chunks: area from {} to {}, {} allowed chunks, scale factor {}", min, max, allowedChunks.size(), scaleFactor);
         int chunksWithData = attemptRender(img, level, terrain, min, max, allowedChunks, scaleFactor);
-        ViaRomana.LOGGER.debug("Surveyor chunk processing complete: {} chunks had data out of {} allowed chunks", 
-                             chunksWithData, allowedChunks.size());
+        ViaRomana.LOGGER.debug("Surveyor chunk processing complete: {} chunks had data out of {} allowed chunks", chunksWithData, allowedChunks.size());
         if (chunksWithData == 0 && !allowedChunks.isEmpty()) {
             ViaRomana.LOGGER.warn("Map Bake: No Surveyor chunk data was available for the requested map area. The map may appear blank.");
         }

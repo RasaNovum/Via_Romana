@@ -44,6 +44,7 @@ dependencies {
     }
 
     modImplementation("mysticdrew:common-networking-common:${property("deps.commonnetworking")}")
+    modImplementation("maven.modrinth:data-anchor:${property("deps.data-anchor")}")
     modImplementation("maven.modrinth:midnightlib:${property("deps.midnightlib")}")
     modImplementation("curse.maven:selene-499980:7051233")
 
