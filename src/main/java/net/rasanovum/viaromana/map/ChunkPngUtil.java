@@ -2,11 +2,11 @@ package net.rasanovum.viaromana.map;
 
 import dev.corgitaco.dataanchor.data.registry.TrackedDataRegistries;
 import dev.corgitaco.dataanchor.data.TrackedDataContainer;
-import dev.corgitaco.dataanchor.data.type.chunk.ChunkTrackedData;
+import dev.corgitaco.dataanchor.data.type.level.LevelTrackedData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -33,6 +33,7 @@ public class ChunkPngUtil {
      * Renders 16x16 PNG bytes from chunk surface.
      */
     public static byte[] renderChunkPngBytes(ServerLevel level, ChunkPos pos) {
+        long startTime = System.nanoTime();
         LevelChunk chunk = level.getChunk(pos.x, pos.z);
 
         int minY = chunk.getMinBuildHeight();
@@ -49,7 +50,7 @@ public class ChunkPngUtil {
         for (int lx = 0; lx < 16; lx++) {
             for (int lz = 0; lz < 16; lz++) {
                 int idx = lx * 16 + lz;
-                int surfaceY = chunk.getHeight(Heightmap.Types.WORLD_SURFACE, lx, lz);
+                int surfaceY = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING, lx, lz);
 
                 if (surfaceY <= minY) {
                     heights[idx] = Integer.MIN_VALUE;
@@ -84,9 +85,15 @@ public class ChunkPngUtil {
         }
 
         // Encode to PNG bytes
+        long encodeStartTime = System.nanoTime();
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             ImageIO.write(img, "PNG", outputStream);
-            return outputStream.toByteArray();
+            byte[] result = outputStream.toByteArray();
+            long totalTime = System.nanoTime() - startTime;
+            long encodeTime = System.nanoTime() - encodeStartTime;
+            ViaRomana.LOGGER.debug("[PERF] Chunk {} render: total={}ms (encode={}ms), size={}B", 
+                pos, totalTime / 1_000_000.0, encodeTime / 1_000_000.0, result.length);
+            return result;
         } catch (IOException e) {
             ViaRomana.LOGGER.error("PNG encode failed for {}", pos, e);
             return new byte[0];
@@ -137,30 +144,26 @@ public class ChunkPngUtil {
      * Gets PNG bytes from Data Anchor.
      */
     public static Optional<byte[]> getPngBytes(ServerLevel level, ChunkPos pos) {
-        LevelChunk chunk = level.getChunk(pos.x, pos.z);
-
-        TrackedDataContainer<ChunkAccess, ChunkTrackedData> container = TrackedDataRegistries.CHUNK.getContainer(chunk);
+        TrackedDataContainer<Level, LevelTrackedData> container = TrackedDataRegistries.LEVEL.getContainer(level);
         if (container == null) return Optional.empty();
 
         return container.dataAnchor$getTrackedData(MapInit.CHUNK_PNG_KEY)
-                .filter(data -> data instanceof ChunkPngTrackedData)
-                .map(data -> data.getPngBytes().orElse(new byte[0]));
+                .filter(data -> data instanceof LevelPngTrackedData)
+                .flatMap(data -> ((LevelPngTrackedData) data).getPngBytes(pos));
     }
 
     /**
      * Sets PNG bytes to Data Anchor.
      */
     public static void setPngBytes(ServerLevel level, ChunkPos pos, byte[] bytes) {
-        LevelChunk chunk = level.getChunk(pos.x, pos.z);
-
-        TrackedDataContainer<ChunkAccess, ChunkTrackedData> container = TrackedDataRegistries.CHUNK.getContainer(chunk);
+        TrackedDataContainer<Level, LevelTrackedData> container = TrackedDataRegistries.LEVEL.getContainer(level);
         if (container == null) return;
 
         container.dataAnchor$createTrackedData();
 
         container.dataAnchor$getTrackedData(MapInit.CHUNK_PNG_KEY)
-                .filter(data -> data instanceof ChunkPngTrackedData)
-                .ifPresent(data -> data.setPngBytes(bytes));
+                .filter(data -> data instanceof LevelPngTrackedData)
+                .ifPresent(data -> ((LevelPngTrackedData) data).setPngBytes(pos, bytes));
     }
 
     /**
@@ -174,25 +177,32 @@ public class ChunkPngUtil {
      * Clears PNG bytes for all chunks in the given set.
      */
     public static void clearPngBytesForChunks(ServerLevel level, Set<ChunkPos> chunks) {
+        long startTime = System.nanoTime();
         for (ChunkPos pos : chunks) {
             clearPngBytes(level, pos);
         }
-        ViaRomana.LOGGER.info("Cleared PNG data for {} chunks", chunks.size());
+        long totalTime = System.nanoTime() - startTime;
+        ViaRomana.LOGGER.info("[PERF] Cleared PNG data for {} chunks in {}ms", chunks.size(), totalTime / 1_000_000.0);
     }
 
     /**
      * Regenerates PNG bytes for all chunks in the given set.
      */
     public static void regeneratePngBytesForChunks(ServerLevel level, Set<ChunkPos> chunks) {
+        long startTime = System.nanoTime();
         int regenerated = 0;
+        long totalBytes = 0;
         for (ChunkPos pos : chunks) {
             byte[] newBytes = renderChunkPngBytes(level, pos);
             if (newBytes.length > 0) {
                 setPngBytes(level, pos, newBytes);
                 regenerated++;
+                totalBytes += newBytes.length;
             }
         }
-        ViaRomana.LOGGER.info("Regenerated PNG data for {} chunks", regenerated);
+        long totalTime = System.nanoTime() - startTime;
+        ViaRomana.LOGGER.info("[PERF] Regenerated PNG data for {} chunks in {}ms, total size={}KB, avg={}B/chunk", 
+            regenerated, totalTime / 1_000_000.0, totalBytes / 1024.0, regenerated > 0 ? totalBytes / regenerated : 0);
     }
 
     /**
@@ -200,8 +210,12 @@ public class ChunkPngUtil {
      */
     public static BufferedImage loadPngFromBytes(byte[] bytes) {
         if (bytes == null || bytes.length == 0) return null;
+        long startTime = System.nanoTime();
         try {
-            return ImageIO.read(new ByteArrayInputStream(bytes));
+            BufferedImage result = ImageIO.read(new ByteArrayInputStream(bytes));
+            long decodeTime = System.nanoTime() - startTime;
+            ViaRomana.LOGGER.debug("[PERF] PNG decode: {}ms, size={}B", decodeTime / 1_000_000.0, bytes.length);
+            return result;
         } catch (IOException e) {
             ViaRomana.LOGGER.error("PNG load failed", e);
             return null;

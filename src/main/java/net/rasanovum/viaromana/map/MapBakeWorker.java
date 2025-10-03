@@ -21,6 +21,9 @@ import javax.imageio.ImageIO;
 public class MapBakeWorker {
 
     public MapInfo bake(UUID networkId, ServerLevel level, BlockPos minBounds, BlockPos maxBounds, List<NodeNetworkInfo> networkNodes) {
+        long bakeStartTime = System.nanoTime();
+        ViaRomana.LOGGER.info("[PERF] Starting full map bake for network {}", networkId);
+        
         // Compute padded bounds based on server-side constants
         int widthW = maxBounds.getX() - minBounds.getX();
         int heightW = maxBounds.getZ() - minBounds.getZ();
@@ -55,8 +58,10 @@ public class MapBakeWorker {
         Set<ChunkPos> allowedChunks = (fowCache != null) ? fowCache.allowedChunks() : ServerMapUtils.calculateFogOfWarChunks(networkNodes, minChunk, maxChunk);
 
         // 3. Render Image for the chunk area covering padded bounds
+        long renderStartTime = System.nanoTime();
         BufferedImage chunkAreaImg = new BufferedImage(chunkAreaWidth / scaleFactor, chunkAreaHeight / scaleFactor, BufferedImage.TYPE_INT_ARGB);
         processChunkPngs(chunkAreaImg, level, minChunk, maxChunk, allowedChunks, scaleFactor);
+        long renderTime = System.nanoTime() - renderStartTime;
 
         // 4. Crop to the exact padded bounds (which are the desired image bounds)
         int cropOffsetX = paddedMin.getX() - (minChunk.x * 16);
@@ -72,10 +77,20 @@ public class MapBakeWorker {
         }
 
         // 5. Encode to PNG
+        long encodeStartTime = System.nanoTime();
         try {
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             javax.imageio.ImageIO.write(finalImg, "PNG", outputStream);
-            return MapInfo.fromServerCache(networkId, paddedMin, paddedMax, networkNodes, outputStream.toByteArray(), scaleFactor, new java.util.ArrayList<>(allowedChunks));
+            byte[] pngData = outputStream.toByteArray();
+            long encodeTime = System.nanoTime() - encodeStartTime;
+            long totalBakeTime = System.nanoTime() - bakeStartTime;
+            
+            ViaRomana.LOGGER.info("[PERF] Map bake completed for network {}: total={}ms, render={}ms, encode={}ms, " +
+                "dimensions={}x{}, scale={}, pngSize={}KB, chunks={}", 
+                networkId, totalBakeTime / 1_000_000.0, renderTime / 1_000_000.0, encodeTime / 1_000_000.0,
+                finalImgW, finalImgH, scaleFactor, pngData.length / 1024.0, allowedChunks.size());
+            
+            return MapInfo.fromServerCache(networkId, paddedMin, paddedMax, networkNodes, pngData, scaleFactor, new java.util.ArrayList<>(allowedChunks));
         } catch (IOException e) {
             throw new RuntimeException("Failed to convert map to PNG", e);
         }
@@ -85,10 +100,15 @@ public class MapBakeWorker {
      * Performs an incremental update on an existing map image.
      */
     public MapInfo updateMap(MapInfo previousResult, Set<ChunkPos> dirtyChunks, ServerLevel level, PathGraph.NetworkCache network) {
-        ViaRomana.LOGGER.debug("MapBakeWorker.updateMap() called with {} dirty chunks for network {}", dirtyChunks.size(), previousResult.networkId());
+        long updateStartTime = System.nanoTime();
+        ViaRomana.LOGGER.info("[PERF] Starting incremental map update: {} dirty chunks for network {}", dirtyChunks.size(), previousResult.networkId());
 
+        long decodeStartTime = System.nanoTime();
         try {
             BufferedImage mapImage = ImageIO.read(new ByteArrayInputStream(previousResult.pngData()));
+            long decodeTime = System.nanoTime() - decodeStartTime;
+            ViaRomana.LOGGER.debug("[PERF] Map PNG decoded in {}ms", decodeTime / 1_000_000.0);
+            
             Graphics2D graphics = mapImage.createGraphics();
 
             BlockPos paddedMin = previousResult.minBounds();
@@ -99,6 +119,7 @@ public class MapBakeWorker {
 
             int chunksUpdated = 0;
             int chunksSkippedNoData = 0;
+            long chunkProcessStartTime = System.nanoTime();
 
             for (ChunkPos dirtyPos : dirtyChunks) {
                 chunksSkippedNoData++;
@@ -136,13 +157,24 @@ public class MapBakeWorker {
             }
 
             graphics.dispose();
+            long chunkProcessTime = System.nanoTime() - chunkProcessStartTime;
 
             ViaRomana.LOGGER.debug("Map incremental update completed: {} chunks updated, {} chunks skipped (no data)", chunksUpdated, chunksSkippedNoData);
 
+            long encodeStartTime = System.nanoTime();
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             ImageIO.write(mapImage, "PNG", outputStream);
+            byte[] pngData = outputStream.toByteArray();
+            long encodeTime = System.nanoTime() - encodeStartTime;
+            long totalUpdateTime = System.nanoTime() - updateStartTime;
+            
+            ViaRomana.LOGGER.info("[PERF] Incremental update completed: total={}ms, decode={}ms, chunkProcess={}ms, encode={}ms, " +
+                "chunksUpdated={}, pngSize={}KB", 
+                totalUpdateTime / 1_000_000.0, decodeTime / 1_000_000.0, chunkProcessTime / 1_000_000.0, 
+                encodeTime / 1_000_000.0, chunksUpdated, pngData.length / 1024.0);
+            
             return MapInfo.fromServerCache(previousResult.networkId(), previousResult.minBounds(), previousResult.maxBounds(),
-                    previousResult.networkNodes(), outputStream.toByteArray(), scaleFactor, previousResult.allowedChunks());
+                    previousResult.networkNodes(), pngData, scaleFactor, previousResult.allowedChunks());
 
         } catch (IOException e) {
             ViaRomana.LOGGER.error("Failed to update map incrementally, performing a full re-bake.", e);
@@ -160,9 +192,12 @@ public class MapBakeWorker {
     }
 
     private void processChunkPngs(BufferedImage img, ServerLevel level, ChunkPos min, ChunkPos max, Set<ChunkPos> allowedChunks, int scaleFactor) {
+        long startTime = System.nanoTime();
         ViaRomana.LOGGER.debug("Processing chunk PNGs: area from {} to {}, {} allowed chunks, scale factor {}", min, max, allowedChunks.size(), scaleFactor);
         int chunksWithData = attemptRender(img, level, min, max, allowedChunks, scaleFactor);
-        ViaRomana.LOGGER.debug("Chunk PNG processing complete: {} chunks had data out of {} allowed chunks", chunksWithData, allowedChunks.size());
+        long processTime = System.nanoTime() - startTime;
+        ViaRomana.LOGGER.debug("[PERF] Chunk PNG processing: {}ms, {}/{} chunks had data", 
+            processTime / 1_000_000.0, chunksWithData, allowedChunks.size());
         if (chunksWithData == 0 && !allowedChunks.isEmpty()) {
             ViaRomana.LOGGER.warn("Map Bake: No chunk PNG data was available for the requested map area. The map may appear blank.");
         }

@@ -118,10 +118,13 @@ public final class ServerMapCache {
             return;
         }
 
+        long startTime = System.nanoTime();
         Map<UUID, Set<ChunkPos>> toProcess = new ConcurrentHashMap<>(dirtyNetworks);
         dirtyNetworks.clear();
 
-        ViaRomana.LOGGER.debug("Processing {} dirty networks in scheduled update batch.", toProcess.size());
+        int totalDirtyChunks = toProcess.values().stream().mapToInt(Set::size).sum();
+        ViaRomana.LOGGER.info("[PERF] Processing {} dirty networks ({} chunks) in scheduled update batch", 
+            toProcess.size(), totalDirtyChunks);
 
         toProcess.forEach((networkId, chunks) -> {
             if (chunks != null && !chunks.isEmpty()) {
@@ -208,6 +211,7 @@ public final class ServerMapCache {
     }
 
     private static Optional<MapInfo> loadFromDisk(UUID networkId) {
+        long startTime = System.nanoTime();
         try {
             Path mapDir = getMapDirectory();
             String base = "network-" + networkId;
@@ -234,6 +238,9 @@ public final class ServerMapCache {
 
             MapInfo info = MapInfo.fromServerCache(networkId, min, max, List.of(), png, scale, List.of());
             cache.put(networkId, info);
+            long loadTime = System.nanoTime() - startTime;
+            ViaRomana.LOGGER.info("[PERF] Loaded map {} from disk: {}ms, size={}KB", 
+                networkId, loadTime / 1_000_000.0, png.length / 1024.0);
             return Optional.of(info);
 
         } catch (IOException e) {
@@ -274,12 +281,14 @@ public final class ServerMapCache {
         Set<UUID> networksToSave = forceSave ? new HashSet<>(cache.keySet()) : new HashSet<>(modifiedForSaving);
         if (networksToSave.isEmpty()) return;
 
+        long startTime = System.nanoTime();
         ViaRomana.LOGGER.debug("Saving {} maps to disk...", networksToSave.size());
 
         try {
             Path mapDir = getMapDirectory();
             Files.createDirectories(mapDir);
             int savedCount = 0;
+            long totalBytes = 0;
 
             for (UUID id : networksToSave) {
                 MapInfo info = cache.get(id);
@@ -306,13 +315,17 @@ public final class ServerMapCache {
                     pngOut.write(info.pngData());
                     NbtIo.writeCompressed(tag, nbtOut);
                     savedCount++;
+                    totalBytes += info.pngData().length;
                 } catch (IOException e) {
                     ViaRomana.LOGGER.error("Failed to write map files for network {}", id, e);
                 }
             }
 
+            long saveTime = System.nanoTime() - startTime;
             if (savedCount > 0) {
-                ViaRomana.LOGGER.debug("Saved {} modified maps to disk.", savedCount);
+                ViaRomana.LOGGER.info("[PERF] Saved {} maps to disk: {}ms, total={}KB, avg={}KB/map", 
+                    savedCount, saveTime / 1_000_000.0, totalBytes / 1024.0, 
+                    savedCount > 0 ? (totalBytes / savedCount) / 1024.0 : 0);
             }
             modifiedForSaving.removeAll(networksToSave);
 
@@ -342,6 +355,9 @@ public final class ServerMapCache {
      * Clears chunk PNG data for all networks in the cache.
      */
     public static void clearAllChunkPngData() {
+        long startTime = System.nanoTime();
+        int totalChunks = 0;
+        
         for (ServerLevel level : minecraftServer.getAllLevels()) {
             PathGraph graph = PathGraph.getInstance(level);
             if (graph == null) continue;
@@ -359,14 +375,22 @@ public final class ServerMapCache {
             
             if (!allChunks.isEmpty()) {
                 ChunkPngUtil.clearPngBytesForChunks(level, allChunks);
+                totalChunks += allChunks.size();
             }
         }
+        
+        long totalTime = System.nanoTime() - startTime;
+        ViaRomana.LOGGER.info("[PERF] Cleared all chunk PNG data: {} chunks in {}ms", 
+            totalChunks, totalTime / 1_000_000.0);
     }
 
     /**
      * Regenerates chunk PNG data for all dirty networks.
      */
     public static void regenerateAllChunkPngData() {
+        long startTime = System.nanoTime();
+        int totalChunks = 0;
+        
         for (ServerLevel level : minecraftServer.getAllLevels()) {
             PathGraph graph = PathGraph.getInstance(level);
             if (graph == null) continue;
@@ -385,8 +409,13 @@ public final class ServerMapCache {
             
             if (!allChunks.isEmpty()) {
                 ChunkPngUtil.regeneratePngBytesForChunks(level, allChunks);
+                totalChunks += allChunks.size();
             }
         }
+        
+        long totalTime = System.nanoTime() - startTime;
+        ViaRomana.LOGGER.info("[PERF] Regenerated all chunk PNG data: {} chunks in {}ms", 
+            totalChunks, totalTime / 1_000_000.0);
     }
 
     private static Path getMapDirectory() {
