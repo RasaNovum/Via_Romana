@@ -4,13 +4,10 @@ import dev.corgitaco.dataanchor.data.registry.TrackedDataRegistries;
 import dev.corgitaco.dataanchor.data.TrackedDataContainer;
 import dev.corgitaco.dataanchor.data.type.chunk.ChunkTrackedData;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunk;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.FluidState;
@@ -25,8 +22,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.BitSet;
 import java.util.Optional;
-import java.util.Map;
-import java.util.HashMap;
 
 /**
  * Utility for rendering/loading chunk PNGs and hooking to Data Anchor.
@@ -45,13 +40,8 @@ public class ChunkPngUtil {
 
         int[] heights = new int[256];
         BitSet exists = new BitSet(256);
-        int[] blocks = new int[256]; // Local IDs
+        BlockState[] blockStates = new BlockState[256]; // Store BlockStates instead of IDs
         int[] waterDepths = new int[256];
-
-        // Simple palette (expand to full if needed)
-        Map<Integer, Block> globalToBlock = new HashMap<>();
-        globalToBlock.put(0, Blocks.AIR);
-        int paletteSize = 1;
 
         int chunkMinX = chunk.getPos().getMinBlockX();
         int chunkMinZ = chunk.getPos().getMinBlockZ();
@@ -79,9 +69,7 @@ public class ChunkPngUtil {
                 heights[idx] = surfaceY;
                 blockPos = blockPos.atY(surfaceY);
                 BlockState surfaceState = chunk.getBlockState(blockPos);
-                int globalId = Block.getId(surfaceState);
-                int localId = getOrAddToPalette(globalId, globalToBlock, paletteSize);
-                blocks[idx] = localId;
+                blockStates[idx] = surfaceState;
 
                 // Water depth
                 int waterDepth = 0;
@@ -95,7 +83,7 @@ public class ChunkPngUtil {
                 }
                 waterDepths[idx] = waterDepth;
 
-                int color = getPixelColor(idx, heights, blocks, waterDepths, exists, globalToBlock);
+                int color = getPixelColor(level, blockPos, idx, heights, blockStates, waterDepths, exists);
                 img.setRGB(lx, lz, color | 0xFF000000);
             }
         }
@@ -110,7 +98,7 @@ public class ChunkPngUtil {
         }
     }
 
-    private static int getPixelColor(int idx, int[] heights, int[] blocks, int[] waterDepths, BitSet exists, Map<Integer, Block> palette) {
+    private static int getPixelColor(ServerLevel level, BlockPos blockPos, int idx, int[] heights, BlockState[] blockStates, int[] waterDepths, BitSet exists) {
         boolean hasWater = waterDepths[idx] > 0;
         if (!exists.get(idx) && !hasWater) return -1;
 
@@ -121,11 +109,12 @@ public class ChunkPngUtil {
             mapColor = MapColor.WATER;
             brightness = calculateWaterBrightness(idx, waterDepths[idx]);
         } else {
-            Block block = palette.get(blocks[idx]);
-            if (block == null || block == Blocks.AIR) return -1;
-            mapColor = block.defaultMapColor();
+            BlockState state = blockStates[idx];
+            if (state == null || state.isAir()) return -1;
+            
+            mapColor = state.getMapColor(level, blockPos);
             if (mapColor == null) {
-                ViaRomana.LOGGER.warn("No MapColor for block {}; fallback to STONE", block);
+                ViaRomana.LOGGER.warn("No MapColor for block state {}; fallback to STONE", state);
                 mapColor = MapColor.STONE;
                 brightness = MapColor.Brightness.NORMAL;
             } else {
@@ -154,13 +143,6 @@ public class ChunkPngUtil {
         return MapColor.Brightness.NORMAL;
     }
 
-    private static int getOrAddToPalette(int globalId, Map<Integer, Block> palette, int currentSize) {
-        if (globalId == 0) return 0;
-        if (!palette.containsKey(globalId)) {
-            palette.put(globalId, BuiltInRegistries.BLOCK.byId(globalId));
-        }
-        return globalId;
-    }
 
     /**
      * Gets PNG bytes from Data Anchor.
