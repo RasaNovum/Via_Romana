@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -44,6 +45,7 @@ public final class ServerMapCache {
     private static final Set<UUID> modifiedForSaving = ConcurrentHashMap.newKeySet();
 
     private static ScheduledExecutorService scheduler;
+    private static ExecutorService mapBakingExecutor;
     private static MinecraftServer minecraftServer;
 
     private ServerMapCache() {}
@@ -53,6 +55,7 @@ public final class ServerMapCache {
         shutdown();
 
         scheduler = Executors.newScheduledThreadPool(2);
+        mapBakingExecutor = Executors.newFixedThreadPool(Math.max(1, Runtime.getRuntime().availableProcessors() / 4));
         ViaRomana.LOGGER.info("Starting Via Romana schedulers...");
 
         scheduler.scheduleAtFixedRate(
@@ -83,6 +86,19 @@ public final class ServerMapCache {
                 scheduler.shutdownNow();
                 Thread.currentThread().interrupt();
             }
+        }
+        if (mapBakingExecutor != null && !mapBakingExecutor.isShutdown()) {
+            mapBakingExecutor.shutdown();
+            try {
+                if (!mapBakingExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                    mapBakingExecutor.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                mapBakingExecutor.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
+        }
+        if ((scheduler != null && scheduler.isShutdown()) || (mapBakingExecutor != null && mapBakingExecutor.isShutdown())) {
             ViaRomana.LOGGER.info("Via Romana schedulers shut down.");
         }
     }
@@ -142,7 +158,7 @@ public final class ServerMapCache {
                         modifiedForSaving.add(networkId);
                         ViaRomana.LOGGER.debug("Map update completed for network {}.", networkId);
                         return newResult;
-                    }, minecraftServer).exceptionally(ex -> {
+                    }, mapBakingExecutor).exceptionally(ex -> {
                         ViaRomana.LOGGER.error("Failed during map update for network {}", networkId, ex);
                         return null;
                     });

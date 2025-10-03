@@ -87,12 +87,6 @@ public class MapBakeWorker {
     public MapInfo updateMap(MapInfo previousResult, Set<ChunkPos> dirtyChunks, ServerLevel level, PathGraph.NetworkCache network) {
         ViaRomana.LOGGER.debug("MapBakeWorker.updateMap() called with {} dirty chunks for network {}", dirtyChunks.size(), previousResult.networkId());
 
-        StringBuilder dirtyChunksList = new StringBuilder();
-        for (ChunkPos pos : dirtyChunks) {
-            dirtyChunksList.append(pos.toString()).append(" ");
-        }
-        ViaRomana.LOGGER.debug("Dirty chunks to update: {}", dirtyChunksList.toString().trim());
-
         try {
             BufferedImage mapImage = ImageIO.read(new ByteArrayInputStream(previousResult.pngData()));
             Graphics2D graphics = mapImage.createGraphics();
@@ -191,22 +185,16 @@ public class MapBakeWorker {
                     continue;
                 }
 
-                ViaRomana.LOGGER.debug("Checking PNG for chunk {}", chunkPos);
                 Optional<byte[]> optBytes = ChunkPngUtil.getPngBytes(level, chunkPos);
 
                 if (optBytes.isEmpty() || optBytes.get().length == 0) {
-                    ViaRomana.LOGGER.debug("No PNG for chunk {}; rendering fallback", chunkPos);
                     byte[] newBytes = ChunkPngUtil.renderChunkPngBytes(level, chunkPos);
                     if (newBytes.length > 0) {
                         ChunkPngUtil.setPngBytes(level, chunkPos, newBytes);
                         optBytes = Optional.of(newBytes);
-                        ViaRomana.LOGGER.debug("Fallback PNG rendered (size: {}) for {}", newBytes.length, chunkPos);
                     } else {
-                        ViaRomana.LOGGER.warn("Fallback render returned empty for {} (likely all-air chunk)", chunkPos);
                         continue;
                     }
-                } else {
-                    ViaRomana.LOGGER.debug("Loaded PNG (size: {}) for chunk {}", optBytes.get().length, chunkPos);
                 }
 
                 byte[] bytes = optBytes.get();
@@ -217,7 +205,6 @@ public class MapBakeWorker {
                 }
 
                 pngChunks++;
-                ViaRomana.LOGGER.debug("Compositing PNG for chunk {}", chunkPos);
                 int scaledSize = 16 / scaleFactor;
                 if (scaleFactor > 1) {
                     BufferedImage scaled = new BufferedImage(scaledSize, scaledSize, BufferedImage.TYPE_INT_ARGB);

@@ -10,6 +10,7 @@ import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.tags.FluidTags;
 import net.rasanovum.viaromana.ViaRomana;
@@ -34,7 +35,6 @@ public class ChunkPngUtil {
     public static byte[] renderChunkPngBytes(ServerLevel level, ChunkPos pos) {
         LevelChunk chunk = level.getChunk(pos.x, pos.z);
 
-        int maxY = level.getMaxBuildHeight();
         int minY = chunk.getMinBuildHeight();
         BufferedImage img = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
 
@@ -49,17 +49,9 @@ public class ChunkPngUtil {
         for (int lx = 0; lx < 16; lx++) {
             for (int lz = 0; lz < 16; lz++) {
                 int idx = lx * 16 + lz;
-                BlockPos blockPos = new BlockPos(chunkMinX + lx, 0, chunkMinZ + lz);
-                int surfaceY = -1;
-                for (int y = maxY - 1; y >= minY; y--) {
-                    blockPos = blockPos.atY(y);
-                    BlockState state = chunk.getBlockState(blockPos);
-                    if (!state.isAir()) {
-                        surfaceY = y;
-                        break;
-                    }
-                }
-                if (surfaceY == -1) {
+                int surfaceY = chunk.getHeight(Heightmap.Types.WORLD_SURFACE, lx, lz);
+
+                if (surfaceY <= minY) {
                     heights[idx] = Integer.MIN_VALUE;
                     img.setRGB(lx, lz, 0x00000000);
                     continue;
@@ -67,7 +59,7 @@ public class ChunkPngUtil {
 
                 exists.set(idx);
                 heights[idx] = surfaceY;
-                blockPos = blockPos.atY(surfaceY);
+                BlockPos blockPos = new BlockPos(chunkMinX + lx, surfaceY, chunkMinZ + lz);
                 BlockState surfaceState = chunk.getBlockState(blockPos);
                 blockStates[idx] = surfaceState;
 
@@ -169,8 +161,6 @@ public class ChunkPngUtil {
         container.dataAnchor$getTrackedData(MapInit.CHUNK_PNG_KEY)
                 .filter(data -> data instanceof ChunkPngTrackedData)
                 .ifPresent(data -> data.setPngBytes(bytes));
-
-        ViaRomana.LOGGER.debug("Set PNG for chunk {}", pos);
     }
 
     /**
@@ -178,19 +168,16 @@ public class ChunkPngUtil {
      */
     public static void clearPngBytes(ServerLevel level, ChunkPos pos) {
         setPngBytes(level, pos, new byte[0]);
-        ViaRomana.LOGGER.debug("Cleared PNG for chunk {}", pos);
     }
 
     /**
      * Clears PNG bytes for all chunks in the given set.
      */
     public static void clearPngBytesForChunks(ServerLevel level, Set<ChunkPos> chunks) {
-        int cleared = 0;
         for (ChunkPos pos : chunks) {
             clearPngBytes(level, pos);
-            cleared++;
         }
-        ViaRomana.LOGGER.info("Cleared PNG data for {} chunks", cleared);
+        ViaRomana.LOGGER.info("Cleared PNG data for {} chunks", chunks.size());
     }
 
     /**

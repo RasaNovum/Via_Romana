@@ -12,6 +12,10 @@ import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.network.packets.DestinationResponseS2C.NodeNetworkInfo;
 import commonnetwork.api.Dispatcher;
 
+import net.minecraft.client.gui.MapRenderer;
+import net.minecraft.world.item.MapItem;
+import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
