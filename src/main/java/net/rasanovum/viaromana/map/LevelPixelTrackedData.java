@@ -10,43 +10,47 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-public class LevelPngTrackedData extends ServerLevelTrackedData {
-    private final Map<String, byte[]> pngMap = new HashMap<>();
+/**
+ * Server-side tracked data for chunk raw pixels.
+ * Stores MapColor packed IDs (color & brightness).
+ */
+public class LevelPixelTrackedData extends ServerLevelTrackedData {
+    private final Map<String, byte[]> pixelMap = new HashMap<>();
 
-    public LevelPngTrackedData(TrackedDataKey<? extends ServerLevelTrackedData> trackedDataKey, ServerLevel level) {
+    public LevelPixelTrackedData(TrackedDataKey<? extends ServerLevelTrackedData> trackedDataKey, ServerLevel level) {
         super((TrackedDataKey<ServerLevelTrackedData>) trackedDataKey, level);
     }
 
     @Override
     public CompoundTag save() {
-        if (pngMap.isEmpty()) return null;
+        if (pixelMap.isEmpty()) return null;
         CompoundTag tag = new CompoundTag();
-        tag.put("png_map", toNBT(pngMap));
+        tag.put("pixel_map", toNBT(pixelMap));
         return tag;
     }
 
     @Override
     public void load(CompoundTag tag) {
-        if (tag.contains("png_map")) {
-            pngMap.clear();
-            pngMap.putAll(fromNBT(tag.getCompound("png_map")));
+        if (tag.contains("pixel_map")) {
+            pixelMap.clear();
+            pixelMap.putAll(fromNBT(tag.getCompound("pixel_map")));
         }
     }
 
-    public void setPngBytes(ChunkPos pos, byte[] bytes) {
+    public void setPixelBytes(ChunkPos pos, byte[] bytes) {
         String key = pos.x + "_" + pos.z;
-        if (bytes != null && bytes.length > 0) {
-            pngMap.put(key, bytes.clone());
+        if (bytes != null && bytes.length == 256) {
+            pixelMap.put(key, bytes.clone());
         } else {
-            pngMap.remove(key);
+            pixelMap.remove(key);
         }
         markDirty();
     }
 
-    public Optional<byte[]> getPngBytes(ChunkPos pos) {
+    public Optional<byte[]> getPixelBytes(ChunkPos pos) {
         String key = pos.x + "_" + pos.z;
-        byte[] bytes = pngMap.get(key);
-        return bytes != null && bytes.length > 0 ? Optional.of(bytes.clone()) : Optional.empty();
+        byte[] bytes = pixelMap.get(key);
+        return bytes != null && bytes.length == 256 ? Optional.of(bytes.clone()) : Optional.empty();
     }
 
     private static CompoundTag toNBT(Map<String, byte[]> map) {
@@ -65,3 +69,4 @@ public class LevelPngTrackedData extends ServerLevelTrackedData {
         return map;
     }
 }
+

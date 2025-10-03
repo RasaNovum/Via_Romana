@@ -103,6 +103,9 @@ public final class ServerMapCache {
         }
     }
 
+    /**
+     * Marks a chunk as dirty for all networks it belongs to.
+     */
     public static void markChunkDirty(ServerLevel level, ChunkPos pos) {
         PathGraph graph = PathGraph.getInstance(level);
         if (graph == null) return;
@@ -118,14 +121,15 @@ public final class ServerMapCache {
             return;
         }
 
-        long startTime = System.nanoTime();
+        // Snapshot all dirty networks and clear the map
         Map<UUID, Set<ChunkPos>> toProcess = new ConcurrentHashMap<>(dirtyNetworks);
         dirtyNetworks.clear();
 
         int totalDirtyChunks = toProcess.values().stream().mapToInt(Set::size).sum();
-        ViaRomana.LOGGER.info("[PERF] Processing {} dirty networks ({} chunks) in scheduled update batch", 
+        ViaRomana.LOGGER.info("[PERF] Processing {} dirty networks ({} total dirty chunks) - batched update", 
             toProcess.size(), totalDirtyChunks);
 
+        // Process each network (full rebake is fast with raw pixels)
         toProcess.forEach((networkId, chunks) -> {
             if (chunks != null && !chunks.isEmpty()) {
                 minecraftServer.execute(() -> updateOrGenerateMapAsync(networkId, chunks));
@@ -352,9 +356,9 @@ public final class ServerMapCache {
     }
 
     /**
-     * Clears chunk PNG data for all networks in the cache.
+     * Clears chunk pixel data for all networks in the cache.
      */
-    public static void clearAllChunkPngData() {
+    public static void clearAllChunkPixelData() {
         long startTime = System.nanoTime();
         int totalChunks = 0;
         
@@ -374,20 +378,20 @@ public final class ServerMapCache {
             }
             
             if (!allChunks.isEmpty()) {
-                ChunkPngUtil.clearPngBytesForChunks(level, allChunks);
+                ChunkPixelUtil.clearPixelBytesForChunks(level, allChunks);
                 totalChunks += allChunks.size();
             }
         }
         
         long totalTime = System.nanoTime() - startTime;
-        ViaRomana.LOGGER.info("[PERF] Cleared all chunk PNG data: {} chunks in {}ms", 
+        ViaRomana.LOGGER.info("[PERF] Cleared all chunk pixel data: {} chunks in {}ms", 
             totalChunks, totalTime / 1_000_000.0);
     }
 
     /**
-     * Regenerates chunk PNG data for all dirty networks.
+     * Regenerates chunk pixel data for all dirty networks.
      */
-    public static void regenerateAllChunkPngData() {
+    public static void regenerateAllChunkPixelData() {
         long startTime = System.nanoTime();
         int totalChunks = 0;
         
@@ -408,13 +412,13 @@ public final class ServerMapCache {
             }
             
             if (!allChunks.isEmpty()) {
-                ChunkPngUtil.regeneratePngBytesForChunks(level, allChunks);
+                ChunkPixelUtil.regeneratePixelBytesForChunks(level, allChunks);
                 totalChunks += allChunks.size();
             }
         }
         
         long totalTime = System.nanoTime() - startTime;
-        ViaRomana.LOGGER.info("[PERF] Regenerated all chunk PNG data: {} chunks in {}ms", 
+        ViaRomana.LOGGER.info("[PERF] Regenerated all chunk pixel data: {} chunks in {}ms", 
             totalChunks, totalTime / 1_000_000.0);
     }
 

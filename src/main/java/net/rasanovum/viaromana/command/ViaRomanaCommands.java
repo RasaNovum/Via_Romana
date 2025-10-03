@@ -91,7 +91,7 @@ public class ViaRomanaCommands {
         
         // Clear chunk image data
         source.sendSuccess(() -> Component.literal("Clearing chunk image data..."), false);
-        ServerMapCache.clearAllChunkPngData();
+        ServerMapCache.clearAllChunkPixelData();
         
         // Clear map caches and disk data
         ServerMapCache.clear();
@@ -103,14 +103,14 @@ public class ViaRomanaCommands {
     }
 
     /**
-     * Immediately regenerates chunk PNG data and processes dirty networks
+     * Immediately regenerates chunk pixel data and processes dirty networks
      */
     private static int regenerateMaps(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         CommandSourceStack source = context.getSource();
         
         // Regenerate chunk image data
         source.sendSuccess(() -> Component.literal("Regenerating chunk image data..."), false);
-        ServerMapCache.regenerateAllChunkPngData();
+        ServerMapCache.regenerateAllChunkPixelData();
         
         // Process dirty networks to regenerate maps
         ServerMapCache.processAllDirtyNetworks();

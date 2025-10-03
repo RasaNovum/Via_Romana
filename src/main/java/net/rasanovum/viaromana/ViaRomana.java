@@ -42,7 +42,7 @@ public class ViaRomana implements ModInitializer {
         // SoundInit.load();
         TriggerInit.load();
 
-        ViaRomana.LOGGER.debug("Registered chunk PNG data: {}", MapInit.CHUNK_PNG_KEY);
+        ViaRomana.LOGGER.debug("Registered chunk PNG data: {}", MapInit.CHUNK_PIXEL_KEY);
 
         ServerResourcesGenerator generator = new ServerResourcesGenerator(DYNAMIC_PACK);
         generator.register();
