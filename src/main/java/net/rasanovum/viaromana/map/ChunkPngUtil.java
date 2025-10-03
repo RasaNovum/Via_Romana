@@ -32,9 +32,8 @@ import java.util.HashMap;
  * Utility for rendering/loading chunk PNGs and hooking to Data Anchor.
  */
 public class ChunkPngUtil {
-
     /**
-     * Renders 16x16 PNG bytes from chunk surface (adapt your MapBakeWorker logic).
+     * Renders 16x16 PNG bytes from chunk surface.
      */
     public static byte[] renderChunkPngBytes(ServerLevel level, ChunkPos pos) {
         LevelChunk chunk = level.getChunk(pos.x, pos.z);
@@ -80,7 +79,7 @@ public class ChunkPngUtil {
                 heights[idx] = surfaceY;
                 blockPos = blockPos.atY(surfaceY);
                 BlockState surfaceState = chunk.getBlockState(blockPos);
-                int globalId = Block.getId(surfaceState.getBlock().defaultBlockState());
+                int globalId = Block.getId(surfaceState);
                 int localId = getOrAddToPalette(globalId, globalToBlock, paletteSize);
                 blocks[idx] = localId;
 
@@ -96,7 +95,6 @@ public class ChunkPngUtil {
                 }
                 waterDepths[idx] = waterDepth;
 
-                // Color (your getPixelColor logic)
                 int color = getPixelColor(idx, heights, blocks, waterDepths, exists, globalToBlock);
                 img.setRGB(lx, lz, color | 0xFF000000);
             }
@@ -112,7 +110,6 @@ public class ChunkPngUtil {
         }
     }
 
-    // Your getPixelColor (adapted for map)
     private static int getPixelColor(int idx, int[] heights, int[] blocks, int[] waterDepths, BitSet exists, Map<Integer, Block> palette) {
         boolean hasWater = waterDepths[idx] > 0;
         if (!exists.get(idx) && !hasWater) return -1;
@@ -124,17 +121,23 @@ public class ChunkPngUtil {
             mapColor = MapColor.WATER;
             brightness = calculateWaterBrightness(idx, waterDepths[idx]);
         } else {
-            Block block = palette.get(blocks[idx]); // Local to block
+            Block block = palette.get(blocks[idx]);
             if (block == null || block == Blocks.AIR) return -1;
             mapColor = block.defaultMapColor();
-            brightness = calculateTerrainBrightness(heights, idx);
+            if (mapColor == null) {
+                ViaRomana.LOGGER.warn("No MapColor for block {}; fallback to STONE", block);
+                mapColor = MapColor.STONE;
+                brightness = MapColor.Brightness.NORMAL;
+            } else {
+                brightness = calculateTerrainBrightness(heights, idx);
+            }
         }
 
         int mcColor = mapColor.calculateRGBColor(brightness);
+
         return ((mcColor & 0xFF) << 16) | (mcColor & 0xFF00) | ((mcColor >> 16) & 0xFF);
     }
 
-    // Your brightness calcs (copy from MapBakeWorker)
     private static MapColor.Brightness calculateWaterBrightness(int idx, int waterDepth) {
         double shade = Math.min(waterDepth / 8.0, 1.0) + (((idx >> 4) + (idx & 15)) & 1) * 0.15;
         return shade < 0.3 ? MapColor.Brightness.HIGH : shade > 0.7 ? MapColor.Brightness.LOW : MapColor.Brightness.NORMAL;
@@ -151,13 +154,11 @@ public class ChunkPngUtil {
         return MapColor.Brightness.NORMAL;
     }
 
-    // Simple palette add (stub; expand if >256 unique)
     private static int getOrAddToPalette(int globalId, Map<Integer, Block> palette, int currentSize) {
-        if (globalId == 0) return 0; // Air
+        if (globalId == 0) return 0;
         if (!palette.containsKey(globalId)) {
             palette.put(globalId, BuiltInRegistries.BLOCK.byId(globalId));
         }
-        // Stub local ID as global for POC (use dense mapping for full)
         return globalId;
     }
 

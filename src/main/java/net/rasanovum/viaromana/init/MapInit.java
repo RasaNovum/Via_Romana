@@ -10,8 +10,13 @@ import net.rasanovum.viaromana.util.VersionUtils;
 public class MapInit {
         public static final TrackedDataKey<ChunkPngTrackedData> CHUNK_PNG_KEY =
                 TrackedDataRegistries.CHUNK.register(
-                        VersionUtils.getLocation("viaromana:chunk_png"),
+                        ResourceLocation.fromNamespaceAndPath("viaromana", "chunk_png"),
                         ChunkPngTrackedData.class,
-                        (key, chunkAccess) -> new ChunkPngTrackedData(key, (LevelChunk) chunkAccess)
+                        (key, chunkAccess) -> {
+                                if (chunkAccess instanceof LevelChunk lc) {
+                                        return new ChunkPngTrackedData(key, lc);
+                                }
+                                return null;
+                        }
                 );
 }

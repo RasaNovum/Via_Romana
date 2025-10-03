@@ -1,7 +1,6 @@
 package net.rasanovum.viaromana;
 
 import eu.midnightdust.lib.config.MidnightConfig;
-import folk.sisby.surveyor.WorldSummary;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents;
@@ -9,7 +8,6 @@ import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.mehvahdjukaar.moonlight.api.resources.pack.DynamicDataPack;
-import net.minecraft.resources.ResourceLocation;
 import net.rasanovum.viaromana.command.ViaRomanaCommands;
 import net.rasanovum.viaromana.core.DimensionHandler;
 import net.rasanovum.viaromana.core.ResetVariables;
@@ -17,7 +15,6 @@ import net.rasanovum.viaromana.init.*;
 import net.rasanovum.viaromana.map.ServerMapCache;
 import net.rasanovum.viaromana.network.PacketRegistration;
 import net.rasanovum.viaromana.network.ViaRomanaModVariables;
-import net.rasanovum.viaromana.surveyor.ViaRomanaLandmarkManager;
 import net.rasanovum.viaromana.tags.ServerResourcesGenerator;
 import net.rasanovum.viaromana.util.VersionUtils;
 
@@ -36,7 +33,6 @@ public class ViaRomana implements ModInitializer {
         LOGGER.info("Initializing ViaRomanaMod");
 
         MidnightConfig.init(MODID, CommonConfig.class);
-        WorldSummary.enableTerrain();
 
         new PacketRegistration().init();
 
@@ -47,8 +43,6 @@ public class ViaRomana implements ModInitializer {
         TriggerInit.load();
 
         ViaRomana.LOGGER.debug("Registered chunk PNG data: {}", MapInit.CHUNK_PNG_KEY);
-
-        ViaRomanaLandmarkManager.initialize();
 
         ServerResourcesGenerator generator = new ServerResourcesGenerator(DYNAMIC_PACK);
         generator.register();

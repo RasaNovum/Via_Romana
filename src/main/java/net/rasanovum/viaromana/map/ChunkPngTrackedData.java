@@ -4,6 +4,7 @@ import dev.corgitaco.dataanchor.data.registry.TrackedDataKey;
 import dev.corgitaco.dataanchor.data.type.chunk.ServerLevelChunkTrackedData;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.chunk.LevelChunk;
+import net.rasanovum.viaromana.ViaRomana;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
@@ -34,6 +35,10 @@ public class ChunkPngTrackedData extends ServerLevelChunkTrackedData {
     }
 
     public void setPngBytes(byte[] bytes) {
+        if (!(this.chunk instanceof LevelChunk)) {
+            ViaRomana.LOGGER.warn("Cannot set PNG on unloaded chunk {}", this.chunk.getPos());
+            return;
+        }
         this.pngBytes = bytes != null ? bytes.clone() : new byte[0];
         this.markDirty();
     }

@@ -1,37 +1,27 @@
 package net.rasanovum.viaromana.map;
 
-import folk.sisby.surveyor.terrain.ChunkSummary;
-import folk.sisby.surveyor.terrain.LayerSummary;
-import folk.sisby.surveyor.terrain.WorldTerrainSummary;
-import folk.sisby.surveyor.util.RegistryPalette;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.chunk.LevelChunk;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.network.packets.DestinationResponseS2C.NodeNetworkInfo;
 import net.rasanovum.viaromana.path.PathGraph;
-import net.rasanovum.viaromana.surveyor.SurveyorUtil;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.BitSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import javax.imageio.ImageIO;
 
 public class MapBakeWorker {
-    
+
     public MapInfo bake(UUID networkId, ServerLevel level, BlockPos minBounds, BlockPos maxBounds, List<NodeNetworkInfo> networkNodes) {
-        // Compute padded bounds based on server-side constants (must match client intent)
+        // Compute padded bounds based on server-side constants
         int widthW = maxBounds.getX() - minBounds.getX();
         int heightW = maxBounds.getZ() - minBounds.getZ();
         int padX = Math.max(ServerMapUtils.MAP_BOUNDS_MIN_PADDING, (int) (widthW * ServerMapUtils.MAP_BOUNDS_PADDING_PERCENTAGE));
@@ -47,10 +37,6 @@ public class MapBakeWorker {
         int finalImgH = exactHeight / scaleFactor;
 
         // 2. Data Fetching & Preparation
-        WorldTerrainSummary terrain = SurveyorUtil.getTerrain(level);
-
-        if (terrain == null) throw new IllegalStateException("Surveyor terrain data is null");
-
         PathGraph graph = PathGraph.getInstance(level);
 
         if (graph == null) throw new IllegalStateException("PathGraph is null");
@@ -58,8 +44,8 @@ public class MapBakeWorker {
         PathGraph.NetworkCache network = graph.getNetworkCache(networkId);
         PathGraph.FoWCache fowCache = graph.getOrComputeFoWCache(network);
 
-        if (fowCache == null) throw new IllegalStateException("Surveyor terrain data is null");
-        
+        if (fowCache == null) throw new IllegalStateException("FoW cache is null");
+
         ChunkPos minChunk = fowCache.minChunk();
         ChunkPos maxChunk = fowCache.maxChunk();
 
@@ -70,7 +56,7 @@ public class MapBakeWorker {
 
         // 3. Render Image for the chunk area covering padded bounds
         BufferedImage chunkAreaImg = new BufferedImage(chunkAreaWidth / scaleFactor, chunkAreaHeight / scaleFactor, BufferedImage.TYPE_INT_ARGB);
-        processSurveyorChunks(chunkAreaImg, level, terrain, minChunk, maxChunk, allowedChunks, scaleFactor);
+        processChunkPngs(chunkAreaImg, level, minChunk, maxChunk, allowedChunks, scaleFactor);
 
         // 4. Crop to the exact padded bounds (which are the desired image bounds)
         int cropOffsetX = paddedMin.getX() - (minChunk.x * 16);
@@ -100,39 +86,29 @@ public class MapBakeWorker {
      */
     public MapInfo updateMap(MapInfo previousResult, Set<ChunkPos> dirtyChunks, ServerLevel level, PathGraph.NetworkCache network) {
         ViaRomana.LOGGER.debug("MapBakeWorker.updateMap() called with {} dirty chunks for network {}", dirtyChunks.size(), previousResult.networkId());
-        
+
         StringBuilder dirtyChunksList = new StringBuilder();
         for (ChunkPos pos : dirtyChunks) {
             dirtyChunksList.append(pos.toString()).append(" ");
         }
         ViaRomana.LOGGER.debug("Dirty chunks to update: {}", dirtyChunksList.toString().trim());
-        
+
         try {
             BufferedImage mapImage = ImageIO.read(new ByteArrayInputStream(previousResult.pngData()));
             Graphics2D graphics = mapImage.createGraphics();
 
-            WorldTerrainSummary terrain = SurveyorUtil.getTerrain(level);
-            if (terrain == null) {
-                ViaRomana.LOGGER.error("Cannot update map: Surveyor terrain is null.");
-                return previousResult;
-            }
-
             BlockPos paddedMin = previousResult.minBounds();
             int scaleFactor = previousResult.bakeScaleFactor();
             ChunkPos minChunk = new ChunkPos(paddedMin);
-            
+
             ViaRomana.LOGGER.debug("Map update: minBounds(padded)={}, scaleFactor={}, minChunk={}", paddedMin, scaleFactor, minChunk);
 
             int chunksUpdated = 0;
             int chunksSkippedNoData = 0;
-            
+
             for (ChunkPos dirtyPos : dirtyChunks) {
-                ChunkSummary summary = terrain.get(dirtyPos);
-                if (summary == null) {
-                    chunksSkippedNoData++;
-                    ViaRomana.LOGGER.warn("No Surveyor data for dirty chunk {}", dirtyPos);
-                    continue;
-                }
+                chunksSkippedNoData++;
+                ViaRomana.LOGGER.debug("Re-rendering dirty chunk {} ", dirtyPos);
 
                 int relBlockX = dirtyPos.x * 16 - paddedMin.getX();
                 int relBlockZ = dirtyPos.z * 16 - paddedMin.getZ();
@@ -141,24 +117,38 @@ public class MapBakeWorker {
 
                 ViaRomana.LOGGER.debug("Updating chunk {} at image position ({}, {})", dirtyPos, chunkImgX, chunkImgZ);
 
-                int scaledChunkSize = 16 / scaleFactor;
-                if (scaledChunkSize <= 0) scaledChunkSize = 1;
-                BufferedImage chunkImage = new BufferedImage(scaledChunkSize, scaledChunkSize, BufferedImage.TYPE_INT_ARGB);
-                
-                renderSurveyorChunk(chunkImage, level, terrain, summary, dirtyPos, dirtyPos.x, dirtyPos.z, scaleFactor);
-                
-                graphics.drawImage(chunkImage, chunkImgX, chunkImgZ, null);
-                chunksUpdated++;
+                // Re-render PNG for dirty chunk
+                byte[] newBytes = ChunkPngUtil.renderChunkPngBytes(level, dirtyPos);
+                ChunkPngUtil.setPngBytes(level, dirtyPos, newBytes);
+
+                // Composite to map
+                Optional<byte[]> optBytes = ChunkPngUtil.getPngBytes(level, dirtyPos);
+                if (optBytes.isPresent()) {
+                    BufferedImage chunkImage = ChunkPngUtil.loadPngFromBytes(optBytes.get());
+                    if (chunkImage != null) {
+                        int scaledChunkSize = 16 / scaleFactor;
+                        if (scaledChunkSize <= 0) scaledChunkSize = 1;
+                        if (scaleFactor > 1) {
+                            BufferedImage scaled = new BufferedImage(scaledChunkSize, scaledChunkSize, BufferedImage.TYPE_INT_ARGB);
+                            Graphics2D sg = scaled.createGraphics();
+                            sg.drawImage(chunkImage, 0, 0, scaledChunkSize, scaledChunkSize, null);
+                            sg.dispose();
+                            chunkImage = scaled;
+                        }
+                        graphics.drawImage(chunkImage, chunkImgX, chunkImgZ, null);
+                        chunksUpdated++;
+                    }
+                }
             }
 
             graphics.dispose();
-            
+
             ViaRomana.LOGGER.debug("Map incremental update completed: {} chunks updated, {} chunks skipped (no data)", chunksUpdated, chunksSkippedNoData);
 
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             ImageIO.write(mapImage, "PNG", outputStream);
-            return MapInfo.fromServerCache(previousResult.networkId(), previousResult.minBounds(), previousResult.maxBounds(), 
-                                  previousResult.networkNodes(), outputStream.toByteArray(), scaleFactor, previousResult.allowedChunks());
+            return MapInfo.fromServerCache(previousResult.networkId(), previousResult.minBounds(), previousResult.maxBounds(),
+                    previousResult.networkNodes(), outputStream.toByteArray(), scaleFactor, previousResult.allowedChunks());
 
         } catch (IOException e) {
             ViaRomana.LOGGER.error("Failed to update map incrementally, performing a full re-bake.", e);
@@ -175,109 +165,76 @@ public class MapBakeWorker {
         return Integer.highestOneBit(requiredScale - 1) << 1;
     }
 
-    private void processSurveyorChunks(BufferedImage img, ServerLevel level, WorldTerrainSummary terrain, ChunkPos min, ChunkPos max, Set<ChunkPos> allowedChunks, int scaleFactor) {
-        ViaRomana.LOGGER.debug("Processing Surveyor chunks: area from {} to {}, {} allowed chunks, scale factor {}", min, max, allowedChunks.size(), scaleFactor);
-        int chunksWithData = attemptRender(img, level, terrain, min, max, allowedChunks, scaleFactor);
-        ViaRomana.LOGGER.debug("Surveyor chunk processing complete: {} chunks had data out of {} allowed chunks", chunksWithData, allowedChunks.size());
+    private void processChunkPngs(BufferedImage img, ServerLevel level, ChunkPos min, ChunkPos max, Set<ChunkPos> allowedChunks, int scaleFactor) {
+        ViaRomana.LOGGER.debug("Processing chunk PNGs: area from {} to {}, {} allowed chunks, scale factor {}", min, max, allowedChunks.size(), scaleFactor);
+        int chunksWithData = attemptRender(img, level, min, max, allowedChunks, scaleFactor);
+        ViaRomana.LOGGER.debug("Chunk PNG processing complete: {} chunks had data out of {} allowed chunks", chunksWithData, allowedChunks.size());
         if (chunksWithData == 0 && !allowedChunks.isEmpty()) {
-            ViaRomana.LOGGER.warn("Map Bake: No Surveyor chunk data was available for the requested map area. The map may appear blank.");
+            ViaRomana.LOGGER.warn("Map Bake: No chunk PNG data was available for the requested map area. The map may appear blank.");
         }
     }
 
-    private int attemptRender(BufferedImage img, ServerLevel level, WorldTerrainSummary terrain, ChunkPos min, ChunkPos max, Set<ChunkPos> allowedChunks, int scaleFactor) {
-        int surveyorDataChunks = 0;
+    private int attemptRender(BufferedImage img, ServerLevel level, ChunkPos min, ChunkPos max, Set<ChunkPos> allowedChunks, int scaleFactor) {
+        int pngChunks = 0;
         int totalChecked = 0;
-        
+        Graphics2D g = img.createGraphics();
+
         for (int cx = min.x; cx <= max.x; cx++) {
             for (int cz = min.z; cz <= max.z; cz++) {
                 ChunkPos chunkPos = new ChunkPos(cx, cz);
                 if (!allowedChunks.contains(chunkPos)) continue;
-                
+
                 totalChecked++;
-                ChunkSummary chunkSummary = terrain.get(chunkPos);
-                if (chunkSummary != null) {
-                    surveyorDataChunks++;
-                    ViaRomana.LOGGER.debug("Rendering chunk {} with Surveyor data", chunkPos);
-                    renderSurveyorChunk(img, level, terrain, chunkSummary, min, cx, cz, scaleFactor);
+                LevelChunk chunk = level.getChunk(chunkPos.x, chunkPos.z);
+                if (chunk == null) {
+                    ViaRomana.LOGGER.warn("Failed to load chunk {} for PNG composite", chunkPos);
+                    continue;
+                }
+
+                ViaRomana.LOGGER.debug("Checking PNG for chunk {}", chunkPos);
+                Optional<byte[]> optBytes = ChunkPngUtil.getPngBytes(level, chunkPos);
+
+                if (optBytes.isEmpty() || optBytes.get().length == 0) {
+                    ViaRomana.LOGGER.info("No PNG for chunk {}; rendering fallback", chunkPos);
+                    byte[] newBytes = ChunkPngUtil.renderChunkPngBytes(level, chunkPos);
+                    if (newBytes.length > 0) {
+                        ChunkPngUtil.setPngBytes(level, chunkPos, newBytes);
+                        optBytes = Optional.of(newBytes);
+                        ViaRomana.LOGGER.debug("Fallback PNG rendered (size: {}) for {}", newBytes.length, chunkPos);
+                    } else {
+                        ViaRomana.LOGGER.warn("Fallback render returned empty for {} (likely all-air chunk)", chunkPos);
+                        continue;
+                    }
                 } else {
-                    ViaRomana.LOGGER.debug("No Surveyor data for chunk {}", chunkPos);
+                    ViaRomana.LOGGER.debug("Loaded PNG (size: {}) for chunk {}", optBytes.get().length, chunkPos);
                 }
+
+                byte[] bytes = optBytes.get();
+                BufferedImage chunkImg = ChunkPngUtil.loadPngFromBytes(bytes);
+                if (chunkImg == null) {
+                    ViaRomana.LOGGER.warn("Failed to load PNG image for chunk {} (bytes: {})", chunkPos, bytes.length);
+                    continue;
+                }
+
+                pngChunks++;
+                ViaRomana.LOGGER.info("Compositing PNG for chunk {}", chunkPos);
+                int scaledSize = 16 / scaleFactor;
+                if (scaleFactor > 1) {
+                    BufferedImage scaled = new BufferedImage(scaledSize, scaledSize, BufferedImage.TYPE_INT_ARGB);
+                    Graphics2D sg = scaled.createGraphics();
+                    sg.drawImage(chunkImg, 0, 0, scaledSize, scaledSize, null);
+                    sg.dispose();
+                    chunkImg = scaled;
+                }
+
+                int baseX = (cx - min.x) * scaledSize;
+                int baseZ = (cz - min.z) * scaledSize;
+                g.drawImage(chunkImg, baseX, baseZ, null);
             }
         }
-        
-        ViaRomana.LOGGER.debug("Render attempt complete: {}/{} chunks had Surveyor data", surveyorDataChunks, totalChecked);
-        return surveyorDataChunks;
-    }
 
-    private void renderSurveyorChunk(BufferedImage img, ServerLevel level, WorldTerrainSummary terrain, ChunkSummary summary, ChunkPos minPos, int cx, int cz, int scaleFactor) {
-        LayerSummary.Raw layer = summary.toSingleLayer(null, null, level.getMaxBuildHeight());
-        if (layer == null) return;
-        
-        var blockPalette = terrain.getBlockPalette(new ChunkPos(cx, cz));
-        int worldTop = level.getMaxBuildHeight();
-        
-        int[] heights = new int[256];
-        for (int i = 0; i < 256; i++) {
-            heights[i] = layer.exists().get(i) ? worldTop - layer.depths()[i] : Integer.MIN_VALUE;
-        }
-        
-        int baseX = (cx - minPos.x) * 16;
-        int baseZ = (cz - minPos.z) * 16;
-        
-        for (int lx = 0; lx < 16; lx += scaleFactor) {
-            for (int lz = 0; lz < 16; lz += scaleFactor) {
-                int px = (baseX + lx) / scaleFactor;
-                int pz = (baseZ + lz) / scaleFactor;
-                
-                if (px >= img.getWidth() || pz >= img.getHeight()) continue;
-                
-                int color = getPixelColor(lx * 16 + lz, heights, layer.blocks(), layer.waterDepths(), layer.exists(), blockPalette);
-                if (color != -1) {
-                    img.setRGB(px, pz, color | 0xFF000000);
-                }
-            }
-        }
-    }
-
-    private int getPixelColor(int idx, int[] heights, int[] blocks, int[] waterDepths, BitSet exists, RegistryPalette<Block>.ValueView blockPalette) {
-        boolean hasWater = waterDepths != null && waterDepths[idx] > 0;
-        if (!exists.get(idx) && !hasWater) return -1;
-        
-        MapColor mapColor;
-        MapColor.Brightness brightness;
-        
-        if (hasWater) {
-            mapColor = MapColor.WATER;
-            brightness = calculateWaterBrightness(idx, waterDepths[idx]);
-        } else {
-            Block block = blockPalette.byId(blocks[idx]);
-            if (block == null || block == Blocks.AIR) return -1;
-            
-            mapColor = block.defaultMapColor();
-            brightness = calculateTerrainBrightness(heights, idx);
-        }
-        
-        int mcColor = mapColor.calculateRGBColor(brightness);
-
-        return ((mcColor & 0xFF) << 16) | (mcColor & 0xFF00) | ((mcColor >> 16) & 0xFF);
-    }
-
-    private MapColor.Brightness calculateWaterBrightness(int idx, int waterDepth) {
-        double shade = Math.min(waterDepth / 8.0, 1.0) + (((idx >> 4) + (idx & 15)) & 1) * 0.15;
-        return shade < 0.3 ? MapColor.Brightness.HIGH : shade > 0.7 ? MapColor.Brightness.LOW : MapColor.Brightness.NORMAL;
-    }
-
-    private MapColor.Brightness calculateTerrainBrightness(int[] heights, int idx) {
-        int lx = idx >> 4;
-        int lz = idx & 15;
-        
-        int currentHeight = heights[idx];
-        int westHeight = (lx > 0) ? heights[idx - 16] : currentHeight;
-        
-        double shade = (currentHeight - westHeight) * 4.0 / (double) 2.0 + ((((lz + lx) & 1) - 0.5) * 0.4);
-        
-        if (shade > 0.6) return MapColor.Brightness.HIGH;
-        if (shade < -0.6) return MapColor.Brightness.LOW;
-        return MapColor.Brightness.NORMAL;
+        g.dispose();
+        ViaRomana.LOGGER.info("Render attempt complete: {}/{} chunks had PNG data", pngChunks, totalChecked);
+        return pngChunks;
     }
 }

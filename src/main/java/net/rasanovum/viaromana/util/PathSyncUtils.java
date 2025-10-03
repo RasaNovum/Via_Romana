@@ -20,7 +20,6 @@ public class PathSyncUtils {
     public static void syncPathGraphToAllPlayers(ServerLevel level) {
         try {
             IPathStorage storage = IPathStorage.get(level);
-            if (storage == null) return;
             PathGraph graph = storage.graph();
 
             if (CommonConfig.enable_surveyor_landmark && CommonConfig.enable_surveyor_landmark_coloring) {
@@ -51,8 +50,7 @@ public class PathSyncUtils {
         try {
             ServerLevel level = player.serverLevel();
             IPathStorage storage = IPathStorage.get(level);
-            if (storage == null) return;
-            
+
             PathGraphSyncPacket packet = new PathGraphSyncPacket(storage.graph());
             Dispatcher.sendToClient(packet, player);
             

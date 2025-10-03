@@ -4,16 +4,13 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.LevelResource;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.path.PathGraph;
-import net.rasanovum.viaromana.surveyor.SurveyorUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,11 +38,9 @@ import java.util.stream.Collectors;
  * saving and lazy-loading map data to/from disk.
  */
 public final class ServerMapCache {
-
     private static final String MAP_DIR_NAME = "via_romana/network_images";
     private static final Map<UUID, MapInfo> cache = new ConcurrentHashMap<>();
     private static final Map<UUID, Set<ChunkPos>> dirtyNetworks = new ConcurrentHashMap<>();
-    private static final Map<ResourceKey<Level>, Set<ChunkPos>> scannedChunksByLevel = new ConcurrentHashMap<>();
     private static final Set<UUID> modifiedForSaving = ConcurrentHashMap.newKeySet();
 
     private static ScheduledExecutorService scheduler;
@@ -93,10 +88,6 @@ public final class ServerMapCache {
     }
 
     public static void markChunkDirty(ServerLevel level, ChunkPos pos) {
-        boolean isNewChunkThisCycle = scannedChunksByLevel.computeIfAbsent(level.dimension(), k -> ConcurrentHashMap.newKeySet()).add(pos);
-
-        if (!isNewChunkThisCycle) return;
-
         PathGraph graph = PathGraph.getInstance(level);
         if (graph == null) return;
 
@@ -107,17 +98,6 @@ public final class ServerMapCache {
     }
 
     public static void processAllDirtyNetworks() {
-        if (!scannedChunksByLevel.isEmpty()) {
-            Map<ResourceKey<Level>, Set<ChunkPos>> chunksToScan = new ConcurrentHashMap<>(scannedChunksByLevel);
-            scannedChunksByLevel.clear();
-            chunksToScan.forEach((levelKey, chunks) -> {
-                ServerLevel level = minecraftServer.getLevel(levelKey);
-                if (level != null) {
-                    minecraftServer.execute(() -> chunks.forEach(chunkPos -> SurveyorUtil.refreshChunkTerrain(level, chunkPos)));
-                }
-            });
-        }
-        
         if (dirtyNetworks.isEmpty()) {
             return;
         }
@@ -155,7 +135,6 @@ public final class ServerMapCache {
                             newResult = worker.updateMap(previousResult, new HashSet<>(chunksToUpdate), level, network);
                         } else {
                             ViaRomana.LOGGER.debug("Performing full bake for network {}.", networkId);
-                            if (graph != null) graph.getNodesAsInfo(network).forEach(node -> SurveyorUtil.refreshChunkTerrain(level, new ChunkPos(node.position)));
                             newResult = worker.bake(networkId, level, network.getMin(), network.getMax(), graph.getNodesAsInfo(network));
                         }
 
@@ -201,8 +180,6 @@ public final class ServerMapCache {
                     if (graph != null) {
                         PathGraph.NetworkCache network = graph.getNetworkCache(networkId);
                         if (network != null) {
-                            graph.getNodesAsInfo(network).forEach(node -> SurveyorUtil.refreshChunkTerrain(level, new ChunkPos(node.position)));
-                            
                             Set<ChunkPos> allChunks = graph.getNodesAsInfo(network).stream()
                                     .map(node -> new ChunkPos(node.position))
                                     .collect(Collectors.toSet());
@@ -224,11 +201,11 @@ public final class ServerMapCache {
             CompoundTag tag;
 
             try (InputStream pngStream = Files.newInputStream(pngPath);
-                InputStream metaStream = Files.newInputStream(metaPath)) {
+                 InputStream metaStream = Files.newInputStream(metaPath)) {
                 png = pngStream.readAllBytes();
                 //? if <1.21 {
                 /*tag = NbtIo.readCompressed(metaStream);
-                *///?} else {
+                 *///?} else {
                 tag = NbtIo.readCompressed(metaStream, new NbtAccounter(Long.MAX_VALUE, Integer.MAX_VALUE));
                 //?}
             } catch (NoSuchFileException e) {
@@ -271,7 +248,6 @@ public final class ServerMapCache {
         cache.clear();
         dirtyNetworks.clear();
         modifiedForSaving.clear();
-        scannedChunksByLevel.clear();
     }
 
     public static void saveAllToDisk(boolean forceSave) {
@@ -336,8 +312,8 @@ public final class ServerMapCache {
             if (Files.exists(mapDir)) {
                 try (var stream = Files.walk(mapDir)) {
                     stream.sorted(java.util.Comparator.reverseOrder())
-                          .map(Path::toFile)
-                          .forEach(java.io.File::delete);
+                            .map(Path::toFile)
+                            .forEach(java.io.File::delete);
                 }
                 ViaRomana.LOGGER.debug("Deleted all map files from disk.");
             }
@@ -349,7 +325,7 @@ public final class ServerMapCache {
     private static Path getMapDirectory() {
         return minecraftServer.getWorldPath(LevelResource.ROOT).resolve(MAP_DIR_NAME);
     }
-    
+
     private static void runSafe(Runnable task, String errorMessage) {
         try {
             task.run();

@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class ServerLevelMixin {
 
     /**
-     * Injects into all block state changes to update Surveyor's terrain data in real-time.
+     * Injects into all block state changes to update terrain PNGs in real-time.
      * This keeps the terrain cache accurate as the world is modified.
      */
     @Inject(
@@ -30,7 +30,6 @@ public abstract class ServerLevelMixin {
         LevelChunk levelChunk = world.getChunkSource().getChunkNow(chunkPos.x, chunkPos.z);
         if (levelChunk == null) return;
 
-        // Mark the chunk as dirty for batched processing (Surveyor refresh happens in the batch)
         ServerMapCache.markChunkDirty(world, chunkPos);
     }
 }
