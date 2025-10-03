@@ -1,9 +1,5 @@
 package net.rasanovum.viaromana.command;
 
-import com.mojang.brigadier.arguments.IntegerArgumentType;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.ChunkPos;
-import net.rasanovum.viaromana.map.ChunkPngUtil;
 import net.rasanovum.viaromana.path.PathGraph;
 import net.rasanovum.viaromana.storage.IPathStorage;
 import net.rasanovum.viaromana.util.PathSyncUtils;
@@ -21,8 +17,6 @@ import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 
-import java.util.Optional;
-
 
 public class ViaRomanaCommands {
 
@@ -32,7 +26,7 @@ public class ViaRomanaCommands {
                 .then(Commands.literal("nodes")
                         .then(Commands.literal("clear")
                                 .executes(ViaRomanaCommands::clearAllNodes)))
-                .then(Commands.literal("cache")
+                .then(Commands.literal("client")
                         .then(Commands.literal("clear")
                                 .executes(ViaRomanaCommands::clearCache)))
                 .then(Commands.literal("maps")
@@ -40,17 +34,13 @@ public class ViaRomanaCommands {
                                 .executes(ViaRomanaCommands::clearMaps))
                         .then(Commands.literal("regenerate")
                                 .executes(ViaRomanaCommands::regenerateMaps))
-                        .then(Commands.literal("testpng")
-                                .then(Commands.argument("x", IntegerArgumentType.integer())
-                                        .then(Commands.argument("z", IntegerArgumentType.integer())
-                                                .executes(ctx ->
-                                                        testPngAttachment(ctx.getSource(),
-                                                                IntegerArgumentType.getInteger(ctx, "x"),
-                                                                IntegerArgumentType.getInteger(ctx, "z"))))))
                         .then(Commands.literal("save")
                                 .executes(ViaRomanaCommands::saveMaps))));
     }
-    
+
+    /**
+    * Removes all nodes from Client & Server Path Graphs
+     */
     private static int clearAllNodes(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         CommandSourceStack source = context.getSource();
 
@@ -75,16 +65,15 @@ public class ViaRomanaCommands {
         return nodeCount;
     }
 
+    /**
+    * Clears Client Path Graph data
+     */
     private static int clearCache(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         CommandSourceStack source = context.getSource();
 
-        if (source.getLevel().isClientSide()) {
-            ClientPathData.getInstance().clearData();
-            MapRenderer.clearCache();
-        }
+        if (source.getLevel().isClientSide()) ClientPathData.getInstance().clearData();
         
         PathSyncUtils.syncPathGraphToPlayer(source.getPlayerOrException());
-        ServerMapCache.clear();
 
         // VariableAccess.playerVariables.setReceivedTutorial(source.getPlayerOrException(), false);
 
@@ -93,62 +82,48 @@ public class ViaRomanaCommands {
     }
 
     /**
-     * Clears only the map caches (server and client map renderers)
+     * Clears map caches (server, client, and chunk PNG data)
      */
     private static int clearMaps(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         CommandSourceStack source = context.getSource();
+        
+        // Clear chunk PNG data
+        source.sendSuccess(() -> Component.literal("Clearing chunk PNG data..."), false);
+        ServerMapCache.clearAllChunkPngData();
+        
+        // Clear map caches and disk data
         ServerMapCache.clear();
         ServerMapCache.deleteAllMapsFromDisk();
         if (source.getLevel().isClientSide()) MapRenderer.clearCache();
-        source.sendSuccess(() -> Component.literal("Cleared Via Romana map cache"), true);
+        
+        source.sendSuccess(() -> Component.literal("Cleared Via Romana maps (cache, disk, and chunk PNG data)"), true);
         return 1;
     }
 
     /**
-     * Immediately processes any queued/dirty networks to regenerate their maps
+     * Immediately regenerates chunk PNG data and processes dirty networks
      */
     private static int regenerateMaps(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         CommandSourceStack source = context.getSource();
+        
+        // Regenerate chunk PNG data
+        source.sendSuccess(() -> Component.literal("Regenerating chunk PNG data..."), false);
+        ServerMapCache.regenerateAllChunkPngData();
+        
+        // Process dirty networks to regenerate maps
         ServerMapCache.processAllDirtyNetworks();
-        source.sendSuccess(() -> Component.literal("Triggered regeneration for dirty Via Romana maps"), true);
+        
+        source.sendSuccess(() -> Component.literal("Regenerated Via Romana maps (chunk PNG data and map images)"), true);
         return 1;
     }
 
     /**
-     * Saves all in-memory maps to disk
+     * Saves all cached maps to disk
      */
     private static int saveMaps(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         CommandSourceStack source = context.getSource();
         ServerMapCache.saveAllToDisk(true);
         source.sendSuccess(() -> Component.literal("Saved Via Romana maps to disk"), true);
-        return 1;
-    }
-
-    /*
-    * Tests PNG attachment to a given chunk
-     */
-    private static int testPngAttachment(CommandSourceStack source, int cx, int cz) {
-        ServerLevel level = source.getLevel();
-        ChunkPos pos = new ChunkPos(cx, cz);
-
-        // Step 1: Render & set
-        source.sendSuccess(() -> Component.literal("Rendering PNG for chunk " + pos + "..."), false);
-        byte[] bytes = ChunkPngUtil.renderChunkPngBytes(level, pos);
-        ChunkPngUtil.setPngBytes(level, pos, bytes);
-        source.sendSuccess(() -> Component.literal("Set PNG (size: " + bytes.length + " bytes)"), false);
-
-        // Step 2: Immediate get (should match)
-        Optional<byte[]> immediate = ChunkPngUtil.getPngBytes(level, pos);
-        if (immediate.isPresent() && java.util.Arrays.equals(immediate.get(), bytes)) {
-            source.sendSuccess(() -> Component.literal("Immediate get: SUCCESS (matches)"), false);
-        } else {
-            source.sendFailure(Component.literal("Immediate get: FAIL"));
-        }
-
-        // Step 3: Reload chunk (unload/load to test persistence)
-        // Force unload (walk away or use /tp), then return and run:
-        source.sendSuccess(() -> Component.literal("Reload chunk and re-run /testpng to check persistence"), false);
-
         return 1;
     }
 }

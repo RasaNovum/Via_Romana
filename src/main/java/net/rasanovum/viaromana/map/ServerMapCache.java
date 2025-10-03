@@ -322,6 +322,57 @@ public final class ServerMapCache {
         }
     }
 
+    /**
+     * Clears chunk PNG data for all networks in the cache.
+     */
+    public static void clearAllChunkPngData() {
+        for (ServerLevel level : minecraftServer.getAllLevels()) {
+            PathGraph graph = PathGraph.getInstance(level);
+            if (graph == null) continue;
+
+            Set<ChunkPos> allChunks = new HashSet<>();
+            for (UUID networkId : cache.keySet()) {
+                PathGraph.NetworkCache network = graph.getNetworkCache(networkId);
+                if (network != null) {
+                    PathGraph.FoWCache fowCache = graph.getOrComputeFoWCache(network);
+                    if (fowCache != null) {
+                        allChunks.addAll(fowCache.allowedChunks());
+                    }
+                }
+            }
+            
+            if (!allChunks.isEmpty()) {
+                ChunkPngUtil.clearPngBytesForChunks(level, allChunks);
+            }
+        }
+    }
+
+    /**
+     * Regenerates chunk PNG data for all dirty networks.
+     */
+    public static void regenerateAllChunkPngData() {
+        for (ServerLevel level : minecraftServer.getAllLevels()) {
+            PathGraph graph = PathGraph.getInstance(level);
+            if (graph == null) continue;
+
+            Set<ChunkPos> allChunks = new HashSet<>();
+            for (Map.Entry<UUID, Set<ChunkPos>> entry : dirtyNetworks.entrySet()) {
+                UUID networkId = entry.getKey();
+                PathGraph.NetworkCache network = graph.getNetworkCache(networkId);
+                if (network != null) {
+                    PathGraph.FoWCache fowCache = graph.getOrComputeFoWCache(network);
+                    if (fowCache != null) {
+                        allChunks.addAll(fowCache.allowedChunks());
+                    }
+                }
+            }
+            
+            if (!allChunks.isEmpty()) {
+                ChunkPngUtil.regeneratePngBytesForChunks(level, allChunks);
+            }
+        }
+    }
+
     private static Path getMapDirectory() {
         return minecraftServer.getWorldPath(LevelResource.ROOT).resolve(MAP_DIR_NAME);
     }

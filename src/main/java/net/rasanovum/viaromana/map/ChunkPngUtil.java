@@ -22,6 +22,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.BitSet;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Utility for rendering/loading chunk PNGs and hooking to Data Anchor.
@@ -177,7 +178,42 @@ public class ChunkPngUtil {
     }
 
     /**
-     * Loads bytes to BufferedImage (for drawImage in bake).
+     * Clears PNG bytes from Data Anchor.
+     */
+    public static void clearPngBytes(ServerLevel level, ChunkPos pos) {
+        setPngBytes(level, pos, new byte[0]);
+        ViaRomana.LOGGER.debug("Cleared PNG for chunk {}", pos);
+    }
+
+    /**
+     * Clears PNG bytes for all chunks in the given set.
+     */
+    public static void clearPngBytesForChunks(ServerLevel level, Set<ChunkPos> chunks) {
+        int cleared = 0;
+        for (ChunkPos pos : chunks) {
+            clearPngBytes(level, pos);
+            cleared++;
+        }
+        ViaRomana.LOGGER.info("Cleared PNG data for {} chunks", cleared);
+    }
+
+    /**
+     * Regenerates PNG bytes for all chunks in the given set.
+     */
+    public static void regeneratePngBytesForChunks(ServerLevel level, Set<ChunkPos> chunks) {
+        int regenerated = 0;
+        for (ChunkPos pos : chunks) {
+            byte[] newBytes = renderChunkPngBytes(level, pos);
+            if (newBytes.length > 0) {
+                setPngBytes(level, pos, newBytes);
+                regenerated++;
+            }
+        }
+        ViaRomana.LOGGER.info("Regenerated PNG data for {} chunks", regenerated);
+    }
+
+    /**
+     * Loads bytes to BufferedImage.
      */
     public static BufferedImage loadPngFromBytes(byte[] bytes) {
         if (bytes == null || bytes.length == 0) return null;
