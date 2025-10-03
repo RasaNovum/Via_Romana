@@ -31,7 +31,8 @@
 		"minecraft": ">=${mc}",
 		"fabricloader": ">=${fl}",
 		"fabric-api": ">=${fapi}",
-		"midnightlib": "*"
+		"midnightlib": "*",
+		"selene": "*"
 	},
 	"mixins": [
 		"${modId}.mixins.json"
