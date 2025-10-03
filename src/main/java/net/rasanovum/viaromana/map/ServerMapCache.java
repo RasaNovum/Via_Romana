@@ -219,16 +219,13 @@ public final class ServerMapCache {
         try {
             Path mapDir = getMapDirectory();
             String base = "network-" + networkId;
-            Path pngPath = mapDir.resolve(base + ".png");
             Path metaPath = mapDir.resolve(base + ".nbt");
             Path pixelsPath = mapDir.resolve(base + ".pixels");
             
-            byte[] png;
             CompoundTag tag;
+            byte[] fullPixels = null;
 
-            try (InputStream pngStream = Files.newInputStream(pngPath);
-                 InputStream metaStream = Files.newInputStream(metaPath)) {
-                png = pngStream.readAllBytes();
+            try (InputStream metaStream = Files.newInputStream(metaPath)) {
                 //? if <1.21 {
                 /*tag = NbtIo.readCompressed(metaStream);
                  *///?} else {
@@ -241,32 +238,28 @@ public final class ServerMapCache {
             BlockPos min = BlockPos.of(tag.getLong("min"));
             BlockPos max = BlockPos.of(tag.getLong("max"));
             int scale = tag.getInt("scale");
+            int pixelWidth = tag.getInt("pixelWidth");
+            int pixelHeight = tag.getInt("pixelHeight");
             
-            // Try to load fullPixels for incremental updates
-            byte[] fullPixels = null;
-            int pixelWidth = 0;
-            int pixelHeight = 0;
-            
+            // Load raw pixels (required for map data)
             if (Files.exists(pixelsPath)) {
                 try (InputStream pixelsStream = Files.newInputStream(pixelsPath)) {
                     fullPixels = pixelsStream.readAllBytes();
-                    if (tag.contains("pixelWidth") && tag.contains("pixelHeight")) {
-                        pixelWidth = tag.getInt("pixelWidth");
-                        pixelHeight = tag.getInt("pixelHeight");
-                    }
                 } catch (IOException e) {
-                    ViaRomana.LOGGER.warn("Failed to load pixels for {}, will regenerate on update", networkId);
-                    fullPixels = null;
+                    ViaRomana.LOGGER.error("Failed to load pixels for {}", networkId, e);
+                    return Optional.empty();
                 }
+            } else {
+                ViaRomana.LOGGER.warn("No pixel data found for network {}", networkId);
+                return Optional.empty();
             }
 
-            MapInfo info = MapInfo.fromServerCache(networkId, min, max, List.of(), png, scale, List.of(), 
+            MapInfo info = MapInfo.fromServerCache(networkId, min, max, List.of(), null, scale, List.of(), 
                 fullPixels, pixelWidth, pixelHeight);
             cache.put(networkId, info);
             long loadTime = System.nanoTime() - startTime;
-            ViaRomana.LOGGER.info("[PERF] Loaded map {} from disk: {}ms, pngSize={}KB, pixelsSize={}KB", 
-                networkId, loadTime / 1_000_000.0, png.length / 1024.0, 
-                fullPixels != null ? fullPixels.length / 1024.0 : 0);
+            ViaRomana.LOGGER.info("[PERF] Loaded map {} from disk: {}ms, pixelsSize={}KB", 
+                networkId, loadTime / 1_000_000.0, fullPixels.length / 1024.0);
             return Optional.of(info);
 
         } catch (IOException e) {
@@ -320,13 +313,12 @@ public final class ServerMapCache {
             for (UUID id : networksToSave) {
                 MapInfo info = cache.get(id);
 
-                if (info == null || !info.hasImageData()) {
+                if (info == null || info.fullPixels() == null || info.pixelWidth() == 0 || info.pixelHeight() == 0) {
                     invalidate(id);
                     continue;
                 }
 
                 String base = "network-" + id;
-                Path pngPath = mapDir.resolve(base + ".png");
                 Path nbtPath = mapDir.resolve(base + ".nbt");
                 Path pixelsPath = mapDir.resolve(base + ".pixels");
 
@@ -334,32 +326,19 @@ public final class ServerMapCache {
                 tag.putLong("min", info.minBounds().asLong());
                 tag.putLong("max", info.maxBounds().asLong());
                 tag.putInt("scale", info.bakeScaleFactor());
+                tag.putInt("pixelWidth", info.pixelWidth());
+                tag.putInt("pixelHeight", info.pixelHeight());
                 if (info.createdAtMs() != null) {
                     tag.putLong("createdAt", info.createdAtMs());
                 }
-                // Save pixel dimensions for incremental updates
-                if (info.fullPixels() != null) {
-                    tag.putInt("pixelWidth", info.pixelWidth());
-                    tag.putInt("pixelHeight", info.pixelHeight());
-                }
 
-                try (OutputStream pngOut = Files.newOutputStream(pngPath);
-                     OutputStream nbtOut = Files.newOutputStream(nbtPath)) {
-                    pngOut.write(info.pngData());
+                try (OutputStream nbtOut = Files.newOutputStream(nbtPath);
+                     OutputStream pixelsOut = Files.newOutputStream(pixelsPath)) {
                     NbtIo.writeCompressed(tag, nbtOut);
-                    
-                    // Save fullPixels for fast incremental updates after restart
-                    if (info.fullPixels() != null) {
-                        try (OutputStream pixelsOut = Files.newOutputStream(pixelsPath)) {
-                            pixelsOut.write(info.fullPixels());
-                        }
-                    }
+                    pixelsOut.write(info.fullPixels());
                     
                     savedCount++;
-                    totalBytes += info.pngData().length;
-                    if (info.fullPixels() != null) {
-                        totalBytes += info.fullPixels().length;
-                    }
+                    totalBytes += info.fullPixels().length;
                 } catch (IOException e) {
                     ViaRomana.LOGGER.error("Failed to write map files for network {}", id, e);
                 }

@@ -12,12 +12,6 @@ import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.network.packets.DestinationResponseS2C.NodeNetworkInfo;
 import commonnetwork.api.Dispatcher;
 
-import net.minecraft.client.gui.MapRenderer;
-import net.minecraft.world.item.MapItem;
-import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.UUID;
@@ -78,19 +72,47 @@ public class MapClient {
     }
 
     public static MapTexture createTexture(MapInfo mapInfo) {
-        if (mapInfo == null || !mapInfo.hasImageData()) {
+        if (mapInfo == null || mapInfo.fullPixels() == null || mapInfo.pixelWidth() == 0 || mapInfo.pixelHeight() == 0) {
             return null;
         }
 
         try {
-            NativeImage image = NativeImage.read(new ByteArrayInputStream(mapInfo.pngData()));
+            long startTime = System.nanoTime();
+            
+            int width = mapInfo.pixelWidth();
+            int height = mapInfo.pixelHeight();
+            byte[] pixels = mapInfo.fullPixels();
+            
+            // Create NativeImage and convert raw pixels to ARGB
+            long createImageStart = System.nanoTime();
+            NativeImage image = new NativeImage(width, height, false);
+            long createImageTime = System.nanoTime() - createImageStart;
+            
+            long convertStart = System.nanoTime();
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
+                    int idx = x + y * width;
+                    int packedId = pixels[idx] & 0xFF;
+                    int argb = net.minecraft.world.level.material.MapColor.getColorFromPackedId(packedId);
+                    
+                    image.setPixelRGBA(x, y, argb);
+                }
+            }
+            long convertTime = System.nanoTime() - convertStart;
+            
+            long uploadStart = System.nanoTime();
             DynamicTexture texture = new DynamicTexture(image);
             ResourceLocation location = Minecraft.getInstance().getTextureManager().register("map_network_" + mapInfo.networkId(), texture);
+            long uploadTime = System.nanoTime() - uploadStart;
+            
+            long totalTime = System.nanoTime() - startTime;
 
-            ViaRomana.LOGGER.debug("Created GPU texture for network {} map", mapInfo.networkId());
+            ViaRomana.LOGGER.info("[PERF-CLIENT] Created GPU texture for network {}: total={}ms, create={}ms, convert={}ms, upload={}ms, dimensions={}x{}, pixels={}", 
+                mapInfo.networkId(), totalTime / 1_000_000.0, createImageTime / 1_000_000.0, 
+                convertTime / 1_000_000.0, uploadTime / 1_000_000.0, width, height, pixels.length);
             return new MapTexture(mapInfo, location, texture, image);
             
-        } catch (IOException e) {
+        } catch (Exception e) {
             ViaRomana.LOGGER.error("MapClient: Failed to create texture for network {}: {}", mapInfo.networkId(), e.getMessage());
             return null;
         }

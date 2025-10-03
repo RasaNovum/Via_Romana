@@ -98,37 +98,17 @@ public class MapBakeWorker {
             }
         }
 
-        // 5. Convert pixels to image and encode to PNG
-        long convertStartTime = System.nanoTime();
-        int[] argbPixels = new int[finalPixelWidth * finalPixelHeight];
-        for (int i = 0; i < finalPixels.length; i++) {
-            int packedId = finalPixels[i] & 0xFF;
-            argbPixels[i] = COLOR_LOOKUP[packedId];
-        }
-        long convertTime = System.nanoTime() - convertStartTime;
+        // 5. Done! Return raw pixels (no PNG encoding needed - client will handle it)
+        long totalBakeTime = System.nanoTime() - bakeStartTime;
         
-        long encodeStartTime = System.nanoTime();
-        try {
-            BufferedImage finalImg = new BufferedImage(finalPixelWidth, finalPixelHeight, BufferedImage.TYPE_INT_ARGB);
-            finalImg.getRaster().setDataElements(0, 0, finalPixelWidth, finalPixelHeight, argbPixels);
-            
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream(finalPixelWidth * finalPixelHeight * 4); // Pre-size buffer
-            javax.imageio.ImageIO.write(finalImg, "PNG", outputStream);
-            byte[] pngData = outputStream.toByteArray();
-            long encodeTime = System.nanoTime() - encodeStartTime;
-            long totalBakeTime = System.nanoTime() - bakeStartTime;
-            
-            ViaRomana.LOGGER.info("[PERF] Map bake completed for network {}: total={}ms, render={}ms, convert={}ms, encode={}ms, " +
-                "dimensions={}x{}, scale={}, pngSize={}KB, rawSize={}KB, chunks={}/{}", 
-                networkId, totalBakeTime / 1_000_000.0, renderTime / 1_000_000.0, convertTime / 1_000_000.0, 
-                encodeTime / 1_000_000.0, finalImgW, finalImgH, scaleFactor, pngData.length / 1024.0, 
-                finalPixels.length / 1024.0, chunksWithData, allowedChunks.size());
-            
-            return MapInfo.fromServerCache(networkId, paddedMin, paddedMax, networkNodes, pngData, scaleFactor, 
-                new java.util.ArrayList<>(allowedChunks), finalPixels, finalPixelWidth, finalPixelHeight);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to convert map to PNG", e);
-        }
+        ViaRomana.LOGGER.info("[PERF] Map bake completed for network {}: total={}ms, render={}ms, " +
+            "dimensions={}x{}, scale={}, rawSize={}KB, chunks={}/{}", 
+            networkId, totalBakeTime / 1_000_000.0, renderTime / 1_000_000.0, 
+            finalImgW, finalImgH, scaleFactor, finalPixels.length / 1024.0, 
+            chunksWithData, allowedChunks.size());
+        
+        return MapInfo.fromServerCache(networkId, paddedMin, paddedMax, networkNodes, null, scaleFactor, 
+            new java.util.ArrayList<>(allowedChunks), finalPixels, finalPixelWidth, finalPixelHeight);
     }
 
     /**
@@ -145,8 +125,15 @@ public class MapBakeWorker {
             return bake(previousResult.networkId(), level, network.getMin(), network.getMax(), graph.getNodesAsInfo(network));
         }
         
-        // Check if network bounds changed (requires full rebake)
-        if (!previousResult.minBounds().equals(network.getMin()) || !previousResult.maxBounds().equals(network.getMax())) {
+        // Check if network bounds changed (compare padded bounds)
+        int widthW = network.getMax().getX() - network.getMin().getX();
+        int heightW = network.getMax().getZ() - network.getMin().getZ();
+        int padX = Math.max(ServerMapUtils.MAP_BOUNDS_MIN_PADDING, (int) (widthW * ServerMapUtils.MAP_BOUNDS_PADDING_PERCENTAGE));
+        int padZ = Math.max(ServerMapUtils.MAP_BOUNDS_MIN_PADDING, (int) (heightW * ServerMapUtils.MAP_BOUNDS_PADDING_PERCENTAGE));
+        BlockPos expectedPaddedMin = network.getMin().offset(-padX, 0, -padZ);
+        BlockPos expectedPaddedMax = network.getMax().offset(padX, 0, padZ);
+        
+        if (!previousResult.minBounds().equals(expectedPaddedMin) || !previousResult.maxBounds().equals(expectedPaddedMax)) {
             ViaRomana.LOGGER.info("Network bounds changed, performing full rebake instead of incremental");
             PathGraph graph = PathGraph.getInstance(level);
             return bake(previousResult.networkId(), level, network.getMin(), network.getMax(), graph.getNodesAsInfo(network));
@@ -187,38 +174,14 @@ public class MapBakeWorker {
             chunksUpdated++;
         }
         long spliceTime = System.nanoTime() - spliceStartTime;
+        long totalUpdateTime = System.nanoTime() - updateStartTime;
         
-        // Convert to ARGB and encode PNG
-        long convertStartTime = System.nanoTime();
-        int[] argbPixels = new int[updatedPixels.length];
-        for (int i = 0; i < updatedPixels.length; i++) {
-            argbPixels[i] = COLOR_LOOKUP[updatedPixels[i] & 0xFF];
-        }
-        long convertTime = System.nanoTime() - convertStartTime;
+        ViaRomana.LOGGER.info("[PERF] Incremental update completed: total={}ms, splice={}ms ({}chunks), rawSize={}KB", 
+            totalUpdateTime / 1_000_000.0, spliceTime / 1_000_000.0, chunksUpdated, updatedPixels.length / 1024.0);
         
-        long encodeStartTime = System.nanoTime();
-        try {
-            BufferedImage finalImg = new BufferedImage(pixelWidth, previousResult.pixelHeight(), BufferedImage.TYPE_INT_ARGB);
-            finalImg.getRaster().setDataElements(0, 0, pixelWidth, previousResult.pixelHeight(), argbPixels);
-            
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream(pixelWidth * previousResult.pixelHeight() * 4);
-            ImageIO.write(finalImg, "PNG", outputStream);
-            byte[] pngData = outputStream.toByteArray();
-            long encodeTime = System.nanoTime() - encodeStartTime;
-            long totalUpdateTime = System.nanoTime() - updateStartTime;
-            
-            ViaRomana.LOGGER.info("[PERF] Incremental update completed: total={}ms, splice={}ms ({}chunks), convert={}ms, encode={}ms, pngSize={}KB", 
-                totalUpdateTime / 1_000_000.0, spliceTime / 1_000_000.0, chunksUpdated, 
-                convertTime / 1_000_000.0, encodeTime / 1_000_000.0, pngData.length / 1024.0);
-            
-            return MapInfo.fromServerCache(previousResult.networkId(), previousResult.minBounds(), previousResult.maxBounds(),
-                previousResult.networkNodes(), pngData, scaleFactor, previousResult.allowedChunks(),
-                updatedPixels, pixelWidth, previousResult.pixelHeight());
-        } catch (IOException e) {
-            ViaRomana.LOGGER.error("Failed incremental update, falling back to full rebake", e);
-            PathGraph graph = PathGraph.getInstance(level);
-            return bake(previousResult.networkId(), level, network.getMin(), network.getMax(), graph.getNodesAsInfo(network));
-        }
+        return MapInfo.fromServerCache(previousResult.networkId(), previousResult.minBounds(), previousResult.maxBounds(),
+            previousResult.networkNodes(), null, scaleFactor, previousResult.allowedChunks(),
+            updatedPixels, pixelWidth, previousResult.pixelHeight());
     }
 
     private int calculateScaleFactor(int width, int height) {

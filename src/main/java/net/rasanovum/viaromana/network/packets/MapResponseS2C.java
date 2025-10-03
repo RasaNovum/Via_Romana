@@ -57,19 +57,21 @@ public record MapResponseS2C(MapInfo mapInfo) implements CustomPacketPayload {
         return new MapResponseS2C(MapInfo.readFromBuffer(buf));
     }
 
-    public static MapResponseS2C create(UUID networkId, BlockPos minBounds, BlockPos maxBounds, byte[] pngData, int bakeScaleFactor) {
-        return new MapResponseS2C(MapInfo.response(networkId, minBounds, maxBounds, new ArrayList<>(), pngData, bakeScaleFactor));
+    public static MapResponseS2C create(UUID networkId, BlockPos minBounds, BlockPos maxBounds, byte[] fullPixels, int pixelWidth, int pixelHeight, int bakeScaleFactor) {
+        return new MapResponseS2C(MapInfo.response(networkId, minBounds, maxBounds, new ArrayList<>(), fullPixels, pixelWidth, pixelHeight, bakeScaleFactor));
     }
 
-    public static MapResponseS2C create(UUID networkId, BlockPos minBounds, BlockPos maxBounds, List<NodeNetworkInfo> networkNodes, byte[] pngData, int bakeScaleFactor) {
-        return new MapResponseS2C(MapInfo.response(networkId, minBounds, maxBounds, networkNodes, pngData, bakeScaleFactor));
+    public static MapResponseS2C create(UUID networkId, BlockPos minBounds, BlockPos maxBounds, List<NodeNetworkInfo> networkNodes, byte[] fullPixels, int pixelWidth, int pixelHeight, int bakeScaleFactor) {
+        return new MapResponseS2C(MapInfo.response(networkId, minBounds, maxBounds, networkNodes, fullPixels, pixelWidth, pixelHeight, bakeScaleFactor));
     }
 
     // Getters
     public UUID getNetworkId() { return mapInfo.networkId(); }
     public BlockPos getMinBounds() { return mapInfo.minBounds(); }
     public BlockPos getMaxBounds() { return mapInfo.maxBounds(); }
-    public byte[] getPngData() { return mapInfo.pngData() != null ? mapInfo.pngData().clone() : null; }
+    public byte[] getPixelData() { return mapInfo.fullPixels() != null ? mapInfo.fullPixels().clone() : null; }
+    public int getPixelWidth() { return mapInfo.pixelWidth(); }
+    public int getPixelHeight() { return mapInfo.pixelHeight(); }
     public int getBakeScaleFactor() { return mapInfo.bakeScaleFactor(); }
     public List<NodeNetworkInfo> getNetworkNodes() { return mapInfo.networkNodes(); }
 

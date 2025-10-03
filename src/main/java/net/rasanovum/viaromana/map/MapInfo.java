@@ -37,13 +37,15 @@ public record MapInfo(
     }
     
     /**
-     * Creates a map response (with image data).
+     * Creates a map response (with raw pixel data).
      */
     public static MapInfo response(UUID networkId, BlockPos minBounds, BlockPos maxBounds, 
-                                 List<NodeNetworkInfo> networkNodes, byte[] pngData, int bakeScaleFactor) {
+                                 List<NodeNetworkInfo> networkNodes, byte[] fullPixels, int pixelWidth, int pixelHeight, int bakeScaleFactor) {
         return new MapInfo(networkId, minBounds, maxBounds, 
                           networkNodes != null ? new ArrayList<>(networkNodes) : new ArrayList<>(), 
-                          pngData != null ? pngData.clone() : null, bakeScaleFactor, System.currentTimeMillis(), null, null, 0, 0);
+                          null, // pngData is null - client will generate it
+                          bakeScaleFactor, System.currentTimeMillis(), null, 
+                          fullPixels != null ? fullPixels.clone() : null, pixelWidth, pixelHeight);
     }
     
     /**
@@ -61,15 +63,15 @@ public record MapInfo(
     
     // Helper methods
     public boolean hasImageData() {
-        return pngData != null;
+        return fullPixels != null && pixelWidth > 0 && pixelHeight > 0;
     }
     
     public boolean isRequest() {
-        return pngData == null;
+        return fullPixels == null;
     }
     
     public boolean isResponse() {
-        return pngData != null;
+        return fullPixels != null && pixelWidth > 0 && pixelHeight > 0;
     }
     
     public int getWorldWidth() {
@@ -113,11 +115,13 @@ public record MapInfo(
             }
         }
         
-        // Write image data (if present)
-        if (pngData != null) {
+        // Write raw pixel data (if present) - client will convert to PNG
+        if (fullPixels != null && pixelWidth > 0 && pixelHeight > 0) {
             buffer.writeBoolean(true);
-            buffer.writeInt(pngData.length);
-            buffer.writeBytes(pngData);
+            buffer.writeInt(fullPixels.length);
+            buffer.writeBytes(fullPixels);
+            buffer.writeInt(pixelWidth);
+            buffer.writeInt(pixelHeight);
             buffer.writeInt(bakeScaleFactor);
             buffer.writeLong(createdAtMs != null ? createdAtMs : 0L);
         } else {
@@ -156,16 +160,20 @@ public record MapInfo(
             networkNodes.add(new NodeNetworkInfo(nodePos, clearance, connections));
         }
         
-        // Read image data (if present)
-        boolean hasImageData = buffer.readBoolean();
-        byte[] pngData = null;
+        // Read raw pixel data (if present) - client will convert to PNG
+        boolean hasPixelData = buffer.readBoolean();
+        byte[] fullPixels = null;
+        int pixelWidth = 0;
+        int pixelHeight = 0;
         int bakeScaleFactor = 1;
         Long createdAtMs = null;
         
-        if (hasImageData) {
+        if (hasPixelData) {
             int length = buffer.readInt();
-            pngData = new byte[length];
-            buffer.readBytes(pngData);
+            fullPixels = new byte[length];
+            buffer.readBytes(fullPixels);
+            pixelWidth = buffer.readInt();
+            pixelHeight = buffer.readInt();
             bakeScaleFactor = buffer.readInt();
             long ts = buffer.readLong();
             createdAtMs = ts == 0L ? null : ts;
@@ -184,8 +192,8 @@ public record MapInfo(
             }
         }
         
-        // Network deserialization doesn't include fullPixels (not sent over network)
-        return new MapInfo(networkId, minBounds, maxBounds, networkNodes, pngData, bakeScaleFactor, createdAtMs, allowed, null, 0, 0);
+        // Network receives raw pixels (pngData will be generated client-side)
+        return new MapInfo(networkId, minBounds, maxBounds, networkNodes, null, bakeScaleFactor, createdAtMs, allowed, fullPixels, pixelWidth, pixelHeight);
     }
     
     // Ensure defensive copying of mutable fields
