@@ -221,6 +221,8 @@ public final class ServerMapCache {
             String base = "network-" + networkId;
             Path pngPath = mapDir.resolve(base + ".png");
             Path metaPath = mapDir.resolve(base + ".nbt");
+            Path pixelsPath = mapDir.resolve(base + ".pixels");
+            
             byte[] png;
             CompoundTag tag;
 
@@ -239,12 +241,32 @@ public final class ServerMapCache {
             BlockPos min = BlockPos.of(tag.getLong("min"));
             BlockPos max = BlockPos.of(tag.getLong("max"));
             int scale = tag.getInt("scale");
+            
+            // Try to load fullPixels for incremental updates
+            byte[] fullPixels = null;
+            int pixelWidth = 0;
+            int pixelHeight = 0;
+            
+            if (Files.exists(pixelsPath)) {
+                try (InputStream pixelsStream = Files.newInputStream(pixelsPath)) {
+                    fullPixels = pixelsStream.readAllBytes();
+                    if (tag.contains("pixelWidth") && tag.contains("pixelHeight")) {
+                        pixelWidth = tag.getInt("pixelWidth");
+                        pixelHeight = tag.getInt("pixelHeight");
+                    }
+                } catch (IOException e) {
+                    ViaRomana.LOGGER.warn("Failed to load pixels for {}, will regenerate on update", networkId);
+                    fullPixels = null;
+                }
+            }
 
-            MapInfo info = MapInfo.fromServerCache(networkId, min, max, List.of(), png, scale, List.of());
+            MapInfo info = MapInfo.fromServerCache(networkId, min, max, List.of(), png, scale, List.of(), 
+                fullPixels, pixelWidth, pixelHeight);
             cache.put(networkId, info);
             long loadTime = System.nanoTime() - startTime;
-            ViaRomana.LOGGER.info("[PERF] Loaded map {} from disk: {}ms, size={}KB", 
-                networkId, loadTime / 1_000_000.0, png.length / 1024.0);
+            ViaRomana.LOGGER.info("[PERF] Loaded map {} from disk: {}ms, pngSize={}KB, pixelsSize={}KB", 
+                networkId, loadTime / 1_000_000.0, png.length / 1024.0, 
+                fullPixels != null ? fullPixels.length / 1024.0 : 0);
             return Optional.of(info);
 
         } catch (IOException e) {
@@ -263,7 +285,8 @@ public final class ServerMapCache {
             String base = "network-" + networkId;
             boolean pngDeleted = Files.deleteIfExists(mapDir.resolve(base + ".png"));
             boolean nbtDeleted = Files.deleteIfExists(mapDir.resolve(base + ".nbt"));
-            if (pngDeleted || nbtDeleted) {
+            boolean pixelsDeleted = Files.deleteIfExists(mapDir.resolve(base + ".pixels"));
+            if (pngDeleted || nbtDeleted || pixelsDeleted) {
                 ViaRomana.LOGGER.debug("Deleted map files from disk for network {}", networkId);
             }
         } catch (IOException e) {
@@ -305,6 +328,7 @@ public final class ServerMapCache {
                 String base = "network-" + id;
                 Path pngPath = mapDir.resolve(base + ".png");
                 Path nbtPath = mapDir.resolve(base + ".nbt");
+                Path pixelsPath = mapDir.resolve(base + ".pixels");
 
                 CompoundTag tag = new CompoundTag();
                 tag.putLong("min", info.minBounds().asLong());
@@ -313,13 +337,29 @@ public final class ServerMapCache {
                 if (info.createdAtMs() != null) {
                     tag.putLong("createdAt", info.createdAtMs());
                 }
+                // Save pixel dimensions for incremental updates
+                if (info.fullPixels() != null) {
+                    tag.putInt("pixelWidth", info.pixelWidth());
+                    tag.putInt("pixelHeight", info.pixelHeight());
+                }
 
                 try (OutputStream pngOut = Files.newOutputStream(pngPath);
                      OutputStream nbtOut = Files.newOutputStream(nbtPath)) {
                     pngOut.write(info.pngData());
                     NbtIo.writeCompressed(tag, nbtOut);
+                    
+                    // Save fullPixels for fast incremental updates after restart
+                    if (info.fullPixels() != null) {
+                        try (OutputStream pixelsOut = Files.newOutputStream(pixelsPath)) {
+                            pixelsOut.write(info.fullPixels());
+                        }
+                    }
+                    
                     savedCount++;
                     totalBytes += info.pngData().length;
+                    if (info.fullPixels() != null) {
+                        totalBytes += info.fullPixels().length;
+                    }
                 } catch (IOException e) {
                     ViaRomana.LOGGER.error("Failed to write map files for network {}", id, e);
                 }

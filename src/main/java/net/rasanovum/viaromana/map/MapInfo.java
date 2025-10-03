@@ -21,7 +21,10 @@ public record MapInfo(
     byte[] pngData, // null for requests, populated for responses
     int bakeScaleFactor,
     Long createdAtMs, // null for requests, populated with System.currentTimeMillis() for responses
-    List<ChunkPos> allowedChunks // optional persisted fog-of-war chunk list
+    List<ChunkPos> allowedChunks, // optional persisted fog-of-war chunk list
+    byte[] fullPixels, // raw pixel array for incremental updates (null if not cached)
+    int pixelWidth,    // width of fullPixels array
+    int pixelHeight    // height of fullPixels array
 ) {
     
     /**
@@ -30,7 +33,7 @@ public record MapInfo(
     public static MapInfo request(UUID networkId, BlockPos minBounds, BlockPos maxBounds, List<NodeNetworkInfo> networkNodes) {
         return new MapInfo(networkId, minBounds, maxBounds, 
                           networkNodes != null ? new ArrayList<>(networkNodes) : new ArrayList<>(), 
-                          null, 1, null, null);
+                          null, 1, null, null, null, 0, 0);
     }
     
     /**
@@ -40,17 +43,20 @@ public record MapInfo(
                                  List<NodeNetworkInfo> networkNodes, byte[] pngData, int bakeScaleFactor) {
         return new MapInfo(networkId, minBounds, maxBounds, 
                           networkNodes != null ? new ArrayList<>(networkNodes) : new ArrayList<>(), 
-                          pngData != null ? pngData.clone() : null, bakeScaleFactor, System.currentTimeMillis(), null);
+                          pngData != null ? pngData.clone() : null, bakeScaleFactor, System.currentTimeMillis(), null, null, 0, 0);
     }
     
     /**
-     * Creates a map response from server cache data.
+     * Creates a map response from server cache data (with optional fullPixels for incremental updates).
      */
     public static MapInfo fromServerCache(UUID networkId, BlockPos minBounds, BlockPos maxBounds, 
-                                        List<NodeNetworkInfo> networkNodes, byte[] pngData, int bakeScaleFactor, List<ChunkPos> allowedChunks) {
+                                        List<NodeNetworkInfo> networkNodes, byte[] pngData, int bakeScaleFactor, List<ChunkPos> allowedChunks,
+                                        byte[] fullPixels, int pixelWidth, int pixelHeight) {
         return new MapInfo(networkId, minBounds, maxBounds, 
                           networkNodes != null ? new ArrayList<>(networkNodes) : new ArrayList<>(), 
-                          pngData != null ? pngData.clone() : null, bakeScaleFactor, System.currentTimeMillis(), allowedChunks != null ? new ArrayList<>(allowedChunks) : null);
+                          pngData != null ? pngData.clone() : null, bakeScaleFactor, System.currentTimeMillis(), 
+                          allowedChunks != null ? new ArrayList<>(allowedChunks) : null,
+                          fullPixels != null ? fullPixels.clone() : null, pixelWidth, pixelHeight);
     }
     
     // Helper methods
@@ -178,7 +184,8 @@ public record MapInfo(
             }
         }
         
-        return new MapInfo(networkId, minBounds, maxBounds, networkNodes, pngData, bakeScaleFactor, createdAtMs, allowed);
+        // Network deserialization doesn't include fullPixels (not sent over network)
+        return new MapInfo(networkId, minBounds, maxBounds, networkNodes, pngData, bakeScaleFactor, createdAtMs, allowed, null, 0, 0);
     }
     
     // Ensure defensive copying of mutable fields
@@ -186,5 +193,6 @@ public record MapInfo(
         networkNodes = networkNodes != null ? new ArrayList<>(networkNodes) : new ArrayList<>();
         pngData = pngData != null ? pngData.clone() : null;
         allowedChunks = allowedChunks != null ? new ArrayList<>(allowedChunks) : null;
+        fullPixels = fullPixels != null ? fullPixels.clone() : null;
     }
 }
