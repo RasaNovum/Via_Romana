@@ -34,6 +34,8 @@ public class ViaRomanaCommands {
                                 .executes(ViaRomanaCommands::clearMaps))
                         .then(Commands.literal("regenerate")
                                 .executes(ViaRomanaCommands::regenerateMaps))
+                        .then(Commands.literal("delete")
+                                .executes(ViaRomanaCommands::deleteMaps))
                         .then(Commands.literal("save")
                                 .executes(ViaRomanaCommands::saveMaps))));
     }
@@ -82,13 +84,13 @@ public class ViaRomanaCommands {
     }
 
     /**
-     * Clears map caches (server, client, and chunk PNG data)
+     * Clears map caches (server, client) and chunk image data
      */
     private static int clearMaps(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         CommandSourceStack source = context.getSource();
         
-        // Clear chunk PNG data
-        source.sendSuccess(() -> Component.literal("Clearing chunk PNG data..."), false);
+        // Clear chunk image data
+        source.sendSuccess(() -> Component.literal("Clearing chunk image data..."), false);
         ServerMapCache.clearAllChunkPngData();
         
         // Clear map caches and disk data
@@ -96,7 +98,7 @@ public class ViaRomanaCommands {
         ServerMapCache.deleteAllMapsFromDisk();
         if (source.getLevel().isClientSide()) MapRenderer.clearCache();
         
-        source.sendSuccess(() -> Component.literal("Cleared Via Romana maps (cache, disk, and chunk PNG data)"), true);
+        source.sendSuccess(() -> Component.literal("Cleared Via Romana maps and chunk images"), true);
         return 1;
     }
 
@@ -106,14 +108,29 @@ public class ViaRomanaCommands {
     private static int regenerateMaps(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         CommandSourceStack source = context.getSource();
         
-        // Regenerate chunk PNG data
-        source.sendSuccess(() -> Component.literal("Regenerating chunk PNG data..."), false);
+        // Regenerate chunk image data
+        source.sendSuccess(() -> Component.literal("Regenerating chunk image data..."), false);
         ServerMapCache.regenerateAllChunkPngData();
         
         // Process dirty networks to regenerate maps
         ServerMapCache.processAllDirtyNetworks();
         
-        source.sendSuccess(() -> Component.literal("Regenerated Via Romana maps (chunk PNG data and map images)"), true);
+        source.sendSuccess(() -> Component.literal("Regenerated Via Romana maps"), true);
+        return 1;
+    }
+
+    /**
+     * Clears map caches (server, client) excluding chunk image data
+     */
+    private static int deleteMaps(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        CommandSourceStack source = context.getSource();
+
+        // Clear map caches and disk data
+        ServerMapCache.clear();
+        ServerMapCache.deleteAllMapsFromDisk();
+        if (source.getLevel().isClientSide()) MapRenderer.clearCache();
+
+        source.sendSuccess(() -> Component.literal("Cleared Via Romana maps"), true);
         return 1;
     }
 

@@ -195,7 +195,7 @@ public class MapBakeWorker {
                 Optional<byte[]> optBytes = ChunkPngUtil.getPngBytes(level, chunkPos);
 
                 if (optBytes.isEmpty() || optBytes.get().length == 0) {
-                    ViaRomana.LOGGER.info("No PNG for chunk {}; rendering fallback", chunkPos);
+                    ViaRomana.LOGGER.debug("No PNG for chunk {}; rendering fallback", chunkPos);
                     byte[] newBytes = ChunkPngUtil.renderChunkPngBytes(level, chunkPos);
                     if (newBytes.length > 0) {
                         ChunkPngUtil.setPngBytes(level, chunkPos, newBytes);
@@ -217,7 +217,7 @@ public class MapBakeWorker {
                 }
 
                 pngChunks++;
-                ViaRomana.LOGGER.info("Compositing PNG for chunk {}", chunkPos);
+                ViaRomana.LOGGER.debug("Compositing PNG for chunk {}", chunkPos);
                 int scaledSize = 16 / scaleFactor;
                 if (scaleFactor > 1) {
                     BufferedImage scaled = new BufferedImage(scaledSize, scaledSize, BufferedImage.TYPE_INT_ARGB);
