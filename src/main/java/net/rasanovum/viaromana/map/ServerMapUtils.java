@@ -2,6 +2,7 @@ package net.rasanovum.viaromana.map;
 
 import net.minecraft.world.level.ChunkPos;
 import net.rasanovum.viaromana.CommonConfig;
+import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.network.packets.DestinationResponseS2C;
 
 import java.util.HashSet;
@@ -13,6 +14,16 @@ public final class ServerMapUtils {
 
     public static final float MAP_BOUNDS_PADDING_PERCENTAGE = 0.1f;
     public static final int MAP_BOUNDS_MIN_PADDING = 16;
+    
+    /**
+     * Calculates uniform padding based on the larger dimension of the content bounds.
+     */
+    public static int calculateUniformPadding(int contentWidth, int contentHeight) {
+        ViaRomana.LOGGER.info("Calculating uniform padding for content bounds: {}x{}", contentWidth, contentHeight);
+        int maxDim = Math.max(contentWidth, contentHeight);
+        ViaRomana.LOGGER.info("Max dimension: {}", maxDim);
+        return Math.max(MAP_BOUNDS_MIN_PADDING, (int) (maxDim * MAP_BOUNDS_PADDING_PERCENTAGE));
+    }
 
     public static Set<ChunkPos> calculateFogOfWarChunks(List<DestinationResponseS2C.NodeNetworkInfo> networkNodes, ChunkPos minChunk, ChunkPos maxChunk) {
         Set<ChunkPos> allowedChunks = new HashSet<>();

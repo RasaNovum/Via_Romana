@@ -10,55 +10,45 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 /**
- * Record for map data that can represent both requests (with null image data)
- * and responses (with populated image data).
+ * Map data record with direct world-to-pixel coordinate mapping.
  */
 public record MapInfo(
     UUID networkId,
-    BlockPos minBounds,
-    BlockPos maxBounds,
-    List<NodeNetworkInfo> networkNodes,
-    byte[] pngData, // null for requests, populated for responses
-    int bakeScaleFactor,
-    Long createdAtMs, // null for requests, populated with System.currentTimeMillis() for responses
-    List<ChunkPos> allowedChunks, // optional persisted fog-of-war chunk list
-    byte[] fullPixels, // raw pixel array for incremental updates (null if not cached)
-    int pixelWidth,    // width of fullPixels array
-    int pixelHeight    // height of fullPixels array
+    byte[] fullPixels,                  // raw pixel array (16x16 per chunk at 1x scale, scaled down if scaleFactor > 1)
+    int pixelWidth,
+    int pixelHeight,
+    int scaleFactor,
+    int worldMinX,                      // chunk-aligned: chunkX * 16
+    int worldMinZ,                      // chunk-aligned: chunkZ * 16
+    int worldMaxX,                      // chunk-aligned: chunkX * 16 + 15
+    int worldMaxZ,                      // chunk-aligned: chunkZ * 16 + 15
+    Long createdAtMs,
+    List<ChunkPos> allowedChunks,       // fog-of-war chunk list (server-side only)
+    List<NodeNetworkInfo> networkNodes  // network nodes for spline rendering
 ) {
     
     /**
      * Creates a map request (no image data).
      */
     public static MapInfo request(UUID networkId, BlockPos minBounds, BlockPos maxBounds, List<NodeNetworkInfo> networkNodes) {
-        return new MapInfo(networkId, minBounds, maxBounds, 
-                          networkNodes != null ? new ArrayList<>(networkNodes) : new ArrayList<>(), 
-                          null, 1, null, null, null, 0, 0);
+        return new MapInfo(networkId, null, 0, 0, 1, 
+                          minBounds.getX(), minBounds.getZ(), maxBounds.getX(), maxBounds.getZ(),
+                          null, null,
+                          networkNodes != null ? new ArrayList<>(networkNodes) : new ArrayList<>());
     }
     
     /**
-     * Creates a map response (with raw pixel data).
+     * Creates a map from server (with full pixel data and world coordinates).
      */
-    public static MapInfo response(UUID networkId, BlockPos minBounds, BlockPos maxBounds, 
-                                 List<NodeNetworkInfo> networkNodes, byte[] fullPixels, int pixelWidth, int pixelHeight, int bakeScaleFactor) {
-        return new MapInfo(networkId, minBounds, maxBounds, 
-                          networkNodes != null ? new ArrayList<>(networkNodes) : new ArrayList<>(), 
-                          null, // pngData is null - client will generate it
-                          bakeScaleFactor, System.currentTimeMillis(), null, 
-                          fullPixels != null ? fullPixels.clone() : null, pixelWidth, pixelHeight);
-    }
-    
-    /**
-     * Creates a map response from server cache data (with optional fullPixels for incremental updates).
-     */
-    public static MapInfo fromServerCache(UUID networkId, BlockPos minBounds, BlockPos maxBounds, 
-                                        List<NodeNetworkInfo> networkNodes, byte[] pngData, int bakeScaleFactor, List<ChunkPos> allowedChunks,
-                                        byte[] fullPixels, int pixelWidth, int pixelHeight) {
-        return new MapInfo(networkId, minBounds, maxBounds, 
-                          networkNodes != null ? new ArrayList<>(networkNodes) : new ArrayList<>(), 
-                          pngData != null ? pngData.clone() : null, bakeScaleFactor, System.currentTimeMillis(), 
+    public static MapInfo fromServer(UUID networkId, byte[] fullPixels, int pixelWidth, int pixelHeight, int scaleFactor,
+                                     int worldMinX, int worldMinZ, int worldMaxX, int worldMaxZ,
+                                     List<ChunkPos> allowedChunks, List<NodeNetworkInfo> networkNodes) {
+        return new MapInfo(networkId, 
+                          fullPixels != null ? fullPixels.clone() : null, pixelWidth, pixelHeight, scaleFactor,
+                          worldMinX, worldMinZ, worldMaxX, worldMaxZ,
+                          System.currentTimeMillis(),
                           allowedChunks != null ? new ArrayList<>(allowedChunks) : null,
-                          fullPixels != null ? fullPixels.clone() : null, pixelWidth, pixelHeight);
+                          networkNodes != null ? new ArrayList<>(networkNodes) : new ArrayList<>());
     }
     
     // Helper methods
@@ -75,11 +65,25 @@ public record MapInfo(
     }
     
     public int getWorldWidth() {
-        return maxBounds.getX() - minBounds.getX() + 1;
+        return worldMaxX - worldMinX + 1;
     }
     
     public int getWorldHeight() {
-        return maxBounds.getZ() - minBounds.getZ() + 1;
+        return worldMaxZ - worldMinZ + 1;
+    }
+    
+    /**
+     * Get the ChunkPos corresponding to worldMinX/Z.
+     */
+    public ChunkPos getMinChunk() {
+        return new ChunkPos(worldMinX >> 4, worldMinZ >> 4);
+    }
+    
+    /**
+     * Get the ChunkPos corresponding to worldMaxX/Z.
+     */
+    public ChunkPos getMaxChunk() {
+        return new ChunkPos(worldMaxX >> 4, worldMaxZ >> 4);
     }
     
     public boolean hasTimestamp() {
@@ -101,8 +105,6 @@ public record MapInfo(
     // Network serialization
     public void writeToBuffer(FriendlyByteBuf buffer) {
         buffer.writeUUID(networkId);
-        buffer.writeBlockPos(minBounds);
-        buffer.writeBlockPos(maxBounds);
         
         // Write network nodes
         buffer.writeInt(networkNodes.size());
@@ -115,27 +117,19 @@ public record MapInfo(
             }
         }
         
-        // Write raw pixel data (if present) - client will convert to PNG
+        // Write raw pixel data and world coordinates
         if (fullPixels != null && pixelWidth > 0 && pixelHeight > 0) {
             buffer.writeBoolean(true);
             buffer.writeInt(fullPixels.length);
             buffer.writeBytes(fullPixels);
             buffer.writeInt(pixelWidth);
             buffer.writeInt(pixelHeight);
-            buffer.writeInt(bakeScaleFactor);
+            buffer.writeInt(scaleFactor);
+            buffer.writeInt(worldMinX);
+            buffer.writeInt(worldMinZ);
+            buffer.writeInt(worldMaxX);
+            buffer.writeInt(worldMaxZ);
             buffer.writeLong(createdAtMs != null ? createdAtMs : 0L);
-        } else {
-            buffer.writeBoolean(false);
-        }
-
-        // Write optional allowed chunks list
-        if (allowedChunks != null) {
-            buffer.writeBoolean(true);
-            buffer.writeInt(allowedChunks.size());
-            for (ChunkPos cp : allowedChunks) {
-                buffer.writeInt(cp.x);
-                buffer.writeInt(cp.z);
-            }
         } else {
             buffer.writeBoolean(false);
         }
@@ -143,8 +137,6 @@ public record MapInfo(
     
     public static MapInfo readFromBuffer(FriendlyByteBuf buffer) {
         UUID networkId = buffer.readUUID();
-        BlockPos minBounds = buffer.readBlockPos();
-        BlockPos maxBounds = buffer.readBlockPos();
         
         // Read network nodes
         int nodeCount = buffer.readInt();
@@ -160,12 +152,16 @@ public record MapInfo(
             networkNodes.add(new NodeNetworkInfo(nodePos, clearance, connections));
         }
         
-        // Read raw pixel data (if present) - client will convert to PNG
+        // Read raw pixel data and world coordinates
         boolean hasPixelData = buffer.readBoolean();
         byte[] fullPixels = null;
         int pixelWidth = 0;
         int pixelHeight = 0;
-        int bakeScaleFactor = 1;
+        int scaleFactor = 1;
+        int worldMinX = 0;
+        int worldMinZ = 0;
+        int worldMaxX = 0;
+        int worldMaxZ = 0;
         Long createdAtMs = null;
         
         if (hasPixelData) {
@@ -174,32 +170,21 @@ public record MapInfo(
             buffer.readBytes(fullPixels);
             pixelWidth = buffer.readInt();
             pixelHeight = buffer.readInt();
-            bakeScaleFactor = buffer.readInt();
+            scaleFactor = buffer.readInt();
+            worldMinX = buffer.readInt();
+            worldMinZ = buffer.readInt();
+            worldMaxX = buffer.readInt();
+            worldMaxZ = buffer.readInt();
             long ts = buffer.readLong();
             createdAtMs = ts == 0L ? null : ts;
         }
-
-        // Read optional allowed chunks
-        List<ChunkPos> allowed = null;
-        boolean hasChunks = buffer.readBoolean();
-        if (hasChunks) {
-            int size = buffer.readInt();
-            allowed = new ArrayList<>(size);
-            for (int i = 0; i < size; i++) {
-                int x = buffer.readInt();
-                int z = buffer.readInt();
-                allowed.add(new ChunkPos(x, z));
-            }
-        }
         
-        // Network receives raw pixels (pngData will be generated client-side)
-        return new MapInfo(networkId, minBounds, maxBounds, networkNodes, null, bakeScaleFactor, createdAtMs, allowed, fullPixels, pixelWidth, pixelHeight);
+        return new MapInfo(networkId, fullPixels, pixelWidth, pixelHeight, scaleFactor, worldMinX, worldMinZ, worldMaxX, worldMaxZ, createdAtMs, null, networkNodes);
     }
     
     // Ensure defensive copying of mutable fields
     public MapInfo {
         networkNodes = networkNodes != null ? new ArrayList<>(networkNodes) : new ArrayList<>();
-        pngData = pngData != null ? pngData.clone() : null;
         allowedChunks = allowedChunks != null ? new ArrayList<>(allowedChunks) : null;
         fullPixels = fullPixels != null ? fullPixels.clone() : null;
     }

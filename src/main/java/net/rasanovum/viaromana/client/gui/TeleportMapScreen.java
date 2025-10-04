@@ -79,16 +79,9 @@ public class TeleportMapScreen extends Screen {
 
         calculateBounds();
 
-        int widthW = this.maxBounds.getX() - this.minBounds.getX();
-        int heightW = this.maxBounds.getZ() - this.minBounds.getZ();
-        int paddingX = Math.max(16, (int) (widthW * 0.1f));
-        int paddingZ = Math.max(16, (int) (heightW * 0.1f));
-        BlockPos paddedMin = this.minBounds.offset(-paddingX, 0, -paddingZ);
-        BlockPos paddedMax = this.maxBounds.offset(paddingX, 0, paddingZ);
+        this.mapRenderer = new MapRenderer(this.minBounds, this.maxBounds, networkNodes);
 
-        this.mapRenderer = new MapRenderer(paddedMin, paddedMax, networkNodes);
-
-        requestMapAsync(paddedMin, paddedMax);
+        requestMapAsync(this.minBounds, this.maxBounds);
     }
     
     /**
@@ -413,12 +406,8 @@ public class TeleportMapScreen extends Screen {
         IntSummaryStatistics xStats = networkNodeMap.keySet().stream().mapToInt(BlockPos::getX).summaryStatistics();
         IntSummaryStatistics zStats = networkNodeMap.keySet().stream().mapToInt(BlockPos::getZ).summaryStatistics();
 
-        int width = xStats.getMax() - xStats.getMin();
-        int height = zStats.getMax() - zStats.getMin();
-        int padding = Math.max(16, (int) (Math.max(width, height) * 0.1f));
-
-        this.minBounds = new BlockPos(xStats.getMin() - padding, 0, zStats.getMin() - padding);
-        this.maxBounds = new BlockPos(xStats.getMax() + padding, 0, zStats.getMax() + padding);
+        this.minBounds = new BlockPos(xStats.getMin(), 0, zStats.getMin());
+        this.maxBounds = new BlockPos(xStats.getMax(), 0, zStats.getMax());
     }
 
     private Optional<Point> worldToScreen(BlockPos worldPos) {

@@ -235,11 +235,13 @@ public final class ServerMapCache {
                 return Optional.empty();
             }
 
-            BlockPos min = BlockPos.of(tag.getLong("min"));
-            BlockPos max = BlockPos.of(tag.getLong("max"));
-            int scale = tag.getInt("scale");
+            int scaleFactor = tag.getInt("scale");
             int pixelWidth = tag.getInt("pixelWidth");
             int pixelHeight = tag.getInt("pixelHeight");
+            int worldMinX = tag.getInt("worldMinX");
+            int worldMinZ = tag.getInt("worldMinZ");
+            int worldMaxX = tag.getInt("worldMaxX");
+            int worldMaxZ = tag.getInt("worldMaxZ");
             
             // Load raw pixels (required for map data)
             if (Files.exists(pixelsPath)) {
@@ -254,8 +256,8 @@ public final class ServerMapCache {
                 return Optional.empty();
             }
 
-            MapInfo info = MapInfo.fromServerCache(networkId, min, max, List.of(), null, scale, List.of(), 
-                fullPixels, pixelWidth, pixelHeight);
+            MapInfo info = MapInfo.fromServer(networkId, fullPixels, pixelWidth, pixelHeight, scaleFactor,
+                worldMinX, worldMinZ, worldMaxX, worldMaxZ, List.of(), List.of());
             cache.put(networkId, info);
             long loadTime = System.nanoTime() - startTime;
             ViaRomana.LOGGER.info("[PERF] Loaded map {} from disk: {}ms, pixelsSize={}KB", 
@@ -323,11 +325,13 @@ public final class ServerMapCache {
                 Path pixelsPath = mapDir.resolve(base + ".pixels");
 
                 CompoundTag tag = new CompoundTag();
-                tag.putLong("min", info.minBounds().asLong());
-                tag.putLong("max", info.maxBounds().asLong());
-                tag.putInt("scale", info.bakeScaleFactor());
+                tag.putInt("scale", info.scaleFactor());
                 tag.putInt("pixelWidth", info.pixelWidth());
                 tag.putInt("pixelHeight", info.pixelHeight());
+                tag.putInt("worldMinX", info.worldMinX());
+                tag.putInt("worldMinZ", info.worldMinZ());
+                tag.putInt("worldMaxX", info.worldMaxX());
+                tag.putInt("worldMaxZ", info.worldMaxZ());
                 if (info.createdAtMs() != null) {
                     tag.putLong("createdAt", info.createdAtMs());
                 }

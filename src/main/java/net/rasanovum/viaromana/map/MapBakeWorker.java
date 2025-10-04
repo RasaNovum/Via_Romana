@@ -9,12 +9,7 @@ import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.network.packets.DestinationResponseS2C.NodeNetworkInfo;
 import net.rasanovum.viaromana.path.PathGraph;
 
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.*;
-
-import javax.imageio.ImageIO;
 
 public class MapBakeWorker {
     private static final int[] COLOR_LOOKUP = new int[256]; // ARGB color lookup table
@@ -34,81 +29,53 @@ public class MapBakeWorker {
         long bakeStartTime = System.nanoTime();
         ViaRomana.LOGGER.info("[PERF] Starting full map bake for network {}", networkId);
         
-        // Compute padded bounds based on server-side constants
-        int widthW = maxBounds.getX() - minBounds.getX();
-        int heightW = maxBounds.getZ() - minBounds.getZ();
-        int padX = Math.max(ServerMapUtils.MAP_BOUNDS_MIN_PADDING, (int) (widthW * ServerMapUtils.MAP_BOUNDS_PADDING_PERCENTAGE));
-        int padZ = Math.max(ServerMapUtils.MAP_BOUNDS_MIN_PADDING, (int) (heightW * ServerMapUtils.MAP_BOUNDS_PADDING_PERCENTAGE));
-        BlockPos paddedMin = minBounds.offset(-padX, 0, -padZ);
-        BlockPos paddedMax = maxBounds.offset(padX, 0, padZ);
-
-        // 1. Dimension Calculations on padded bounds
-        int exactWidth = paddedMax.getX() - paddedMin.getX() + 1;
-        int exactHeight = paddedMax.getZ() - paddedMin.getZ() + 1;
-        int scaleFactor = calculateScaleFactor(exactWidth, exactHeight);
-        int finalImgW = exactWidth / scaleFactor;
-        int finalImgH = exactHeight / scaleFactor;
-
-        // 2. Data Fetching & Preparation
+        // 1. Get FoW data and full chunk bounds
         PathGraph graph = PathGraph.getInstance(level);
-
         if (graph == null) throw new IllegalStateException("PathGraph is null");
-
         PathGraph.NetworkCache network = graph.getNetworkCache(networkId);
         PathGraph.FoWCache fowCache = graph.getOrComputeFoWCache(network);
-
         if (fowCache == null) throw new IllegalStateException("FoW cache is null");
 
         ChunkPos minChunk = fowCache.minChunk();
         ChunkPos maxChunk = fowCache.maxChunk();
+        Set<ChunkPos> allowedChunks = fowCache.allowedChunks();
 
-        int chunkAreaWidth = (maxChunk.x - minChunk.x + 1) * 16;
-        int chunkAreaHeight = (maxChunk.z - minChunk.z + 1) * 16;
+        // 2. Calculate scale factor for FULL chunk region
+        int fullChunkWidth = (maxChunk.x - minChunk.x + 1) * 16;
+        int fullChunkHeight = (maxChunk.z - minChunk.z + 1) * 16;
+        int scaleFactor = calculateScaleFactor(fullChunkWidth, fullChunkHeight);
 
-        Set<ChunkPos> allowedChunks = (fowCache != null) ? fowCache.allowedChunks() : ServerMapUtils.calculateFogOfWarChunks(networkNodes, minChunk, maxChunk);
-
-        // 3. Render raw pixels for the chunk area covering padded bounds
+        // 3. Render ENTIRE chunk region to pixel array
         long renderStartTime = System.nanoTime();
-        int pixelWidth = chunkAreaWidth / scaleFactor;
-        int pixelHeight = chunkAreaHeight / scaleFactor;
-        byte[] fullPixels = new byte[pixelWidth * pixelHeight];
-        int chunksWithData = processChunkPixels(fullPixels, level, minChunk, maxChunk, allowedChunks, scaleFactor, pixelWidth);
+        int fullPixelWidth = fullChunkWidth / scaleFactor;
+        int fullPixelHeight = fullChunkHeight / scaleFactor;
+        byte[] fullPixels = new byte[fullPixelWidth * fullPixelHeight];
+        int chunksWithData = processChunkPixels(fullPixels, level, minChunk, maxChunk, allowedChunks, scaleFactor, fullPixelWidth);
         long renderTime = System.nanoTime() - renderStartTime;
 
-        // 4. Crop raw pixels to exact padded bounds if needed
-        byte[] finalPixels = fullPixels;
-        int finalPixelWidth = pixelWidth;
-        int finalPixelHeight = pixelHeight;
+        // 4. Use FoW region directly
+        int finalWorldMinX = minChunk.x * 16;
+        int finalWorldMinZ = minChunk.z * 16;
+        int finalWorldMaxX = maxChunk.x * 16 + 15;
+        int finalWorldMaxZ = maxChunk.z * 16 + 15;
         
-        int cropOffsetX = paddedMin.getX() - (minChunk.x * 16);
-        int cropOffsetZ = paddedMin.getZ() - (minChunk.z * 16);
-        
-        if (cropOffsetX != 0 || cropOffsetZ != 0 || exactWidth != chunkAreaWidth || exactHeight != chunkAreaHeight) {
-            int scaledCropX = cropOffsetX / scaleFactor;
-            int scaledCropZ = cropOffsetZ / scaleFactor;
-            finalPixelWidth = finalImgW;
-            finalPixelHeight = finalImgH;
-            finalPixels = new byte[finalPixelWidth * finalPixelHeight];
-            
-            // Copy cropped region
-            for (int dz = 0; dz < finalPixelHeight; dz++) {
-                int srcIdx = (scaledCropZ + dz) * pixelWidth + scaledCropX;
-                int dstIdx = dz * finalPixelWidth;
-                System.arraycopy(fullPixels, srcIdx, finalPixels, dstIdx, finalPixelWidth);
-            }
-        }
+        // Calculate padding for logging
+        int contentWidth = maxBounds.getX() - minBounds.getX();
+        int contentHeight = maxBounds.getZ() - minBounds.getZ();
+        int padding = ServerMapUtils.calculateUniformPadding(contentWidth, contentHeight);
 
-        // 5. Done! Return raw pixels (no PNG encoding needed - client will handle it)
+        // 5. Return with chunk-aligned world coordinates from FoW
         long totalBakeTime = System.nanoTime() - bakeStartTime;
         
         ViaRomana.LOGGER.info("[PERF] Map bake completed for network {}: total={}ms, render={}ms, " +
-            "dimensions={}x{}, scale={}, rawSize={}KB, chunks={}/{}", 
+            "dimensions={}x{}, scale={}, rawSize={}KB, chunks={}/{}, contentPadding={}blocks", 
             networkId, totalBakeTime / 1_000_000.0, renderTime / 1_000_000.0, 
-            finalImgW, finalImgH, scaleFactor, finalPixels.length / 1024.0, 
-            chunksWithData, allowedChunks.size());
+            fullPixelWidth, fullPixelHeight, scaleFactor, fullPixels.length / 1024.0, 
+            chunksWithData, allowedChunks.size(), padding);
         
-        return MapInfo.fromServerCache(networkId, paddedMin, paddedMax, networkNodes, null, scaleFactor, 
-            new java.util.ArrayList<>(allowedChunks), finalPixels, finalPixelWidth, finalPixelHeight);
+        return MapInfo.fromServer(networkId, fullPixels, fullPixelWidth, fullPixelHeight, scaleFactor,
+            finalWorldMinX, finalWorldMinZ, finalWorldMaxX, finalWorldMaxZ,
+            new java.util.ArrayList<>(allowedChunks), networkNodes);
     }
 
     /**
@@ -125,17 +92,25 @@ public class MapBakeWorker {
             return bake(previousResult.networkId(), level, network.getMin(), network.getMax(), graph.getNodesAsInfo(network));
         }
         
-        // Check if network bounds changed (compare padded bounds)
-        int widthW = network.getMax().getX() - network.getMin().getX();
-        int heightW = network.getMax().getZ() - network.getMin().getZ();
-        int padX = Math.max(ServerMapUtils.MAP_BOUNDS_MIN_PADDING, (int) (widthW * ServerMapUtils.MAP_BOUNDS_PADDING_PERCENTAGE));
-        int padZ = Math.max(ServerMapUtils.MAP_BOUNDS_MIN_PADDING, (int) (heightW * ServerMapUtils.MAP_BOUNDS_PADDING_PERCENTAGE));
-        BlockPos expectedPaddedMin = network.getMin().offset(-padX, 0, -padZ);
-        BlockPos expectedPaddedMax = network.getMax().offset(padX, 0, padZ);
+        // Check if FoW bounds changed
+        PathGraph graph = PathGraph.getInstance(level);
+        PathGraph.FoWCache fowCache = graph.getOrComputeFoWCache(network);
+        if (fowCache == null) {
+            ViaRomana.LOGGER.warn("FoW cache unavailable for incremental update, performing full rebake");
+            return bake(previousResult.networkId(), level, network.getMin(), network.getMax(), graph.getNodesAsInfo(network));
+        }
         
-        if (!previousResult.minBounds().equals(expectedPaddedMin) || !previousResult.maxBounds().equals(expectedPaddedMax)) {
+        ChunkPos currentMinChunk = fowCache.minChunk();
+        ChunkPos currentMaxChunk = fowCache.maxChunk();
+        
+        int currentWorldMinX = currentMinChunk.x * 16;
+        int currentWorldMinZ = currentMinChunk.z * 16;
+        int currentWorldMaxX = currentMaxChunk.x * 16 + 15;
+        int currentWorldMaxZ = currentMaxChunk.z * 16 + 15;
+        
+        if (previousResult.worldMinX() != currentWorldMinX || previousResult.worldMaxX() != currentWorldMaxX ||
+            previousResult.worldMinZ() != currentWorldMinZ || previousResult.worldMaxZ() != currentWorldMaxZ) {
             ViaRomana.LOGGER.info("Network bounds changed, performing full rebake instead of incremental");
-            PathGraph graph = PathGraph.getInstance(level);
             return bake(previousResult.networkId(), level, network.getMin(), network.getMax(), graph.getNodesAsInfo(network));
         }
         
@@ -143,14 +118,12 @@ public class MapBakeWorker {
         
         long spliceStartTime = System.nanoTime();
         byte[] updatedPixels = previousResult.fullPixels().clone();
-        int scaleFactor = previousResult.bakeScaleFactor();
+        int scaleFactor = previousResult.scaleFactor();
         int pixelWidth = previousResult.pixelWidth();
         int scaledChunkSize = 16 / scaleFactor;
         
-        BlockPos paddedMin = previousResult.minBounds();
-        BlockPos paddedMax = previousResult.maxBounds();
-        ChunkPos minChunk = new ChunkPos(paddedMin);
-        ChunkPos maxChunk = new ChunkPos(paddedMax);
+        ChunkPos minChunk = previousResult.getMinChunk();
+        ChunkPos maxChunk = previousResult.getMaxChunk();
         
         int chunksUpdated = 0;
         int chunksSkipped = 0;
@@ -175,7 +148,7 @@ public class MapBakeWorker {
             int baseX = (dirtyPos.x - minChunk.x) * scaledChunkSize;
             int baseZ = (dirtyPos.z - minChunk.z) * scaledChunkSize;
             
-            // Double-check bounds to prevent ArrayIndexOutOfBounds
+            // Prevent ArrayIndexOutOfBounds
             if (baseX < 0 || baseZ < 0 || baseX + scaledChunkSize > pixelWidth || 
                 baseZ + scaledChunkSize > previousResult.pixelHeight()) {
                 ViaRomana.LOGGER.warn("Chunk {} out of splice bounds, skipping (baseX={}, baseZ={}, width={}, height={})", 
@@ -192,7 +165,6 @@ public class MapBakeWorker {
             chunksUpdated++;
         }
         
-        // If we skipped chunks due to bounds mismatch, log it
         if (chunksSkipped > 0) {
             ViaRomana.LOGGER.info("Skipped {} dirty chunks outside cached bounds (likely network resize)", chunksSkipped);
         }
@@ -202,9 +174,9 @@ public class MapBakeWorker {
         ViaRomana.LOGGER.info("[PERF] Incremental update completed: total={}ms, splice={}ms ({}chunks), rawSize={}KB", 
             totalUpdateTime / 1_000_000.0, spliceTime / 1_000_000.0, chunksUpdated, updatedPixels.length / 1024.0);
         
-        return MapInfo.fromServerCache(previousResult.networkId(), previousResult.minBounds(), previousResult.maxBounds(),
-            previousResult.networkNodes(), null, scaleFactor, previousResult.allowedChunks(),
-            updatedPixels, pixelWidth, previousResult.pixelHeight());
+        return MapInfo.fromServer(previousResult.networkId(), updatedPixels, pixelWidth, previousResult.pixelHeight(), scaleFactor,
+            previousResult.worldMinX(), previousResult.worldMinZ(), previousResult.worldMaxX(), previousResult.worldMaxZ(),
+            previousResult.allowedChunks(), previousResult.networkNodes());
     }
 
     private int calculateScaleFactor(int width, int height) {
@@ -231,7 +203,7 @@ public class MapBakeWorker {
         int totalChunks = allowedChunks.size();
 
         for (ChunkPos chunkPos : allowedChunks) {
-            // Progress logging every 500 chunks or every 2 seconds
+            // TODO: Remove this logging
             processedCount++;
             long now = System.nanoTime();
             if (processedCount % 500 == 0 || (now - lastLogTime) > 2_000_000_000L) {
@@ -245,7 +217,6 @@ public class MapBakeWorker {
                 continue;
             }
 
-            // Try to get chunk (will force load if needed for full bakes)
             // First check cache to avoid rendering if data exists
             Optional<byte[]> cachedPixels = ChunkPixelUtil.getPixelBytes(level, chunkPos);
             if (cachedPixels.isPresent()) {
@@ -253,7 +224,7 @@ public class MapBakeWorker {
                 chunksFromCache++;
                 
                 if (chunkPixels.length != 256) {
-                    LevelChunk chunk = level.getChunk(chunkPos.x, chunkPos.z);
+                    level.getChunk(chunkPos.x, chunkPos.z); // TODO: See if lazy loading can be used instead of chunk loading (unless that's what's already happening)
                     chunkPixels = ChunkPixelUtil.renderChunkPixels(level, chunkPos);
                     chunksRendered++;
                     chunksFromCache--;

@@ -67,8 +67,6 @@ public record MapRequestC2S(MapInfo mapInfo) implements CustomPacketPayload {
 
     // Getters
     public UUID getNetworkId() { return mapInfo.networkId(); }
-    public BlockPos getMinBounds() { return mapInfo.minBounds(); }
-    public BlockPos getMaxBounds() { return mapInfo.maxBounds(); }
     public List<NodeNetworkInfo> getNetworkNodes() { return mapInfo.networkNodes(); }
 
     public MapInfo getMapInfo() { return mapInfo; }

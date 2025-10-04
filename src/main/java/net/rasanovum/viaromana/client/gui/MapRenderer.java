@@ -23,7 +23,6 @@ public class MapRenderer implements AutoCloseable {
     private static final int SCREEN_MARGIN = 40;
     private static final int BACKGROUND_TILE_SIZE = 32;
     private static final float MIN_VISIBLE_TILE_FRACTION = 0.4f;
-    private static final int EDGE_GRADIENT_DISTANCE_SCREEN = 14;
     private static final float GRADIENT_RANDOMNESS = 0.3f;
     private static final float MAP_OPACITY = 0.75f;
 
@@ -36,7 +35,6 @@ public class MapRenderer implements AutoCloseable {
     
     private static final Map<ResourceLocation, NativeImage> tileImageCache = new ConcurrentHashMap<>();
 
-    // The requested world-space bounds for this map (no extra padding applied here)
     private final BlockPos requestedMinBounds;
     private final BlockPos requestedMaxBounds;
     private final long tileSeed;
@@ -96,14 +94,14 @@ public class MapRenderer implements AutoCloseable {
             bakedTextureLocation = Minecraft.getInstance().getTextureManager().register("baked_map", bakedDynamicTexture);
         }
         
-        BlockPos imageMin = mapTexture.mapInfo.minBounds();
-        BlockPos imageMax = mapTexture.mapInfo.maxBounds();
+        BlockPos imageMin = new BlockPos(mapTexture.mapInfo.worldMinX(), 0, mapTexture.mapInfo.worldMinZ());
+        BlockPos imageMax = new BlockPos(mapTexture.mapInfo.worldMaxX(), 0, mapTexture.mapInfo.worldMaxZ());
         
         coordinateSystem = new MapCoordinateSystem(
             imageMin, imageMax,
             mapTexture.nativeImage.getWidth(), mapTexture.nativeImage.getHeight(),
             bakedTextureWidth, bakedTextureHeight,
-            mapTexture.mapInfo.bakeScaleFactor()
+            mapTexture.mapInfo.scaleFactor()
         );
     }
     
@@ -171,7 +169,9 @@ public class MapRenderer implements AutoCloseable {
     private NativeImage applyEdgeGradient(NativeImage mapImage, float renderScale) {
         int width = mapImage.getWidth();
         int height = mapImage.getHeight();
-        int gradientDist = Math.max(1, (int) Math.ceil(EDGE_GRADIENT_DISTANCE_SCREEN / renderScale));
+        
+        int minDim = Math.min(width, height);
+        int gradientDist = Math.max(2, Math.min(20, minDim / 20)); // 5% of smallest dimension, but at least 2px and at most 20px
         
         float[][] distanceMap = new float[width][height];
         final float maxDist = (float) width + height;
