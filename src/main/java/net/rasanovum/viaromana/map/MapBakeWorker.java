@@ -263,8 +263,7 @@ public class MapBakeWorker {
             }
 
             if (chunkPixels == null) {
-                Holder<Biome> biome = getFallbackBiome(level, chunkToProcess);
-                chunkPixels = ChunkPixelUtil.generateBiomeFallbackPixels(level, biome);
+                chunkPixels = ChunkPixelUtil.generateBiomeFallbackPixels(level, chunkToProcess);
                 chunksFromBiome++;
             }
 
@@ -337,12 +336,5 @@ public class MapBakeWorker {
             int dstIdx = (baseZ + dz) * pixelWidth + baseX;
             System.arraycopy(chunkPixels, srcIdx, fullPixels, dstIdx, scaledChunkSize);
         }
-    }
-
-    public Holder<Biome> getFallbackBiome(ServerLevel level, ChunkPos chunkPos) {
-        BlockPos samplePos = new BlockPos(
-                chunkPos.getMinBlockX() + 8, 70, chunkPos.getMinBlockZ() + 8);
-
-        return level.getBiome(samplePos);
     }
 }
