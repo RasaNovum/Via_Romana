@@ -177,7 +177,7 @@ public class ChunkPixelUtil {
     }
 
     /**
-     * Gets pixel bytes from Data Anchor.
+     * Gets corner bytes from Data Anchor.
      */
     public static Optional<byte[]> getPixelBytes(ServerLevel level, ChunkPos pos) {
         TrackedDataContainer<Level, LevelTrackedData> container = TrackedDataRegistries.LEVEL.getContainer(level);
@@ -200,6 +200,32 @@ public class ChunkPixelUtil {
         container.dataAnchor$getTrackedData(MapInit.CHUNK_PIXEL_KEY)
                 .filter(data -> data instanceof LevelPixelTrackedData)
                 .ifPresent(data -> data.setPixelBytes(pos, bytes));
+    }
+
+    /**
+     * Gets corner bytes from Data Anchor.
+     */
+    public static Optional<byte[]> getCornerBytes(ServerLevel level, ChunkPos pos) {
+        TrackedDataContainer<Level, LevelTrackedData> container = TrackedDataRegistries.LEVEL.getContainer(level);
+        if (container == null) return Optional.empty();
+
+        return container.dataAnchor$getTrackedData(MapInit.CHUNK_CORNER_KEY)
+                .filter(data -> data instanceof LevelCornerTrackedData)
+                .flatMap(data -> data.getCornerBytes(pos));
+    }
+
+    /**
+     * Sets corner bytes to Data Anchor.
+     */
+    public static void setCornerBytes(ServerLevel level, ChunkPos pos, byte[] bytes) {
+        TrackedDataContainer<Level, LevelTrackedData> container = TrackedDataRegistries.LEVEL.getContainer(level);
+        if (container == null) return;
+
+        container.dataAnchor$createTrackedData();
+
+        container.dataAnchor$getTrackedData(MapInit.CHUNK_CORNER_KEY)
+                .filter(data -> data instanceof LevelCornerTrackedData)
+                .ifPresent(data -> data.setCornerBytes(pos, bytes));
     }
 
     /**
@@ -248,26 +274,38 @@ public class ChunkPixelUtil {
     }
 
     public static byte[] generateBiomeFallbackPixels(ServerLevel level, ChunkPos biomeChunk) {
-        int[][] corners = {{0, 0}, {3, 0}, {0, 3}, {3, 3}};
-        Holder<Biome>[] cornerBiomes = new Holder[4];
-
-        for (int c = 0; c < 4; c++) {
-            int blockX = biomeChunk.getMinBlockX() + corners[c][0] * 4;
-            int blockZ = biomeChunk.getMinBlockZ() + corners[c][1] * 4;
-            BlockPos samplePos = new BlockPos(blockX, 70, blockZ);
-            cornerBiomes[c] = level.getBiome(samplePos);
-        }
-
+        Optional<byte[]> cachedCorners = getCornerBytes(level, biomeChunk);
         int[] cornerPackedIds = new int[4];
-        for (int c = 0; c < 4; c++) {
-            int colorIndex = getColorIndex(level, cornerBiomes[c]);
-            int brightness = (colorIndex == 12) ? 0 : 1; // Set shade to 0 if water to match map
-            cornerPackedIds[c] = colorIndex * 4 + brightness;
+
+        if (cachedCorners.isPresent()) {
+            byte[] corners = cachedCorners.get();
+            for (int i = 0; i < 4; i++) {
+                cornerPackedIds[i] = corners[i] & 0xFF;
+            }
+        } else {
+            int[][] corners = {{0, 0}, {3, 0}, {0, 3}, {3, 3}};
+            Holder<Biome>[] cornerBiomes = new Holder[4];
+
+            for (int c = 0; c < 4; c++) {
+                int blockX = biomeChunk.getMinBlockX() + corners[c][0] * 4;
+                int blockZ = biomeChunk.getMinBlockZ() + corners[c][1] * 4;
+                BlockPos samplePos = new BlockPos(blockX, 70, blockZ);
+                cornerBiomes[c] = level.getBiome(samplePos);
+            }
+
+            byte[] cornerBytes = new byte[4];
+            for (int c = 0; c < 4; c++) {
+                int colorIndex = getColorIndex(level, cornerBiomes[c]);
+                int brightness = (colorIndex == 12) ? 0 : 1;
+                cornerPackedIds[c] = colorIndex * 4 + brightness;
+                cornerBytes[c] = (byte) cornerPackedIds[c];
+            }
+
+            setCornerBytes(level, biomeChunk, cornerBytes);
         }
 
         byte[] pixels = new byte[256];
 
-        // Assign each quadrant to its corner biome
         for (int i = 0; i < 256; i++) {
             int px = i % 16;
             int pz = i / 16;
@@ -329,7 +367,7 @@ public class ChunkPixelUtil {
         } else if (holder.is(netherTag)) {
             colorIndex = 35;
         } else if (biomePath.contains("mushroom_fields")) {
-            colorIndex = 39;
+            colorIndex = 24;
         } else {
             ViaRomana.LOGGER.warn("Biome {} did not match any color index rules, defaulting to 0", biomeId);
         }

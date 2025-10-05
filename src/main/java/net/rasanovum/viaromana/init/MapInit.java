@@ -4,6 +4,7 @@ import dev.corgitaco.dataanchor.data.registry.TrackedDataRegistries;
 import dev.corgitaco.dataanchor.data.registry.TrackedDataKey;
 import net.minecraft.server.level.ServerLevel;
 import net.rasanovum.viaromana.map.LevelPixelTrackedData;
+import net.rasanovum.viaromana.map.LevelCornerTrackedData;
 import net.rasanovum.viaromana.util.VersionUtils;
 
 public class MapInit {
@@ -14,6 +15,18 @@ public class MapInit {
                         (key, level) -> {
                                 if (level instanceof ServerLevel serverLevel) {
                                         return new LevelPixelTrackedData(key, serverLevel);
+                                }
+                                return null;
+                        }
+                );
+
+        public static final TrackedDataKey<LevelCornerTrackedData> CHUNK_CORNER_KEY =
+                TrackedDataRegistries.LEVEL.register(
+                        VersionUtils.getLocation("viaromana:chunk_corners"),
+                        LevelCornerTrackedData.class,
+                        (key, level) -> {
+                                if (level instanceof ServerLevel serverLevel) {
+                                        return new LevelCornerTrackedData(key, serverLevel);
                                 }
                                 return null;
                         }

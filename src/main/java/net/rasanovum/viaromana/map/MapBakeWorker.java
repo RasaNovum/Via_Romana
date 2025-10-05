@@ -1,10 +1,8 @@
 package net.rasanovum.viaromana.map;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.biome.Biome;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.network.packets.DestinationResponseS2C.NodeNetworkInfo;
@@ -309,7 +307,7 @@ public class MapBakeWorker {
         if (cached.isPresent()) {
             byte[] pixels = cached.get();
             if (pixels.length == 256) {  // Valid full chunk
-                return new PixelResult(pixels, 1, 0);  // Cache hit: +1 cache, +0 render
+                return new PixelResult(pixels, 1, 0);
             }
         }
 
@@ -318,7 +316,7 @@ public class MapBakeWorker {
         byte[] pixels = ChunkPixelUtil.renderChunkPixels(level, chunkPos);
         if (pixels.length == 256) {
             ChunkPixelUtil.setPixelBytes(level, chunkPos, pixels);
-            return new PixelResult(pixels, 0, 1);  // Rendered: +0 cache, +1 render
+            return new PixelResult(pixels, 0, 1);
         }
 
         ViaRomana.LOGGER.warn("Chunk {} failed to render (invalid size: {}), skipping", chunkPos, pixels.length);
