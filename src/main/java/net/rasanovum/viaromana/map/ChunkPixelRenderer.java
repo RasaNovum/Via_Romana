@@ -23,7 +23,7 @@ import java.util.*;
 /**
  * Utility for rendering/loading chunk pixels.
  */
-public class ChunkPixelUtil {
+public class ChunkPixelRenderer {
     
     private static final Map<ResourceLocation, Integer> biomeColorCache = new HashMap<>();
     

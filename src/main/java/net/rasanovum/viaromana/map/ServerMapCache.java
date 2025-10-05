@@ -150,7 +150,7 @@ public final class ServerMapCache {
                     }
 
                     return CompletableFuture.supplyAsync(() -> {
-                        MapBakeWorker worker = new MapBakeWorker();
+                        MapBaker worker = new MapBaker();
                         MapInfo previousResult = cache.get(networkId);
                         MapInfo newResult;
 

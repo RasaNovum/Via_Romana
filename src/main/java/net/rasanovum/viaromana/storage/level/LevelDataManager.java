@@ -11,7 +11,7 @@ import net.rasanovum.viaromana.init.MapInit;
 import java.util.Optional;
 import java.util.Set;
 
-import static net.rasanovum.viaromana.map.ChunkPixelUtil.renderChunkPixels;
+import static net.rasanovum.viaromana.map.ChunkPixelRenderer.renderChunkPixels;
 
 public class LevelDataManager {
     /**
