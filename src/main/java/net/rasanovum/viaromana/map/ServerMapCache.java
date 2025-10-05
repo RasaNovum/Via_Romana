@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
  * saving and lazy-loading map data to/from disk.
  */
 public final class ServerMapCache {
-    private static final String MAP_DIR_NAME = "via_romana/network_images";
+    private static final String MAP_DIR_NAME = "data/via_romana/network";
     private static final Map<UUID, MapInfo> cache = new ConcurrentHashMap<>();
     private static final Map<UUID, Set<ChunkPos>> dirtyNetworks = new ConcurrentHashMap<>();
     private static final Set<UUID> modifiedForSaving = ConcurrentHashMap.newKeySet();
@@ -188,9 +188,7 @@ public final class ServerMapCache {
 
     public static Optional<MapInfo> getMapData(UUID networkId) {
         MapInfo result = cache.get(networkId);
-        if (result != null) {
-            return Optional.of(result);
-        }
+        if (result != null) return Optional.of(result);
         return loadFromDisk(networkId);
     }
 

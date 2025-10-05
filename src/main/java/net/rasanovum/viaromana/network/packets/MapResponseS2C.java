@@ -1,19 +1,12 @@
 package net.rasanovum.viaromana.network.packets;
 
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
 //? if >=1.21 {
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 //?}
 import net.rasanovum.viaromana.map.MapInfo;
-import net.rasanovum.viaromana.network.packets.DestinationResponseS2C.NodeNetworkInfo;
 import net.rasanovum.viaromana.util.VersionUtils;
-
-import java.util.List;
-import java.util.ArrayList;
-import java.util.UUID;
 
 /*
  * Response from the server containing the generated map data for the requested area and network.

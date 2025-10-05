@@ -77,7 +77,7 @@ public final class PathGraph {
         }
     }
 
-    public record FoWCache(ChunkPos minChunk, ChunkPos maxChunk, Set<ChunkPos> allowedChunks) { }
+    public record FoWCache(ChunkPos minChunk, ChunkPos maxChunk, BlockPos minBlock, BlockPos maxBlock, Set<ChunkPos> allowedChunks) { }
 
     public record BoundingBox(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
         public static final BoundingBox ZERO = new BoundingBox(0, 0, 0, 0, 0, 0);
@@ -578,18 +578,19 @@ public final class PathGraph {
 
     public FoWCache getOrComputeFoWCache(NetworkCache cache) {
         return fowCacheById.computeIfAbsent(cache.id(), id -> {
-            int widthW = cache.bounds.maxX - cache.bounds.minX;
-            int heightW = cache.bounds.maxZ - cache.bounds.minZ;
-            int padX = Math.max(ServerMapUtils.MAP_BOUNDS_MIN_PADDING, (int) (widthW * ServerMapUtils.MAP_BOUNDS_PADDING_PERCENTAGE));
-            int padZ = Math.max(ServerMapUtils.MAP_BOUNDS_MIN_PADDING, (int) (heightW * ServerMapUtils.MAP_BOUNDS_PADDING_PERCENTAGE));
-            BlockPos paddedMin = new BlockPos(cache.bounds.minX - padX, cache.bounds.minY, cache.bounds.minZ - padZ);
-            BlockPos paddedMax = new BlockPos(cache.bounds.maxX + padX, cache.bounds.maxY, cache.bounds.maxZ + padZ);
+            int cacheWidth = cache.bounds.maxX - cache.bounds.minX;
+            int cacheHeight = cache.bounds.maxZ - cache.bounds.minZ;
+
+            int padding = ServerMapUtils.calculateUniformPadding(cacheWidth, cacheHeight);
+
+            BlockPos paddedMin = new BlockPos(cache.bounds.minX - padding, cache.bounds.minY, cache.bounds.minZ - padding);
+            BlockPos paddedMax = new BlockPos(cache.bounds.maxX + padding, cache.bounds.maxY, cache.bounds.maxZ + padding);
 
             ChunkPos minChunk = new ChunkPos(paddedMin);
             ChunkPos maxChunk = new ChunkPos(paddedMax);
 
-            Set<ChunkPos> allowed = ServerMapUtils.calculateFogOfWarChunks(cache.getNodesAsInfo(this.posToIndex, this.nodes), minChunk, maxChunk);
-            return new FoWCache(minChunk, maxChunk, allowed);
+            Set<ChunkPos> allowedChunks = ServerMapUtils.calculateFogOfWarChunks(cache.getNodesAsInfo(this.posToIndex, this.nodes), minChunk, maxChunk);
+            return new FoWCache(minChunk, maxChunk, paddedMin, paddedMax, allowedChunks);
         });
     }
 

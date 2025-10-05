@@ -18,82 +18,82 @@ public record MapInfo(
     int pixelWidth,
     int pixelHeight,
     int scaleFactor,
-    int worldMinX,                      // chunk-aligned: chunkX * 16
-    int worldMinZ,                      // chunk-aligned: chunkZ * 16
-    int worldMaxX,                      // chunk-aligned: chunkX * 16 + 15
-    int worldMaxZ,                      // chunk-aligned: chunkZ * 16 + 15
+    int worldMinX,                      // world X coordinate of the top-left pixel
+    int worldMinZ,                      // world Z coordinate of the top-left pixel
+    int worldMaxX,                      // world X coordinate of the bottom-right pixel
+    int worldMaxZ,                      // world Z coordinate of the bottom-right pixel
     Long createdAtMs,
     List<ChunkPos> allowedChunks,       // fog-of-war chunk list (server-side only)
     List<NodeNetworkInfo> networkNodes  // network nodes for spline rendering
 ) {
-    
+
     /**
-     * Creates a map request (no image data).
+     * Creates a map request.
      */
     public static MapInfo request(UUID networkId, BlockPos minBounds, BlockPos maxBounds, List<NodeNetworkInfo> networkNodes) {
-        return new MapInfo(networkId, null, 0, 0, 1, 
+        return new MapInfo(networkId, null, 0, 0, 1,
                           minBounds.getX(), minBounds.getZ(), maxBounds.getX(), maxBounds.getZ(),
                           null, null,
                           networkNodes != null ? new ArrayList<>(networkNodes) : new ArrayList<>());
     }
-    
+
     /**
      * Creates a map from server (with full pixel data and world coordinates).
      */
     public static MapInfo fromServer(UUID networkId, byte[] fullPixels, int pixelWidth, int pixelHeight, int scaleFactor,
                                      int worldMinX, int worldMinZ, int worldMaxX, int worldMaxZ,
                                      List<ChunkPos> allowedChunks, List<NodeNetworkInfo> networkNodes) {
-        return new MapInfo(networkId, 
+        return new MapInfo(networkId,
                           fullPixels != null ? fullPixels.clone() : null, pixelWidth, pixelHeight, scaleFactor,
                           worldMinX, worldMinZ, worldMaxX, worldMaxZ,
                           System.currentTimeMillis(),
                           allowedChunks != null ? new ArrayList<>(allowedChunks) : null,
                           networkNodes != null ? new ArrayList<>(networkNodes) : new ArrayList<>());
     }
-    
+
     // Helper methods
     public boolean hasImageData() {
         return fullPixels != null && pixelWidth > 0 && pixelHeight > 0;
     }
-    
+
     public boolean isRequest() {
         return fullPixels == null;
     }
-    
+
     public boolean isResponse() {
         return fullPixels != null && pixelWidth > 0 && pixelHeight > 0;
     }
-    
+
     public int getWorldWidth() {
         return worldMaxX - worldMinX + 1;
     }
-    
+
     public int getWorldHeight() {
         return worldMaxZ - worldMinZ + 1;
     }
-    
+
     /**
      * Get the ChunkPos corresponding to worldMinX/Z.
      */
     public ChunkPos getMinChunk() {
         return new ChunkPos(worldMinX >> 4, worldMinZ >> 4);
     }
-    
+
     /**
      * Get the ChunkPos corresponding to worldMaxX/Z.
      */
     public ChunkPos getMaxChunk() {
         return new ChunkPos(worldMaxX >> 4, worldMaxZ >> 4);
     }
-    
+
     public boolean hasTimestamp() {
         return createdAtMs != null;
     }
-    
+
     public long getAgeMs() {
         return createdAtMs != null ? System.currentTimeMillis() - createdAtMs : 0L;
     }
-    
+
     public String getFormattedAge() {
         if (createdAtMs == null) return "no timestamp";
         long ageMs = getAgeMs();
@@ -101,11 +101,11 @@ public record MapInfo(
         if (ageMs < 60000) return (ageMs / 1000) + "s ago";
         return (ageMs / 60000) + "m ago";
     }
-    
+
     // Network serialization
     public void writeToBuffer(FriendlyByteBuf buffer) {
         buffer.writeUUID(networkId);
-        
+
         // Write network nodes
         buffer.writeInt(networkNodes.size());
         for (NodeNetworkInfo node : networkNodes) {
@@ -116,7 +116,7 @@ public record MapInfo(
                 buffer.writeBlockPos(connection);
             }
         }
-        
+
         // Write raw pixel data and world coordinates
         if (fullPixels != null && pixelWidth > 0 && pixelHeight > 0) {
             buffer.writeBoolean(true);
@@ -134,10 +134,10 @@ public record MapInfo(
             buffer.writeBoolean(false);
         }
     }
-    
+
     public static MapInfo readFromBuffer(FriendlyByteBuf buffer) {
         UUID networkId = buffer.readUUID();
-        
+
         // Read network nodes
         int nodeCount = buffer.readInt();
         List<NodeNetworkInfo> networkNodes = new ArrayList<>(nodeCount);
@@ -151,7 +151,7 @@ public record MapInfo(
             }
             networkNodes.add(new NodeNetworkInfo(nodePos, clearance, connections));
         }
-        
+
         // Read raw pixel data and world coordinates
         boolean hasPixelData = buffer.readBoolean();
         byte[] fullPixels = null;
@@ -163,7 +163,7 @@ public record MapInfo(
         int worldMaxX = 0;
         int worldMaxZ = 0;
         Long createdAtMs = null;
-        
+
         if (hasPixelData) {
             int length = buffer.readInt();
             fullPixels = new byte[length];
@@ -178,10 +178,10 @@ public record MapInfo(
             long ts = buffer.readLong();
             createdAtMs = ts == 0L ? null : ts;
         }
-        
+
         return new MapInfo(networkId, fullPixels, pixelWidth, pixelHeight, scaleFactor, worldMinX, worldMinZ, worldMaxX, worldMaxZ, createdAtMs, null, networkNodes);
     }
-    
+
     // Ensure defensive copying of mutable fields
     public MapInfo {
         networkNodes = networkNodes != null ? new ArrayList<>(networkNodes) : new ArrayList<>();

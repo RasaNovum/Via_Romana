@@ -1,5 +1,6 @@
 package net.rasanovum.viaromana.map;
 
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.ViaRomana;
@@ -28,13 +29,10 @@ public final class ServerMapUtils {
     public static Set<ChunkPos> calculateFogOfWarChunks(List<DestinationResponseS2C.NodeNetworkInfo> networkNodes, ChunkPos minChunk, ChunkPos maxChunk) {
         Set<ChunkPos> allowedChunks = new HashSet<>();
         if (networkNodes == null || networkNodes.isEmpty()) {
-            for (int cx = minChunk.x; cx <= maxChunk.x; cx++) {
-                for (int cz = minChunk.z; cz <= maxChunk.z; cz++) {
-                    allowedChunks.add(new ChunkPos(cx, cz));
-                }
-            }
+            ViaRomana.LOGGER.warn("No nodes provided for Fog of War calculation, returning empty set");
             return allowedChunks;
         }
+        ViaRomana.LOGGER.info("Bounds: {}, {}", minChunk, maxChunk);
         final int FOG_OF_WAR_DISTANCE = CommonConfig.fog_of_war_distance;
         final int radiusSq = FOG_OF_WAR_DISTANCE * FOG_OF_WAR_DISTANCE;
         for (DestinationResponseS2C.NodeNetworkInfo node : networkNodes) {

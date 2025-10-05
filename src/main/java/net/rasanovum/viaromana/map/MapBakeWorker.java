@@ -1,9 +1,10 @@
 package net.rasanovum.viaromana.map;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.biome.Biome;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.network.packets.DestinationResponseS2C.NodeNetworkInfo;
@@ -13,6 +14,7 @@ import java.util.*;
 
 public class MapBakeWorker {
     private static final int[] COLOR_LOOKUP = new int[256]; // ARGB color lookup table
+    public record PixelResult(byte[] pixels, int cacheIncrement, int renderIncrement) {}
     
     static {
         COLOR_LOOKUP[0] = 0x00000000;
@@ -28,6 +30,7 @@ public class MapBakeWorker {
     public MapInfo bake(UUID networkId, ServerLevel level, BlockPos minBounds, BlockPos maxBounds, List<NodeNetworkInfo> networkNodes) {
         long bakeStartTime = System.nanoTime();
         ViaRomana.LOGGER.info("[PERF] Starting full map bake for network {}", networkId);
+        ViaRomana.LOGGER.info("Bounds: ({}), ({})", minBounds, maxBounds);
         
         // 1. Get FoW data and full chunk bounds
         PathGraph graph = PathGraph.getInstance(level);
@@ -36,46 +39,72 @@ public class MapBakeWorker {
         PathGraph.FoWCache fowCache = graph.getOrComputeFoWCache(network);
         if (fowCache == null) throw new IllegalStateException("FoW cache is null");
 
-        ChunkPos minChunk = fowCache.minChunk();
-        ChunkPos maxChunk = fowCache.maxChunk();
-        Set<ChunkPos> allowedChunks = fowCache.allowedChunks();
+        // Create list of all chunks in the bounding box
+        Set<ChunkPos> bakeChunks = fowCache.allowedChunks();
+        BlockPos desiredMinBlock = fowCache.minBlock();
+        BlockPos desiredMaxBlock = fowCache.maxBlock();
+        ChunkPos bakeMinChunk = fowCache.minChunk();
+        ChunkPos bakeMaxChunk = fowCache.maxChunk();
+
+        // Create list of all chunks within the map bounds
+        Set<ChunkPos> mapChunks = new HashSet<>();
+        for (int cx = bakeMinChunk.x; cx <= bakeMaxChunk.x; cx++) {
+            for (int cz = bakeMinChunk.z; cz <= bakeMaxChunk.z; cz++) {
+                mapChunks.add(new ChunkPos(cx, cz));
+            }
+        }
 
         // 2. Calculate scale factor for FULL chunk region
-        int fullChunkWidth = (maxChunk.x - minChunk.x + 1) * 16;
-        int fullChunkHeight = (maxChunk.z - minChunk.z + 1) * 16;
+        int fullChunkWidth = (bakeMaxChunk.x - bakeMinChunk.x + 1) * 16;
+        int fullChunkHeight = (bakeMaxChunk.z - bakeMinChunk.z + 1) * 16;
         int scaleFactor = calculateScaleFactor(fullChunkWidth, fullChunkHeight);
 
-        // 3. Render ENTIRE chunk region to pixel array
+        // 3. Render chunk region to pixel array
         long renderStartTime = System.nanoTime();
         int fullPixelWidth = fullChunkWidth / scaleFactor;
         int fullPixelHeight = fullChunkHeight / scaleFactor;
         byte[] fullPixels = new byte[fullPixelWidth * fullPixelHeight];
-        int chunksWithData = processChunkPixels(fullPixels, level, minChunk, maxChunk, allowedChunks, scaleFactor, fullPixelWidth);
+        int chunksWithData = processChunkPixels(fullPixels, level, mapChunks, bakeChunks, scaleFactor, fullPixelWidth, fullPixelHeight, bakeMinChunk);
         long renderTime = System.nanoTime() - renderStartTime;
-
-        // 4. Use FoW region directly
-        int finalWorldMinX = minChunk.x * 16;
-        int finalWorldMinZ = minChunk.z * 16;
-        int finalWorldMaxX = maxChunk.x * 16 + 15;
-        int finalWorldMaxZ = maxChunk.z * 16 + 15;
         
-        // Calculate padding for logging
-        int contentWidth = maxBounds.getX() - minBounds.getX();
-        int contentHeight = maxBounds.getZ() - minBounds.getZ();
-        int padding = ServerMapUtils.calculateUniformPadding(contentWidth, contentHeight);
+        int desiredMinX = desiredMinBlock.getX();
+        int desiredMinZ = desiredMinBlock.getZ();
+        int desiredMaxX = desiredMaxBlock.getX();
+        int desiredMaxZ = desiredMaxBlock.getZ();
+        
+        int bakedMinX = bakeMinChunk.x * 16;
+        int bakedMinZ = bakeMinChunk.z * 16;
+        
+        int startPixelX = (desiredMinX - bakedMinX) / scaleFactor;
+        int startPixelZ = (desiredMinZ - bakedMinZ) / scaleFactor;
+        int croppedPixelWidth = ((desiredMaxX - desiredMinX + 1) / scaleFactor);
+        int croppedPixelHeight = ((desiredMaxZ - desiredMinZ + 1) / scaleFactor);
+        
+        // Clamp to valid ranges
+        int effectiveStartX = Math.max(0, startPixelX);
+        int effectiveStartZ = Math.max(0, startPixelZ);
+        int effectiveWidth = Math.min(croppedPixelWidth, fullPixelWidth - effectiveStartX);
+        int effectiveHeight = Math.min(croppedPixelHeight, fullPixelHeight - effectiveStartZ);
+        
+        byte[] croppedPixels = new byte[effectiveWidth * effectiveHeight];
+        for (int z = 0; z < effectiveHeight; z++) {
+            int srcZ = effectiveStartZ + z;
+            if (srcZ >= fullPixelHeight) break;
+            int srcIdx = srcZ * fullPixelWidth + effectiveStartX;
+            int dstIdx = z * effectiveWidth;
+            System.arraycopy(fullPixels, srcIdx, croppedPixels, dstIdx, Math.min(effectiveWidth, fullPixelWidth - effectiveStartX));
+        }
 
         // 5. Return with chunk-aligned world coordinates from FoW
         long totalBakeTime = System.nanoTime() - bakeStartTime;
         
         ViaRomana.LOGGER.info("[PERF] Map bake completed for network {}: total={}ms, render={}ms, " +
-            "dimensions={}x{}, scale={}, rawSize={}KB, chunks={}/{}, contentPadding={}blocks", 
+            "dimensions={}x{}, scale={}, rawSize={}KB, chunks={}",
             networkId, totalBakeTime / 1_000_000.0, renderTime / 1_000_000.0, 
-            fullPixelWidth, fullPixelHeight, scaleFactor, fullPixels.length / 1024.0, 
-            chunksWithData, allowedChunks.size(), padding);
+            effectiveWidth, effectiveHeight, scaleFactor, croppedPixels.length / 1024.0, 
+            chunksWithData);
         
-        return MapInfo.fromServer(networkId, fullPixels, fullPixelWidth, fullPixelHeight, scaleFactor,
-            finalWorldMinX, finalWorldMinZ, finalWorldMaxX, finalWorldMaxZ,
-            new java.util.ArrayList<>(allowedChunks), networkNodes);
+        return MapInfo.fromServer(networkId, croppedPixels, effectiveWidth, effectiveHeight, scaleFactor, desiredMinX, desiredMinZ, desiredMaxX, desiredMaxZ, new ArrayList<>(bakeChunks), networkNodes);
     }
 
     /**
@@ -100,16 +129,15 @@ public class MapBakeWorker {
             return bake(previousResult.networkId(), level, network.getMin(), network.getMax(), graph.getNodesAsInfo(network));
         }
         
-        ChunkPos currentMinChunk = fowCache.minChunk();
-        ChunkPos currentMaxChunk = fowCache.maxChunk();
+        // Check if network bounds changed (including padding)
+        int padding = ServerMapUtils.calculateUniformPadding(network.getMax().getX() - network.getMin().getX(), network.getMax().getZ() - network.getMin().getZ());
+        int currentDesiredMinX = network.getMin().getX() - padding;
+        int currentDesiredMinZ = network.getMin().getZ() - padding;
+        int currentDesiredMaxX = network.getMax().getX() + padding;
+        int currentDesiredMaxZ = network.getMax().getZ() + padding;
         
-        int currentWorldMinX = currentMinChunk.x * 16;
-        int currentWorldMinZ = currentMinChunk.z * 16;
-        int currentWorldMaxX = currentMaxChunk.x * 16 + 15;
-        int currentWorldMaxZ = currentMaxChunk.z * 16 + 15;
-        
-        if (previousResult.worldMinX() != currentWorldMinX || previousResult.worldMaxX() != currentWorldMaxX ||
-            previousResult.worldMinZ() != currentWorldMinZ || previousResult.worldMaxZ() != currentWorldMaxZ) {
+        if (previousResult.worldMinX() != currentDesiredMinX || previousResult.worldMaxX() != currentDesiredMaxX ||
+            previousResult.worldMinZ() != currentDesiredMinZ || previousResult.worldMaxZ() != currentDesiredMaxZ) {
             ViaRomana.LOGGER.info("Network bounds changed, performing full rebake instead of incremental");
             return bake(previousResult.networkId(), level, network.getMin(), network.getMax(), graph.getNodesAsInfo(network));
         }
@@ -124,6 +152,13 @@ public class MapBakeWorker {
         
         ChunkPos minChunk = previousResult.getMinChunk();
         ChunkPos maxChunk = previousResult.getMaxChunk();
+        
+        int bakedMinX = minChunk.x * 16;
+        int bakedMinZ = minChunk.z * 16;
+        int desiredMinX = previousResult.worldMinX();
+        int desiredMinZ = previousResult.worldMinZ();
+        int startPixelX = (desiredMinX - bakedMinX) / scaleFactor;
+        int startPixelZ = (desiredMinZ - bakedMinZ) / scaleFactor;
         
         int chunksUpdated = 0;
         int chunksSkipped = 0;
@@ -147,19 +182,21 @@ public class MapBakeWorker {
             // Splice into full pixel array
             int baseX = (dirtyPos.x - minChunk.x) * scaledChunkSize;
             int baseZ = (dirtyPos.z - minChunk.z) * scaledChunkSize;
+            int dstX = baseX - startPixelX;
+            int dstZ = baseZ - startPixelZ;
             
             // Prevent ArrayIndexOutOfBounds
-            if (baseX < 0 || baseZ < 0 || baseX + scaledChunkSize > pixelWidth || 
-                baseZ + scaledChunkSize > previousResult.pixelHeight()) {
-                ViaRomana.LOGGER.warn("Chunk {} out of splice bounds, skipping (baseX={}, baseZ={}, width={}, height={})", 
-                    dirtyPos, baseX, baseZ, pixelWidth, previousResult.pixelHeight());
+            if (dstX < 0 || dstZ < 0 || dstX + scaledChunkSize > pixelWidth || 
+                dstZ + scaledChunkSize > previousResult.pixelHeight()) {
+                ViaRomana.LOGGER.warn("Chunk {} out of splice bounds, skipping (dstX={}, dstZ={}, width={}, height={})", 
+                    dirtyPos, dstX, dstZ, pixelWidth, previousResult.pixelHeight());
                 chunksSkipped++;
                 continue;
             }
             
             for (int dz = 0; dz < scaledChunkSize; dz++) {
                 int srcIdx = dz * scaledChunkSize;
-                int dstIdx = (baseZ + dz) * pixelWidth + baseX;
+                int dstIdx = (dstZ + dz) * pixelWidth + dstX;
                 System.arraycopy(chunkPixels, srcIdx, updatedPixels, dstIdx, scaledChunkSize);
             }
             chunksUpdated++;
@@ -191,103 +228,121 @@ public class MapBakeWorker {
      * Processes raw chunk pixels directly into a full pixel array.
      * Iterates over allowed chunks to avoid wasted bounding box iterations.
      */
-    private int processChunkPixels(byte[] fullPixels, ServerLevel level, ChunkPos min, ChunkPos max, 
-                                    Set<ChunkPos> allowedChunks, int scaleFactor, int pixelWidth) {
+    private int processChunkPixels(byte[] fullPixels, ServerLevel level, Set<ChunkPos> allChunks, Set<ChunkPos> renderedChunks, int scaleFactor, int pixelWidth, int pixelHeight, ChunkPos minChunk) {
         int chunksWithData = 0;
         int chunksFromCache = 0;
         int chunksRendered = 0;
+        int chunksFromBiome = 0;
         int scaledChunkSize = 16 / scaleFactor;
-        
+
         long lastLogTime = System.nanoTime();
         int processedCount = 0;
-        int totalChunks = allowedChunks.size();
+        int totalChunks = allChunks.size();
 
-        for (ChunkPos chunkPos : allowedChunks) {
-            // TODO: Remove this logging
+        ViaRomana.LOGGER.info("Total chunks={}, renderable={}", totalChunks, renderedChunks.size());
+
+        for (ChunkPos chunkToProcess : allChunks) {
             processedCount++;
             long now = System.nanoTime();
             if (processedCount % 500 == 0 || (now - lastLogTime) > 2_000_000_000L) {
-                ViaRomana.LOGGER.info("[PERF] Baking progress: {}/{} chunks ({} cached, {} rendered)", 
-                    processedCount, totalChunks, chunksFromCache, chunksRendered);
+                ViaRomana.LOGGER.info("[PERF] Baking progress: {}/{} chunks ({} cached, {} rendered, {} biome)",
+                        processedCount, totalChunks, chunksFromCache, chunksRendered, chunksFromBiome);
                 lastLogTime = now;
             }
-            
-            // Skip chunks outside bounds
-            if (chunkPos.x < min.x || chunkPos.x > max.x || chunkPos.z < min.z || chunkPos.z > max.z) {
+
+            byte[] chunkPixels = null;
+            boolean isRenderable = renderedChunks.contains(chunkToProcess);
+
+            if (isRenderable) {
+                PixelResult result = getOrRenderChunkPixels(level, chunkToProcess);
+                if (result.pixels() != null && result.pixels().length == 256) {
+                    chunkPixels = result.pixels();
+                    chunksFromCache += result.cacheIncrement();
+                    chunksRendered += result.renderIncrement();
+                }
+            }
+
+            if (chunkPixels == null) {
+                Holder<Biome> biome = getFallbackBiome(level, chunkToProcess);
+                chunkPixels = ChunkPixelUtil.generateBiomeFallbackPixels(level, biome);
+                chunksFromBiome++;
+            }
+
+            if (chunkPixels.length != 256) {
+                ViaRomana.LOGGER.warn("Failed to generate pixels (render or fallback) for chunk {}", chunkToProcess);
                 continue;
             }
 
-            // First check cache to avoid rendering if data exists
-            Optional<byte[]> cachedPixels = ChunkPixelUtil.getPixelBytes(level, chunkPos);
-            if (cachedPixels.isPresent()) {
-                byte[] chunkPixels = cachedPixels.get();
-                chunksFromCache++;
-                
-                if (chunkPixels.length != 256) {
-                    level.getChunk(chunkPos.x, chunkPos.z); // TODO: See if lazy loading can be used instead of chunk loading (unless that's what's already happening)
-                    chunkPixels = ChunkPixelUtil.renderChunkPixels(level, chunkPos);
-                    chunksRendered++;
-                    chunksFromCache--;
-                    ChunkPixelUtil.setPixelBytes(level, chunkPos, chunkPixels);
-                }
-                
-                if (scaleFactor > 1) {
-                    chunkPixels = ChunkPixelUtil.scalePixels(chunkPixels, scaleFactor);
-                }
-                
-                int baseX = (chunkPos.x - min.x) * scaledChunkSize;
-                int baseZ = (chunkPos.z - min.z) * scaledChunkSize;
-                for (int dz = 0; dz < scaledChunkSize; dz++) {
-                    int srcIdx = dz * scaledChunkSize;
-                    int dstIdx = (baseZ + dz) * pixelWidth + baseX;
-                    System.arraycopy(chunkPixels, srcIdx, fullPixels, dstIdx, scaledChunkSize);
-                }
-                chunksWithData++;
-                continue;
-            }
-            
-            LevelChunk chunk = level.getChunk(chunkPos.x, chunkPos.z);
-            if (chunk == null) {
-                ViaRomana.LOGGER.warn("Failed to load chunk {} for pixel composite", chunkPos);
-                continue;
-            }
-            
-            byte[] chunkPixels = ChunkPixelUtil.renderChunkPixels(level, chunkPos);
-            chunksRendered++;
-            if (chunkPixels.length == 256) {
-                ChunkPixelUtil.setPixelBytes(level, chunkPos, chunkPixels);
-            } else {
-                ViaRomana.LOGGER.warn("Chunk {} failed to render (invalid size: {}), skipping", chunkPos, chunkPixels.length);
+            int baseX = (chunkToProcess.x - minChunk.x) * scaledChunkSize;
+            int baseZ = (chunkToProcess.z - minChunk.z) * scaledChunkSize;
+            if (baseX < 0 || baseZ < 0 || baseX + scaledChunkSize > pixelWidth || baseZ + scaledChunkSize > pixelHeight) {
+                ViaRomana.LOGGER.warn("Chunk {} out of pixel bounds (baseX={}, baseZ={}, width={}, height={}), skipping",
+                        chunkToProcess, baseX, baseZ, pixelWidth, pixelHeight);
                 continue;
             }
 
-            if (scaleFactor > 1) { // Scale if needed
+            if (scaleFactor > 1) {
                 chunkPixels = ChunkPixelUtil.scalePixels(chunkPixels, scaleFactor);
             }
 
-            // Copy chunk pixels to full pixel array
-            int baseX = (chunkPos.x - min.x) * scaledChunkSize;
-            int baseZ = (chunkPos.z - min.z) * scaledChunkSize;
-            
-            for (int dz = 0; dz < scaledChunkSize; dz++) {
-                int srcIdx = dz * scaledChunkSize;
-                int dstIdx = (baseZ + dz) * pixelWidth + baseX;
-                System.arraycopy(chunkPixels, srcIdx, fullPixels, dstIdx, scaledChunkSize);
-            }
-            
+            copyChunkToFull(chunkPixels, chunkToProcess, minChunk, scaledChunkSize, pixelWidth, fullPixels);
             chunksWithData++;
         }
 
-        ViaRomana.LOGGER.info("Render attempt complete: {}/{} chunks had pixel data ({} cached, {} freshly rendered)", 
-            chunksWithData, allowedChunks.size(), chunksFromCache, chunksRendered);
-        
-        if (chunksWithData == 0 && !allowedChunks.isEmpty()) {
+        ViaRomana.LOGGER.info("Render attempt complete: {}/{} chunks had pixel data ({} cached, {} freshly rendered, {} biome fallbacks)",
+                chunksWithData, totalChunks, chunksFromCache, chunksRendered, chunksFromBiome);
+
+        int missingCount = totalChunks - chunksWithData;
+        if (chunksWithData == 0 && totalChunks > 0) {
             ViaRomana.LOGGER.warn("Map Bake: No chunk pixel data was available for the requested map area. The map may appear blank.");
-        } else if (chunksWithData < allowedChunks.size()) {
-            int missingCount = allowedChunks.size() - chunksWithData;
+        } else if (missingCount > 0) {
             ViaRomana.LOGGER.warn("Map Bake: {} chunks were allowed but had no pixel data (missing chunks)", missingCount);
         }
-        
+
         return chunksWithData;
+    }
+
+    /**
+     * Returns pixel result along with cache/render increment
+     */
+    private PixelResult getOrRenderChunkPixels(ServerLevel level, ChunkPos chunkPos) {
+        Optional<byte[]> cached = ChunkPixelUtil.getPixelBytes(level, chunkPos);
+        if (cached.isPresent()) {
+            byte[] pixels = cached.get();
+            if (pixels.length == 256) {  // Valid full chunk
+                return new PixelResult(pixels, 1, 0);  // Cache hit: +1 cache, +0 render
+            }
+        }
+
+        level.getChunk(chunkPos.x, chunkPos.z); // Force-load chunk if no cache present
+
+        byte[] pixels = ChunkPixelUtil.renderChunkPixels(level, chunkPos);
+        if (pixels.length == 256) {
+            ChunkPixelUtil.setPixelBytes(level, chunkPos, pixels);
+            return new PixelResult(pixels, 0, 1);  // Rendered: +0 cache, +1 render
+        }
+
+        ViaRomana.LOGGER.warn("Chunk {} failed to render (invalid size: {}), skipping", chunkPos, pixels.length);
+        return new PixelResult(null, 0, 0);
+    }
+
+    /**
+     * Copy scaled chunk row-by-row to full array
+     */
+    private void copyChunkToFull(byte[] chunkPixels, ChunkPos chunkPos, ChunkPos min, int scaledChunkSize, int pixelWidth, byte[] fullPixels) {
+        int baseX = (chunkPos.x - min.x) * scaledChunkSize;
+        int baseZ = (chunkPos.z - min.z) * scaledChunkSize;
+        for (int dz = 0; dz < scaledChunkSize; dz++) {
+            int srcIdx = dz * scaledChunkSize;
+            int dstIdx = (baseZ + dz) * pixelWidth + baseX;
+            System.arraycopy(chunkPixels, srcIdx, fullPixels, dstIdx, scaledChunkSize);
+        }
+    }
+
+    public Holder<Biome> getFallbackBiome(ServerLevel level, ChunkPos chunkPos) {
+        BlockPos samplePos = new BlockPos(
+                chunkPos.getMinBlockX() + 8, 70, chunkPos.getMinBlockZ() + 8);
+
+        return level.getBiome(samplePos);
     }
 }

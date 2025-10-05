@@ -3,10 +3,17 @@ package net.rasanovum.viaromana.map;
 import dev.corgitaco.dataanchor.data.registry.TrackedDataRegistries;
 import dev.corgitaco.dataanchor.data.TrackedDataContainer;
 import dev.corgitaco.dataanchor.data.type.level.LevelTrackedData;
+import jdk.jfr.Category;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Mth;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.GrassColor;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -16,7 +23,9 @@ import net.minecraft.tags.FluidTags;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.init.MapInit;
 
+import java.util.Arrays;
 import java.util.Optional;
+import java.util.Random;
 import java.util.Set;
 
 /**
@@ -238,6 +247,44 @@ public class ChunkPixelUtil {
         long totalBytes = regenerated * 256L;
         ViaRomana.LOGGER.info("[PERF] Regenerated pixel data for {} chunks in {}ms, total size={}KB (256B/chunk)", 
             regenerated, totalTime / 1_000_000.0, totalBytes / 1024.0);
+    }
+
+    public static byte[] generateBiomeFallbackPixels(ServerLevel level, Holder<Biome> biomeHolder) {
+        Random rand = new Random();
+        Biome biome = biomeHolder.value();
+
+        ResourceLocation biomeId = level.registryAccess().registryOrThrow(Registries.BIOME).getKey(biome);
+        assert biomeId != null;
+        String biomePath = biomeId.getPath().toLowerCase();
+
+        int colorIndex;
+        byte shade = 1;
+
+        if (biomePath.contains("ocean") || biomePath.contains("river")) { // water
+            colorIndex = 12;
+            shade = 2;
+        } else if (biomePath.contains("mountain") || biomePath.contains("peaks") || biomePath.contains("hill")) { // rock
+            colorIndex = 11;
+        } else if (biomePath.contains("snow") || biomePath.contains("grove")) { // snow
+            colorIndex = 11;
+        } else if (biomePath.contains("desert") || biomePath.contains("beach")) { // sand
+            colorIndex = 2;
+        } else if (biomePath.contains("badland") || biomePath.contains("mesa")) { // orange
+            colorIndex = 15;
+        } else if (biomePath.contains("meadow") || biomePath.contains("plains")) { // grass
+            colorIndex = 1;
+        } else if (biomePath.contains("forest") || biomePath.contains("taiga") || biomePath.contains("jungle") || biomePath.contains("swamp")) { // forest
+            colorIndex = 1;
+        } else {
+            colorIndex = 0;
+        }
+
+        // ViaRomana.LOGGER.info("Biome key: {}, rgb: {}", biomeId, colorIndex);
+
+        // TODO: Add noise
+        byte[] pixels = new byte[256];
+        java.util.Arrays.fill(pixels, (byte)(colorIndex * 4 + shade));
+        return pixels;
     }
 }
 
