@@ -3,6 +3,7 @@ package net.rasanovum.viaromana.command;
 import net.rasanovum.viaromana.path.PathGraph;
 import net.rasanovum.viaromana.storage.level.LevelPixelTrackedData;
 import net.rasanovum.viaromana.storage.level.LevelCornerTrackedData;
+import net.rasanovum.viaromana.storage.level.LevelDataManager;
 import net.rasanovum.viaromana.storage.path.IPathStorage;
 import net.rasanovum.viaromana.util.PathSyncUtils;
 import net.rasanovum.viaromana.variables.VariableAccess;
@@ -92,7 +93,9 @@ public class ViaRomanaCommands {
         CommandSourceStack source = context.getSource();
         
         // Clear chunk image data
-        source.sendSuccess(() -> Component.literal("Clearing chunk image data..."), false);
+        source.sendSuccess(() -> Component.literal("Clearing level chunk data..."), false);
+        LevelDataManager.clearAllPixelBytes(source.getLevel());
+        LevelDataManager.clearAllCornerBytes(source.getLevel());
         
         // Clear map caches and disk data
         ServerMapCache.clear();

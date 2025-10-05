@@ -91,6 +91,30 @@ public class LevelDataManager {
     }
 
     /**
+     * Clears all pixel bytes from Data Anchor.
+     */
+    public static void clearAllPixelBytes(ServerLevel level) {
+        TrackedDataContainer<Level, LevelTrackedData> container = TrackedDataRegistries.LEVEL.getContainer(level);
+        if (container == null) return;
+
+        container.dataAnchor$getTrackedData(MapInit.CHUNK_PIXEL_KEY)
+                .filter(data -> data instanceof LevelPixelTrackedData)
+                .ifPresent(LevelPixelTrackedData::clearAll);
+    }
+
+    /**
+     * Clears all corner bytes from Data Anchor.
+     */
+    public static void clearAllCornerBytes(ServerLevel level) {
+        TrackedDataContainer<Level, LevelTrackedData> container = TrackedDataRegistries.LEVEL.getContainer(level);
+        if (container == null) return;
+
+        container.dataAnchor$getTrackedData(MapInit.CHUNK_CORNER_KEY)
+                .filter(data -> data instanceof LevelCornerTrackedData)
+                .ifPresent(LevelCornerTrackedData::clearAll);
+    }
+
+    /**
      * Regenerates pixel bytes for all chunks in the given set.
      */
     public static void regeneratePixelBytesForChunks(ServerLevel level, Set<ChunkPos> chunks) {
