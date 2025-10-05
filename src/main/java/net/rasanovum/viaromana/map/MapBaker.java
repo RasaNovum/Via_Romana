@@ -9,8 +9,6 @@ import net.rasanovum.viaromana.path.PathGraph;
 
 import java.util.*;
 
-import static net.rasanovum.viaromana.storage.level.LevelDataManager.setPixelBytes;
-
 public class MapBaker {
     private static final int[] COLOR_LOOKUP = new int[256]; // ARGB color lookup table
     
@@ -109,10 +107,11 @@ public class MapBaker {
         return MapInfo.fromServer(networkId, croppedBiomePixels, croppedChunkPixels, effectiveWidth, effectiveHeight, scaleFactor, desiredMinX, desiredMinZ, desiredMaxX, desiredMaxZ, new ArrayList<>(bakeChunks), networkNodes);
     }
 
+
+    //TODO: Re-implement incremental updates
     /**
      * Splices dirty chunks into existing pixel array.
      * Falls back to full rebake if no cached pixels available.
-     * Note: With dual maps, incremental updates are complex, so we do full rebake for now.
      */
     public MapInfo updateMap(MapInfo previousResult, Set<ChunkPos> dirtyChunks, ServerLevel level, PathGraph.NetworkCache network) {
         ViaRomana.LOGGER.info("Incremental update requested for {} dirty chunks, performing full rebake due to dual map system", dirtyChunks.size());
