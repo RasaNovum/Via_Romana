@@ -3,7 +3,7 @@ package net.rasanovum.viaromana.teleport;
 import net.rasanovum.viaromana.util.EffectUtils;
 import net.rasanovum.viaromana.util.VersionUtils;
 import net.rasanovum.viaromana.variables.VariableAccess;
-import net.rasanovum.viaromana.storage.IPathStorage;
+import net.rasanovum.viaromana.storage.path.IPathStorage;
 import net.rasanovum.viaromana.path.PathGraph;
 import net.rasanovum.viaromana.path.Node;
 import net.minecraft.world.level.Level;

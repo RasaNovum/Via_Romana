@@ -1,4 +1,4 @@
-package net.rasanovum.viaromana.storage;
+package net.rasanovum.viaromana.storage.path;
 
 import net.minecraft.nbt.CompoundTag;
 

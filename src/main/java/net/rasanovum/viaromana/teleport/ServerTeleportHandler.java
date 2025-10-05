@@ -21,7 +21,7 @@ import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.core.LinkHandler;
 import net.rasanovum.viaromana.network.packets.TeleportRequestC2S;
 import net.rasanovum.viaromana.path.Node;
-import net.rasanovum.viaromana.storage.IPathStorage;
+import net.rasanovum.viaromana.storage.path.IPathStorage;
 import net.rasanovum.viaromana.variables.VariableAccess;
 
 public class ServerTeleportHandler {

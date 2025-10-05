@@ -1,4 +1,4 @@
-package net.rasanovum.viaromana.map;
+package net.rasanovum.viaromana.storage.level;
 
 import dev.corgitaco.dataanchor.data.registry.TrackedDataKey;
 import dev.corgitaco.dataanchor.data.type.level.ServerLevelTrackedData;
@@ -11,46 +11,46 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Server-side tracked data for chunk corner biome data.
- * Stores packed IDs for the 4 corners (byte[4]).
+ * Server-side tracked data for chunk raw pixels.
+ * Stores MapColor packed IDs (color & brightness).
  */
-public class LevelCornerTrackedData extends ServerLevelTrackedData {
-    private final Map<String, byte[]> cornerMap = new HashMap<>();
+public class LevelPixelTrackedData extends ServerLevelTrackedData {
+    private final Map<String, byte[]> pixelMap = new HashMap<>();
 
-    public LevelCornerTrackedData(TrackedDataKey<? extends ServerLevelTrackedData> trackedDataKey, ServerLevel level) {
+    public LevelPixelTrackedData(TrackedDataKey<? extends ServerLevelTrackedData> trackedDataKey, ServerLevel level) {
         super((TrackedDataKey<ServerLevelTrackedData>) trackedDataKey, level);
     }
 
     @Override
     public CompoundTag save() {
-        if (cornerMap.isEmpty()) return null;
+        if (pixelMap.isEmpty()) return null;
         CompoundTag tag = new CompoundTag();
-        tag.put("corner_map", toNBT(cornerMap));
+        tag.put("pixel_map", toNBT(pixelMap));
         return tag;
     }
 
     @Override
     public void load(CompoundTag tag) {
-        if (tag.contains("corner_map")) {
-            cornerMap.clear();
-            cornerMap.putAll(fromNBT(tag.getCompound("corner_map")));
+        if (tag.contains("pixel_map")) {
+            pixelMap.clear();
+            pixelMap.putAll(fromNBT(tag.getCompound("pixel_map")));
         }
     }
 
-    public void setCornerBytes(ChunkPos pos, byte[] bytes) {
+    public void setPixelBytes(ChunkPos pos, byte[] bytes) {
         String key = pos.x + "_" + pos.z;
-        if (bytes != null && bytes.length == 4) {
-            cornerMap.put(key, bytes.clone());
+        if (bytes != null && bytes.length == 256) {
+            pixelMap.put(key, bytes.clone());
         } else {
-            cornerMap.remove(key);
+            pixelMap.remove(key);
         }
         markDirty();
     }
 
-    public Optional<byte[]> getCornerBytes(ChunkPos pos) {
+    public Optional<byte[]> getPixelBytes(ChunkPos pos) {
         String key = pos.x + "_" + pos.z;
-        byte[] bytes = cornerMap.get(key);
-        return bytes != null && bytes.length == 4 ? Optional.of(bytes.clone()) : Optional.empty();
+        byte[] bytes = pixelMap.get(key);
+        return bytes != null && bytes.length == 256 ? Optional.of(bytes.clone()) : Optional.empty();
     }
 
     private static CompoundTag toNBT(Map<String, byte[]> map) {
@@ -69,3 +69,4 @@ public class LevelCornerTrackedData extends ServerLevelTrackedData {
         return map;
     }
 }
+

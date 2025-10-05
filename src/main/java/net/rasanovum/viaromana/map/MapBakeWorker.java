@@ -10,6 +10,9 @@ import net.rasanovum.viaromana.path.PathGraph;
 
 import java.util.*;
 
+import static net.rasanovum.viaromana.storage.level.LevelDataManager.getPixelBytes;
+import static net.rasanovum.viaromana.storage.level.LevelDataManager.setPixelBytes;
+
 public class MapBakeWorker {
     private static final int[] COLOR_LOOKUP = new int[256]; // ARGB color lookup table
     public record PixelResult(byte[] pixels, int cacheIncrement, int renderIncrement) {}
@@ -170,7 +173,7 @@ public class MapBakeWorker {
             // Render dirty chunk
             byte[] chunkPixels = ChunkPixelUtil.renderChunkPixels(level, dirtyPos);
             if (chunkPixels.length != 256) continue;
-            ChunkPixelUtil.setPixelBytes(level, dirtyPos, chunkPixels);
+            setPixelBytes(level, dirtyPos, chunkPixels);
             
             // Scale if needed
             if (scaleFactor > 1) {
@@ -303,7 +306,7 @@ public class MapBakeWorker {
      * Returns pixel result along with cache/render increment
      */
     private PixelResult getOrRenderChunkPixels(ServerLevel level, ChunkPos chunkPos) {
-        Optional<byte[]> cached = ChunkPixelUtil.getPixelBytes(level, chunkPos);
+        Optional<byte[]> cached = getPixelBytes(level, chunkPos);
         if (cached.isPresent()) {
             byte[] pixels = cached.get();
             if (pixels.length == 256) {  // Valid full chunk
@@ -315,7 +318,7 @@ public class MapBakeWorker {
 
         byte[] pixels = ChunkPixelUtil.renderChunkPixels(level, chunkPos);
         if (pixels.length == 256) {
-            ChunkPixelUtil.setPixelBytes(level, chunkPos, pixels);
+            setPixelBytes(level, chunkPos, pixels);
             return new PixelResult(pixels, 0, 1);
         }
 

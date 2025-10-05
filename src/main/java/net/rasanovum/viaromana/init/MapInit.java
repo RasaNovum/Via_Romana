@@ -3,8 +3,8 @@ package net.rasanovum.viaromana.init;
 import dev.corgitaco.dataanchor.data.registry.TrackedDataRegistries;
 import dev.corgitaco.dataanchor.data.registry.TrackedDataKey;
 import net.minecraft.server.level.ServerLevel;
-import net.rasanovum.viaromana.map.LevelPixelTrackedData;
-import net.rasanovum.viaromana.map.LevelCornerTrackedData;
+import net.rasanovum.viaromana.storage.level.LevelCornerTrackedData;
+import net.rasanovum.viaromana.storage.level.LevelPixelTrackedData;
 import net.rasanovum.viaromana.util.VersionUtils;
 
 public class MapInit {

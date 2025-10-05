@@ -2,11 +2,11 @@ package net.rasanovum.viaromana.network.packets;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
 //? if >=1.21 {
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 //?}
+import net.rasanovum.viaromana.storage.path.IPathStorage;
 import net.rasanovum.viaromana.util.VersionUtils;
 import commonnetwork.networking.data.PacketContext;
 import commonnetwork.networking.data.Side;
@@ -50,7 +50,7 @@ public record DestinationRequestC2S(BlockPos sourceSignPos) implements CustomPac
     public static void handle(PacketContext<DestinationRequestC2S> ctx) {
         if (Side.SERVER.equals(ctx.side())) {
             net.minecraft.server.level.ServerLevel level = ctx.sender().serverLevel();
-            net.rasanovum.viaromana.storage.IPathStorage storage = net.rasanovum.viaromana.storage.IPathStorage.get(level);
+            IPathStorage storage = IPathStorage.get(level);
             net.rasanovum.viaromana.path.PathGraph graph = storage.graph();
 
             BlockPos signPos = ctx.message().sourceSignPos();

@@ -18,7 +18,7 @@ import net.minecraft.advancements.AdvancementHolder;
 
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.path.Node.NodeData;
-import net.rasanovum.viaromana.storage.IPathStorage;
+import net.rasanovum.viaromana.storage.path.IPathStorage;
 import net.rasanovum.viaromana.util.PathSyncUtils;
 import net.rasanovum.viaromana.util.VersionUtils;
 

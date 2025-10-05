@@ -1,7 +1,7 @@
 package net.rasanovum.viaromana.command;
 
 import net.rasanovum.viaromana.path.PathGraph;
-import net.rasanovum.viaromana.storage.IPathStorage;
+import net.rasanovum.viaromana.storage.path.IPathStorage;
 import net.rasanovum.viaromana.util.PathSyncUtils;
 import net.rasanovum.viaromana.variables.VariableAccess;
 import net.rasanovum.viaromana.client.data.ClientPathData;

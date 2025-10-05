@@ -2,13 +2,11 @@ package net.rasanovum.viaromana.network.packets;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
 //? if >=1.21 {
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 //?}
-import net.rasanovum.viaromana.path.PathGraph;
-import net.rasanovum.viaromana.storage.IPathStorage;
+import net.rasanovum.viaromana.storage.path.IPathStorage;
 import net.rasanovum.viaromana.util.VersionUtils;
 import commonnetwork.networking.data.PacketContext;
 import commonnetwork.networking.data.Side;

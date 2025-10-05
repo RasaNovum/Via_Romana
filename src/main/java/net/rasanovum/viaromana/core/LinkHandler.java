@@ -1,6 +1,6 @@
 package net.rasanovum.viaromana.core;
 
-import net.rasanovum.viaromana.storage.IPathStorage;
+import net.rasanovum.viaromana.storage.path.IPathStorage;
 import net.rasanovum.viaromana.surveyor.ViaRomanaLandmarkManager;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.util.PathSyncUtils;

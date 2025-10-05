@@ -2,7 +2,7 @@ package net.rasanovum.viaromana.util;
 
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.rasanovum.viaromana.storage.IPathStorage;
+import net.rasanovum.viaromana.storage.path.IPathStorage;
 import net.rasanovum.viaromana.network.packets.PathGraphSyncPacket;
 import net.rasanovum.viaromana.path.PathGraph;
 import net.rasanovum.viaromana.ViaRomana;

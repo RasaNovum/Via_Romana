@@ -7,13 +7,12 @@ import folk.sisby.surveyor.landmark.LandmarkType;
 import folk.sisby.surveyor.landmark.SimpleLandmarkType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.DyeColor;
 import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.path.Node;
 import net.rasanovum.viaromana.path.PathGraph;
-import net.rasanovum.viaromana.storage.IPathStorage;
+import net.rasanovum.viaromana.storage.path.IPathStorage;
 import net.rasanovum.viaromana.util.VersionUtils;
 
 import java.util.Optional;

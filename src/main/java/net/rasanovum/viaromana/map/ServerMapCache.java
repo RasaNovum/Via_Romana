@@ -11,6 +11,7 @@ import net.minecraft.world.level.storage.LevelResource;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.path.PathGraph;
+import net.rasanovum.viaromana.storage.level.LevelDataManager;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -399,7 +400,7 @@ public final class ServerMapCache {
             }
             
             if (!allChunks.isEmpty()) {
-                ChunkPixelUtil.clearPixelBytesForChunks(level, allChunks);
+                LevelDataManager.clearPixelBytesForChunks(level, allChunks);
                 totalChunks += allChunks.size();
             }
         }
@@ -433,7 +434,7 @@ public final class ServerMapCache {
             }
             
             if (!allChunks.isEmpty()) {
-                ChunkPixelUtil.regeneratePixelBytesForChunks(level, allChunks);
+                LevelDataManager.regeneratePixelBytesForChunks(level, allChunks);
                 totalChunks += allChunks.size();
             }
         }
