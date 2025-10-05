@@ -9,6 +9,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.GrassColor;
@@ -22,6 +23,7 @@ import net.minecraft.world.level.material.MapColor;
 import net.minecraft.tags.FluidTags;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.init.MapInit;
+import net.rasanovum.viaromana.util.VersionUtils;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -250,40 +252,55 @@ public class ChunkPixelUtil {
     }
 
     public static byte[] generateBiomeFallbackPixels(ServerLevel level, Holder<Biome> biomeHolder) {
-        Random rand = new Random();
         Biome biome = biomeHolder.value();
-
         ResourceLocation biomeId = level.registryAccess().registryOrThrow(Registries.BIOME).getKey(biome);
         assert biomeId != null;
         String biomePath = biomeId.getPath().toLowerCase();
+        int shade = 2;
 
-        int colorIndex;
-        byte shade = 1;
+        int colorIndex = 0;
 
-        if (biomePath.contains("ocean") || biomePath.contains("river")) { // water
+        TagKey<Biome> badlandsTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_badlands"));
+        TagKey<Biome> beachTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_beach"));
+        TagKey<Biome> deepOceanTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_deep_ocean"));
+        TagKey<Biome> endTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_end"));
+        TagKey<Biome> forestTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_forest"));
+        TagKey<Biome> hillTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_hill"));
+        TagKey<Biome> jungleTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_jungle"));
+        TagKey<Biome> mountainTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_mountain"));
+        TagKey<Biome> netherTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_nether"));
+        TagKey<Biome> oceanTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_ocean"));
+        TagKey<Biome> riverTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_river"));
+        TagKey<Biome> savannaTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_savanna"));
+        TagKey<Biome> taigaTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_taiga"));
+        TagKey<Biome> plainsTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:has_structure/village_plains"));
+        
+        if (biomePath.contains("snow") || biomePath.contains("ice") || biomePath.contains("tundra")) {
+            colorIndex = 8;
+        } else if (biomeHolder.is(forestTag) || biomeHolder.is(taigaTag) || biomeHolder.is(jungleTag) || biomePath.contains("forest")) {
+            colorIndex = 7;
+        } else if (biomeHolder.is(deepOceanTag) || biomeHolder.is(oceanTag) || biomeHolder.is(riverTag) || biomePath.contains("ocean")) {
             colorIndex = 12;
-            shade = 2;
-        } else if (biomePath.contains("mountain") || biomePath.contains("peaks") || biomePath.contains("hill")) { // rock
+            shade = 0;
+        } else if (biomeHolder.is(mountainTag) || biomeHolder.is(hillTag) || biomePath.contains("mountain") || biomePath.contains("hill")) {
             colorIndex = 11;
-        } else if (biomePath.contains("snow") || biomePath.contains("grove")) { // snow
-            colorIndex = 11;
-        } else if (biomePath.contains("desert") || biomePath.contains("beach")) { // sand
+        } else if (biomeHolder.is(plainsTag) || biomePath.contains("plains") || biomePath.contains("meadow")) {
+            colorIndex = 1;
+        } else if (biomeHolder.is(beachTag) || biomeHolder.is(endTag)) {
             colorIndex = 2;
-        } else if (biomePath.contains("badland") || biomePath.contains("mesa")) { // orange
+        } else if (biomeHolder.is(savannaTag)) {
+            colorIndex = 49;
+        } else if (biomeHolder.is(badlandsTag)) {
             colorIndex = 15;
-        } else if (biomePath.contains("meadow") || biomePath.contains("plains")) { // grass
-            colorIndex = 1;
-        } else if (biomePath.contains("forest") || biomePath.contains("taiga") || biomePath.contains("jungle") || biomePath.contains("swamp")) { // forest
-            colorIndex = 1;
-        } else {
-            colorIndex = 0;
+        } else if (biomeHolder.is(netherTag)) {
+            colorIndex = 35;
         }
 
-        // ViaRomana.LOGGER.info("Biome key: {}, rgb: {}", biomeId, colorIndex);
+        // ViaRomana.LOGGER.info("Biome key: {}, rgb: 0x{}, base: {}", biomeId, Integer.toHexString(targetRgb), colorIndex);
 
-        // TODO: Add noise
         byte[] pixels = new byte[256];
-        java.util.Arrays.fill(pixels, (byte)(colorIndex * 4 + shade));
+        int baseByte = colorIndex * 4 + shade;
+        Arrays.fill(pixels, (byte) baseByte);
         return pixels;
     }
 }
