@@ -152,7 +152,7 @@ public class ChunkPixelRenderer {
         return MapColor.Brightness.NORMAL;
     }
 
-    public static byte[] generateBiomeFallbackPixels(ServerLevel level, ChunkPos biomeChunk) {
+    public static byte[] getOrRenderBiomePixels(ServerLevel level, ChunkPos biomeChunk) {
         Optional<byte[]> cachedCorners = LevelDataManager.getCornerBytes(level, biomeChunk);
         int[] cornerPackedIds = new int[4];
 

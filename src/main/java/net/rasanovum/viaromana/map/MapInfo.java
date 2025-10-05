@@ -14,7 +14,8 @@ import java.util.UUID;
  */
 public record MapInfo(
     UUID networkId,
-    byte[] fullPixels,                  // raw pixel array (16x16 per chunk at 1x scale, scaled down if scaleFactor > 1)
+    byte[] biomePixels,                 // biome pixel array (base layer)
+    byte[] chunkPixels,                 // chunk pixel array (overlay layer, 16x16 per chunk at 1x scale, scaled down if scaleFactor > 1)
     int pixelWidth,
     int pixelHeight,
     int scaleFactor,
@@ -31,7 +32,7 @@ public record MapInfo(
      * Creates a map request.
      */
     public static MapInfo request(UUID networkId, BlockPos minBounds, BlockPos maxBounds, List<NodeNetworkInfo> networkNodes) {
-        return new MapInfo(networkId, null, 0, 0, 1,
+        return new MapInfo(networkId, null, null, 0, 0, 1,
                           minBounds.getX(), minBounds.getZ(), maxBounds.getX(), maxBounds.getZ(),
                           null, null,
                           networkNodes != null ? new ArrayList<>(networkNodes) : new ArrayList<>());
@@ -40,11 +41,12 @@ public record MapInfo(
     /**
      * Creates a map from server (with full pixel data and world coordinates).
      */
-    public static MapInfo fromServer(UUID networkId, byte[] fullPixels, int pixelWidth, int pixelHeight, int scaleFactor,
+    public static MapInfo fromServer(UUID networkId, byte[] biomePixels, byte[] chunkPixels, int pixelWidth, int pixelHeight, int scaleFactor,
                                      int worldMinX, int worldMinZ, int worldMaxX, int worldMaxZ,
                                      List<ChunkPos> allowedChunks, List<NodeNetworkInfo> networkNodes) {
         return new MapInfo(networkId,
-                          fullPixels != null ? fullPixels.clone() : null, pixelWidth, pixelHeight, scaleFactor,
+                          biomePixels != null ? biomePixels.clone() : null,
+                          chunkPixels != null ? chunkPixels.clone() : null, pixelWidth, pixelHeight, scaleFactor,
                           worldMinX, worldMinZ, worldMaxX, worldMaxZ,
                           System.currentTimeMillis(),
                           allowedChunks != null ? new ArrayList<>(allowedChunks) : null,
@@ -53,15 +55,15 @@ public record MapInfo(
 
     // Helper methods
     public boolean hasImageData() {
-        return fullPixels != null && pixelWidth > 0 && pixelHeight > 0;
+        return (biomePixels != null || chunkPixels != null) && pixelWidth > 0 && pixelHeight > 0;
     }
 
     public boolean isRequest() {
-        return fullPixels == null;
+        return biomePixels == null && chunkPixels == null;
     }
 
     public boolean isResponse() {
-        return fullPixels != null && pixelWidth > 0 && pixelHeight > 0;
+        return (biomePixels != null || chunkPixels != null) && pixelWidth > 0 && pixelHeight > 0;
     }
 
     public int getWorldWidth() {
@@ -118,10 +120,24 @@ public record MapInfo(
         }
 
         // Write raw pixel data and world coordinates
-        if (fullPixels != null && pixelWidth > 0 && pixelHeight > 0) {
+        if (hasImageData()) {
             buffer.writeBoolean(true);
-            buffer.writeInt(fullPixels.length);
-            buffer.writeBytes(fullPixels);
+            // Write biome pixels
+            if (biomePixels != null) {
+                buffer.writeBoolean(true);
+                buffer.writeInt(biomePixels.length);
+                buffer.writeBytes(biomePixels);
+            } else {
+                buffer.writeBoolean(false);
+            }
+            // Write chunk pixels
+            if (chunkPixels != null) {
+                buffer.writeBoolean(true);
+                buffer.writeInt(chunkPixels.length);
+                buffer.writeBytes(chunkPixels);
+            } else {
+                buffer.writeBoolean(false);
+            }
             buffer.writeInt(pixelWidth);
             buffer.writeInt(pixelHeight);
             buffer.writeInt(scaleFactor);
@@ -154,7 +170,8 @@ public record MapInfo(
 
         // Read raw pixel data and world coordinates
         boolean hasPixelData = buffer.readBoolean();
-        byte[] fullPixels = null;
+        byte[] biomePixels = null;
+        byte[] chunkPixels = null;
         int pixelWidth = 0;
         int pixelHeight = 0;
         int scaleFactor = 1;
@@ -165,9 +182,20 @@ public record MapInfo(
         Long createdAtMs = null;
 
         if (hasPixelData) {
-            int length = buffer.readInt();
-            fullPixels = new byte[length];
-            buffer.readBytes(fullPixels);
+            // Read biome pixels
+            boolean hasBiomePixels = buffer.readBoolean();
+            if (hasBiomePixels) {
+                int biomeLength = buffer.readInt();
+                biomePixels = new byte[biomeLength];
+                buffer.readBytes(biomePixels);
+            }
+            // Read chunk pixels
+            boolean hasChunkPixels = buffer.readBoolean();
+            if (hasChunkPixels) {
+                int chunkLength = buffer.readInt();
+                chunkPixels = new byte[chunkLength];
+                buffer.readBytes(chunkPixels);
+            }
             pixelWidth = buffer.readInt();
             pixelHeight = buffer.readInt();
             scaleFactor = buffer.readInt();
@@ -179,13 +207,14 @@ public record MapInfo(
             createdAtMs = ts == 0L ? null : ts;
         }
 
-        return new MapInfo(networkId, fullPixels, pixelWidth, pixelHeight, scaleFactor, worldMinX, worldMinZ, worldMaxX, worldMaxZ, createdAtMs, null, networkNodes);
+        return new MapInfo(networkId, biomePixels, chunkPixels, pixelWidth, pixelHeight, scaleFactor, worldMinX, worldMinZ, worldMaxX, worldMaxZ, createdAtMs, null, networkNodes);
     }
 
     // Ensure defensive copying of mutable fields
     public MapInfo {
         networkNodes = networkNodes != null ? new ArrayList<>(networkNodes) : new ArrayList<>();
         allowedChunks = allowedChunks != null ? new ArrayList<>(allowedChunks) : null;
-        fullPixels = fullPixels != null ? fullPixels.clone() : null;
+        biomePixels = biomePixels != null ? biomePixels.clone() : null;
+        chunkPixels = chunkPixels != null ? chunkPixels.clone() : null;
     }
 }

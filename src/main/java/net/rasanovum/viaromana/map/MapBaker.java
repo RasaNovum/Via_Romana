@@ -57,12 +57,13 @@ public class MapBaker {
         int fullChunkHeight = (bakeMaxChunk.z - bakeMinChunk.z + 1) * 16;
         int scaleFactor = MapPixelAssembler.calculateScaleFactor(fullChunkWidth, fullChunkHeight);
 
-        // 3. Render chunk region to pixel array
+        // 3. Render chunk region to pixel arrays
         long renderStartTime = System.nanoTime();
         int fullPixelWidth = fullChunkWidth / scaleFactor;
         int fullPixelHeight = fullChunkHeight / scaleFactor;
-        byte[] fullPixels = new byte[fullPixelWidth * fullPixelHeight];
-        int chunksWithData = MapPixelAssembler.processChunkPixels(fullPixels, level, mapChunks, bakeChunks, scaleFactor, fullPixelWidth, fullPixelHeight, bakeMinChunk);
+        byte[] biomePixels = new byte[fullPixelWidth * fullPixelHeight];
+        byte[] chunkPixels = new byte[fullPixelWidth * fullPixelHeight];
+        int chunksWithData = MapPixelAssembler.processChunkPixels(biomePixels, chunkPixels, level, mapChunks, bakeChunks, scaleFactor, fullPixelWidth, fullPixelHeight, bakeMinChunk);
         long renderTime = System.nanoTime() - renderStartTime;
         
         int desiredMinX = desiredMinBlock.getX();
@@ -84,13 +85,16 @@ public class MapBaker {
         int effectiveWidth = Math.min(croppedPixelWidth, fullPixelWidth - effectiveStartX);
         int effectiveHeight = Math.min(croppedPixelHeight, fullPixelHeight - effectiveStartZ);
         
-        byte[] croppedPixels = new byte[effectiveWidth * effectiveHeight];
+        byte[] croppedBiomePixels = new byte[effectiveWidth * effectiveHeight];
+        byte[] croppedChunkPixels = new byte[effectiveWidth * effectiveHeight];
         for (int z = 0; z < effectiveHeight; z++) {
             int srcZ = effectiveStartZ + z;
             if (srcZ >= fullPixelHeight) break;
             int srcIdx = srcZ * fullPixelWidth + effectiveStartX;
             int dstIdx = z * effectiveWidth;
-            System.arraycopy(fullPixels, srcIdx, croppedPixels, dstIdx, Math.min(effectiveWidth, fullPixelWidth - effectiveStartX));
+            int copyWidth = Math.min(effectiveWidth, fullPixelWidth - effectiveStartX);
+            System.arraycopy(biomePixels, srcIdx, croppedBiomePixels, dstIdx, copyWidth);
+            System.arraycopy(chunkPixels, srcIdx, croppedChunkPixels, dstIdx, copyWidth);
         }
 
         // 5. Return with chunk-aligned world coordinates from FoW
@@ -99,118 +103,20 @@ public class MapBaker {
         ViaRomana.LOGGER.info("[PERF] Map bake completed for network {}: total={}ms, render={}ms, " +
             "dimensions={}x{}, scale={}, rawSize={}KB, chunks={}",
             networkId, totalBakeTime / 1_000_000.0, renderTime / 1_000_000.0, 
-            effectiveWidth, effectiveHeight, scaleFactor, croppedPixels.length / 1024.0, 
+            effectiveWidth, effectiveHeight, scaleFactor, (croppedBiomePixels.length + croppedChunkPixels.length) / 1024.0, 
             chunksWithData);
         
-        return MapInfo.fromServer(networkId, croppedPixels, effectiveWidth, effectiveHeight, scaleFactor, desiredMinX, desiredMinZ, desiredMaxX, desiredMaxZ, new ArrayList<>(bakeChunks), networkNodes);
+        return MapInfo.fromServer(networkId, croppedBiomePixels, croppedChunkPixels, effectiveWidth, effectiveHeight, scaleFactor, desiredMinX, desiredMinZ, desiredMaxX, desiredMaxZ, new ArrayList<>(bakeChunks), networkNodes);
     }
 
     /**
      * Splices dirty chunks into existing pixel array.
      * Falls back to full rebake if no cached pixels available.
+     * Note: With dual maps, incremental updates are complex, so we do full rebake for now.
      */
     public MapInfo updateMap(MapInfo previousResult, Set<ChunkPos> dirtyChunks, ServerLevel level, PathGraph.NetworkCache network) {
-        long updateStartTime = System.nanoTime();
-        
-        // If no cached pixels OR network bounds changed, do full rebake
-        if (previousResult.fullPixels() == null || previousResult.pixelWidth() == 0) {
-            ViaRomana.LOGGER.debug("No cached pixels, performing full rebake for {} dirty chunks", dirtyChunks.size());
-            PathGraph graph = PathGraph.getInstance(level);
-            return bake(previousResult.networkId(), level, network.getMin(), network.getMax(), graph.getNodesAsInfo(network));
-        }
-        
-        // Check if FoW bounds changed
+        ViaRomana.LOGGER.info("Incremental update requested for {} dirty chunks, performing full rebake due to dual map system", dirtyChunks.size());
         PathGraph graph = PathGraph.getInstance(level);
-        PathGraph.FoWCache fowCache = graph.getOrComputeFoWCache(network);
-        if (fowCache == null) {
-            ViaRomana.LOGGER.warn("FoW cache unavailable for incremental update, performing full rebake");
-            return bake(previousResult.networkId(), level, network.getMin(), network.getMax(), graph.getNodesAsInfo(network));
-        }
-        
-        // Check if network bounds changed (including padding)
-        int padding = ServerMapUtils.calculateUniformPadding(network.getMax().getX() - network.getMin().getX(), network.getMax().getZ() - network.getMin().getZ());
-        int currentDesiredMinX = network.getMin().getX() - padding;
-        int currentDesiredMinZ = network.getMin().getZ() - padding;
-        int currentDesiredMaxX = network.getMax().getX() + padding;
-        int currentDesiredMaxZ = network.getMax().getZ() + padding;
-        
-        if (previousResult.worldMinX() != currentDesiredMinX || previousResult.worldMaxX() != currentDesiredMaxX ||
-            previousResult.worldMinZ() != currentDesiredMinZ || previousResult.worldMaxZ() != currentDesiredMaxZ) {
-            ViaRomana.LOGGER.info("Network bounds changed, performing full rebake instead of incremental");
-            return bake(previousResult.networkId(), level, network.getMin(), network.getMax(), graph.getNodesAsInfo(network));
-        }
-        
-        ViaRomana.LOGGER.info("[PERF] Starting incremental update: {} dirty chunks", dirtyChunks.size());
-        
-        long spliceStartTime = System.nanoTime();
-        byte[] updatedPixels = previousResult.fullPixels().clone();
-        int scaleFactor = previousResult.scaleFactor();
-        int pixelWidth = previousResult.pixelWidth();
-        int scaledChunkSize = 16 / scaleFactor;
-        
-        ChunkPos minChunk = previousResult.getMinChunk();
-        ChunkPos maxChunk = previousResult.getMaxChunk();
-        
-        int bakedMinX = minChunk.x * 16;
-        int bakedMinZ = minChunk.z * 16;
-        int desiredMinX = previousResult.worldMinX();
-        int desiredMinZ = previousResult.worldMinZ();
-        int startPixelX = (desiredMinX - bakedMinX) / scaleFactor;
-        int startPixelZ = (desiredMinZ - bakedMinZ) / scaleFactor;
-        
-        int chunksUpdated = 0;
-        int chunksSkipped = 0;
-        for (ChunkPos dirtyPos : dirtyChunks) {
-            if (dirtyPos.x < minChunk.x || dirtyPos.x > maxChunk.x || 
-                dirtyPos.z < minChunk.z || dirtyPos.z > maxChunk.z) {
-                chunksSkipped++;
-                continue;
-            }
-            
-            // Render dirty chunk
-            byte[] chunkPixels = ChunkPixelRenderer.renderChunkPixels(level, dirtyPos);
-            if (chunkPixels.length != 256) continue;
-            setPixelBytes(level, dirtyPos, chunkPixels);
-            
-            // Scale if needed
-            if (scaleFactor > 1) {
-                chunkPixels = ChunkPixelRenderer.scalePixels(chunkPixels, scaleFactor);
-            }
-            
-            // Splice into full pixel array
-            int baseX = (dirtyPos.x - minChunk.x) * scaledChunkSize;
-            int baseZ = (dirtyPos.z - minChunk.z) * scaledChunkSize;
-            int dstX = baseX - startPixelX;
-            int dstZ = baseZ - startPixelZ;
-            
-            // Prevent ArrayIndexOutOfBounds
-            if (dstX < 0 || dstZ < 0 || dstX + scaledChunkSize > pixelWidth || 
-                dstZ + scaledChunkSize > previousResult.pixelHeight()) {
-                ViaRomana.LOGGER.warn("Chunk {} out of splice bounds, skipping (dstX={}, dstZ={}, width={}, height={})", 
-                    dirtyPos, dstX, dstZ, pixelWidth, previousResult.pixelHeight());
-                chunksSkipped++;
-                continue;
-            }
-            
-            for (int dz = 0; dz < scaledChunkSize; dz++) {
-                int srcIdx = dz * scaledChunkSize;
-                int dstIdx = (dstZ + dz) * pixelWidth + dstX;
-                System.arraycopy(chunkPixels, srcIdx, updatedPixels, dstIdx, scaledChunkSize);
-            }
-            chunksUpdated++;
-        }
-        
-        if (chunksSkipped > 0) {
-            ViaRomana.LOGGER.info("Skipped {} dirty chunks outside cached bounds (likely network resize)", chunksSkipped);
-        }
-        long spliceTime = System.nanoTime() - spliceStartTime;
-        long totalUpdateTime = System.nanoTime() - updateStartTime;
-        
-        ViaRomana.LOGGER.info("[PERF] Incremental update completed: total={}ms, splice={}ms ({}chunks), rawSize={}KB", 
-            totalUpdateTime / 1_000_000.0, spliceTime / 1_000_000.0, chunksUpdated, updatedPixels.length / 1024.0);
-        
-        return MapInfo.fromServer(previousResult.networkId(), updatedPixels, pixelWidth, previousResult.pixelHeight(), scaleFactor,
-            previousResult.worldMinX(), previousResult.worldMinZ(), previousResult.worldMaxX(), previousResult.worldMaxZ(),
-            previousResult.allowedChunks(), previousResult.networkNodes());
+        return bake(previousResult.networkId(), level, network.getMin(), network.getMax(), graph.getNodesAsInfo(network));
     }
 }

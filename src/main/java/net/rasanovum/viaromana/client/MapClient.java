@@ -72,7 +72,7 @@ public class MapClient {
     }
 
     public static MapTexture createTexture(MapInfo mapInfo) {
-        if (mapInfo == null || mapInfo.fullPixels() == null || mapInfo.pixelWidth() == 0 || mapInfo.pixelHeight() == 0) {
+        if (mapInfo == null || mapInfo.biomePixels() == null || mapInfo.pixelWidth() == 0 || mapInfo.pixelHeight() == 0) {
             return null;
         }
 
@@ -81,7 +81,14 @@ public class MapClient {
             
             int width = mapInfo.pixelWidth();
             int height = mapInfo.pixelHeight();
-            byte[] pixels = mapInfo.fullPixels();
+            byte[] biomePixels = mapInfo.biomePixels();
+            byte[] chunkPixels = mapInfo.chunkPixels() != null ? mapInfo.chunkPixels() : new byte[biomePixels.length];
+            
+            // Combine pixels: use chunk pixels where available, biome as base
+            byte[] combinedPixels = new byte[biomePixels.length];
+            for (int i = 0; i < combinedPixels.length; i++) {
+                combinedPixels[i] = (chunkPixels[i] != 0) ? chunkPixels[i] : biomePixels[i];
+            }
             
             // Create NativeImage and convert raw pixels to ARGB
             long createImageStart = System.nanoTime();
@@ -92,7 +99,7 @@ public class MapClient {
             for (int y = 0; y < height; y++) {
                 for (int x = 0; x < width; x++) {
                     int idx = x + y * width;
-                    int packedId = pixels[idx] & 0xFF;
+                    int packedId = combinedPixels[idx] & 0xFF;
                     int argb = net.minecraft.world.level.material.MapColor.getColorFromPackedId(packedId);
                     
                     image.setPixelRGBA(x, y, argb);
@@ -109,7 +116,7 @@ public class MapClient {
 
             ViaRomana.LOGGER.info("[PERF-CLIENT] Created GPU texture for network {}: total={}ms, create={}ms, convert={}ms, upload={}ms, dimensions={}x{}, pixels={}", 
                 mapInfo.networkId(), totalTime / 1_000_000.0, createImageTime / 1_000_000.0, 
-                convertTime / 1_000_000.0, uploadTime / 1_000_000.0, width, height, pixels.length);
+                convertTime / 1_000_000.0, uploadTime / 1_000_000.0, width, height, combinedPixels.length);
             return new MapTexture(mapInfo, location, texture, image);
             
         } catch (Exception e) {

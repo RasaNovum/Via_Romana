@@ -219,10 +219,12 @@ public final class ServerMapCache {
             Path mapDir = getMapDirectory();
             String base = "network-" + networkId;
             Path metaPath = mapDir.resolve(base + ".nbt");
-            Path pixelsPath = mapDir.resolve(base + ".pixels");
+            Path biomePixelsPath = mapDir.resolve(base + "-biome.pixels");
+            Path chunkPixelsPath = mapDir.resolve(base + "-chunk.pixels");
             
             CompoundTag tag;
-            byte[] fullPixels = null;
+            byte[] biomePixels = null;
+            byte[] chunkPixels = null;
 
             try (InputStream metaStream = Files.newInputStream(metaPath)) {
                 //? if <1.21 {
@@ -242,24 +244,32 @@ public final class ServerMapCache {
             int worldMaxX = tag.getInt("worldMaxX");
             int worldMaxZ = tag.getInt("worldMaxZ");
 
-            if (Files.exists(pixelsPath)) {
-                try (InputStream pixelsStream = Files.newInputStream(pixelsPath)) {
-                    fullPixels = pixelsStream.readAllBytes();
+            if (Files.exists(biomePixelsPath)) {
+                try (InputStream pixelsStream = Files.newInputStream(biomePixelsPath)) {
+                    biomePixels = pixelsStream.readAllBytes();
                 } catch (IOException e) {
-                    ViaRomana.LOGGER.error("Failed to load pixels for {}", networkId, e);
+                    ViaRomana.LOGGER.error("Failed to load biome pixels for {}", networkId, e);
                     return Optional.empty();
                 }
             } else {
-                ViaRomana.LOGGER.warn("No pixel data found for network {}", networkId);
+                ViaRomana.LOGGER.warn("No biome pixel data found for network {}", networkId);
                 return Optional.empty();
             }
 
-            MapInfo info = MapInfo.fromServer(networkId, fullPixels, pixelWidth, pixelHeight, scaleFactor,
+            if (Files.exists(chunkPixelsPath)) {
+                try (InputStream pixelsStream = Files.newInputStream(chunkPixelsPath)) {
+                    chunkPixels = pixelsStream.readAllBytes();
+                } catch (IOException e) {
+                    ViaRomana.LOGGER.warn("Failed to load chunk pixels for {} (optional)", networkId, e);
+                }
+            }
+
+            MapInfo info = MapInfo.fromServer(networkId, biomePixels, chunkPixels, pixelWidth, pixelHeight, scaleFactor,
                 worldMinX, worldMinZ, worldMaxX, worldMaxZ, List.of(), List.of());
             cache.put(networkId, info);
             long loadTime = System.nanoTime() - startTime;
-            ViaRomana.LOGGER.info("[PERF] Loaded map {} from disk: {}ms, pixelsSize={}KB", 
-                networkId, loadTime / 1_000_000.0, fullPixels.length / 1024.0);
+            ViaRomana.LOGGER.info("[PERF] Loaded map {} from disk: {}ms, biomeSize={}KB, chunkSize={}KB", 
+                networkId, loadTime / 1_000_000.0, biomePixels.length / 1024.0, chunkPixels != null ? chunkPixels.length / 1024.0 : 0);
             return Optional.of(info);
 
         } catch (IOException e) {
@@ -313,14 +323,15 @@ public final class ServerMapCache {
             for (UUID id : networksToSave) {
                 MapInfo info = cache.get(id);
 
-                if (info == null || info.fullPixels() == null || info.pixelWidth() == 0 || info.pixelHeight() == 0) {
+                if (info == null || info.biomePixels() == null || info.pixelWidth() == 0 || info.pixelHeight() == 0) {
                     invalidate(id);
                     continue;
                 }
 
                 String base = "network-" + id;
                 Path nbtPath = mapDir.resolve(base + ".nbt");
-                Path pixelsPath = mapDir.resolve(base + ".pixels");
+                Path biomePixelsPath = mapDir.resolve(base + "-biome.pixels");
+                Path chunkPixelsPath = mapDir.resolve(base + "-chunk.pixels");
 
                 CompoundTag tag = new CompoundTag();
                 tag.putInt("scale", info.scaleFactor());
@@ -335,12 +346,16 @@ public final class ServerMapCache {
                 }
 
                 try (OutputStream nbtOut = Files.newOutputStream(nbtPath);
-                     OutputStream pixelsOut = Files.newOutputStream(pixelsPath)) {
+                     OutputStream biomePixelsOut = Files.newOutputStream(biomePixelsPath);
+                     OutputStream chunkPixelsOut = Files.newOutputStream(chunkPixelsPath)) {
                     NbtIo.writeCompressed(tag, nbtOut);
-                    pixelsOut.write(info.fullPixels());
+                    biomePixelsOut.write(info.biomePixels());
+                    if (info.chunkPixels() != null) {
+                        chunkPixelsOut.write(info.chunkPixels());
+                    }
                     
                     savedCount++;
-                    totalBytes += info.fullPixels().length;
+                    totalBytes += info.biomePixels().length + (info.chunkPixels() != null ? info.chunkPixels().length : 0);
                 } catch (IOException e) {
                     ViaRomana.LOGGER.error("Failed to write map files for network {}", id, e);
                 }
