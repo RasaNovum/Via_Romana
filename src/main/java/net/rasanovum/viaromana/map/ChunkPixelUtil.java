@@ -29,6 +29,8 @@ import java.util.*;
  */
 public class ChunkPixelUtil {
     
+    private static final Map<ResourceLocation, Integer> biomeColorCache = new HashMap<>();
+    
     /**
      * Renders 16x16 raw pixel bytes from chunk surface.
      */
@@ -270,16 +272,7 @@ public class ChunkPixelUtil {
             int px = i % 16;
             int pz = i / 16;
             
-            int cornerIndex;
-            if (px < 8 && pz < 8) {
-                cornerIndex = 0; // SW
-            } else if (px >= 8 && pz < 8) {
-                cornerIndex = 1; // SE
-            } else if (px < 8) {
-                cornerIndex = 2; // NW
-            } else {
-                cornerIndex = 3; // NE
-            }
+            int cornerIndex = ((pz >> 3) << 1) | (px >> 3);
             
             pixels[i] = (byte) cornerPackedIds[cornerIndex];
         }
@@ -294,6 +287,11 @@ public class ChunkPixelUtil {
         Biome biome = holder.value();
         ResourceLocation biomeId = level.registryAccess().registryOrThrow(Registries.BIOME).getKey(biome);
         assert biomeId != null;
+
+        if (biomeColorCache.containsKey(biomeId)) {
+            return biomeColorCache.get(biomeId);
+        }
+
         String biomePath = biomeId.getPath().toLowerCase();
         int colorIndex = 0;
 
@@ -325,7 +323,7 @@ public class ChunkPixelUtil {
         } else if (holder.is(beachTag) || holder.is(endTag)) {
             colorIndex = 2;
         } else if (holder.is(savannaTag)) {
-            colorIndex = 49;
+            colorIndex = 27;
         } else if (holder.is(badlandsTag)) {
             colorIndex = 15;
         } else if (holder.is(netherTag)) {
@@ -335,6 +333,8 @@ public class ChunkPixelUtil {
         } else {
             ViaRomana.LOGGER.warn("Biome {} did not match any color index rules, defaulting to 0", biomeId);
         }
+
+        biomeColorCache.put(biomeId, colorIndex);
 
         return colorIndex;
     }
