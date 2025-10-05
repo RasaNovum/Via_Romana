@@ -79,7 +79,7 @@ public class TeleportMapScreen extends Screen {
 
         calculateBounds();
 
-        this.mapRenderer = new MapRenderer(this.minBounds, this.maxBounds, networkNodes);
+        this.mapRenderer = new MapRenderer(this.minBounds, this.maxBounds);
 
         requestMapAsync(this.minBounds, this.maxBounds);
     }
@@ -133,7 +133,7 @@ public class TeleportMapScreen extends Screen {
         //? if >1.21
         this.renderBlurredBackground(partialTicks);
         
-        this.mapRenderer.render(guiGraphics, this.width, this.height, this.minecraft.player);
+        this.mapRenderer.render(guiGraphics, this.width, this.height);
 
         renderNetwork(guiGraphics, partialTicks);
 
