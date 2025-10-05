@@ -241,8 +241,7 @@ public final class ServerMapCache {
             int worldMinZ = tag.getInt("worldMinZ");
             int worldMaxX = tag.getInt("worldMaxX");
             int worldMaxZ = tag.getInt("worldMaxZ");
-            
-            // Load raw pixels (required for map data)
+
             if (Files.exists(pixelsPath)) {
                 try (InputStream pixelsStream = Files.newInputStream(pixelsPath)) {
                     fullPixels = pixelsStream.readAllBytes();
@@ -375,39 +374,6 @@ public final class ServerMapCache {
         } catch (IOException e) {
             ViaRomana.LOGGER.error("Failed to delete map directory from disk.", e);
         }
-    }
-
-    /**
-     * Clears chunk pixel data for all networks in the cache.
-     */
-    public static void clearAllChunkPixelData() {
-        long startTime = System.nanoTime();
-        int totalChunks = 0;
-        
-        for (ServerLevel level : minecraftServer.getAllLevels()) {
-            PathGraph graph = PathGraph.getInstance(level);
-            if (graph == null) continue;
-
-            Set<ChunkPos> allChunks = new HashSet<>();
-            for (UUID networkId : cache.keySet()) {
-                PathGraph.NetworkCache network = graph.getNetworkCache(networkId);
-                if (network != null) {
-                    PathGraph.FoWCache fowCache = graph.getOrComputeFoWCache(network);
-                    if (fowCache != null) {
-                        allChunks.addAll(fowCache.allowedChunks());
-                    }
-                }
-            }
-            
-            if (!allChunks.isEmpty()) {
-                LevelDataManager.clearPixelBytesForChunks(level, allChunks);
-                totalChunks += allChunks.size();
-            }
-        }
-        
-        long totalTime = System.nanoTime() - startTime;
-        ViaRomana.LOGGER.info("[PERF] Cleared all chunk pixel data: {} chunks in {}ms", 
-            totalChunks, totalTime / 1_000_000.0);
     }
 
     /**

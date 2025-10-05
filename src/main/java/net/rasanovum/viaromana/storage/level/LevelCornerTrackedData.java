@@ -68,4 +68,9 @@ public class LevelCornerTrackedData extends ServerLevelTrackedData {
         }
         return map;
     }
+
+    public void clearAll() {
+        cornerMap.clear();
+        markDirty();
+    }
 }

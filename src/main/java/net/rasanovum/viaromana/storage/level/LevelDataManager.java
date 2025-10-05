@@ -8,7 +8,6 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.init.MapInit;
-
 import java.util.Optional;
 import java.util.Set;
 

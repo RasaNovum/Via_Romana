@@ -68,5 +68,9 @@ public class LevelPixelTrackedData extends ServerLevelTrackedData {
         }
         return map;
     }
-}
 
+    public void clearAll() {
+        pixelMap.clear();
+        markDirty();
+    }
+}
