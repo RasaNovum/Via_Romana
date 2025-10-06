@@ -1,10 +1,7 @@
 package net.rasanovum.viaromana.client;
 
 import com.mojang.blaze3d.platform.NativeImage;
-import net.minecraft.client.renderer.texture.DynamicTexture;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
 import net.rasanovum.viaromana.map.MapInfo;
 import net.rasanovum.viaromana.network.packets.MapRequestC2S;
 import net.rasanovum.viaromana.network.packets.MapResponseS2C;
@@ -22,24 +19,14 @@ import java.util.UUID;
 public class MapClient {
 
     /**
-     * Represents a GPU texture created from MapInfo.
+     * Represents raw map layer images created from MapInfo.
+     * The actual texture baking and stacking is handled by MapRenderer.
      */
-    public static class MapTexture implements AutoCloseable {
-        public final MapInfo mapInfo;
-        public final ResourceLocation textureLocation;
-        public final DynamicTexture dynamicTexture;
-        public final NativeImage nativeImage;
-
-        public MapTexture(MapInfo mapInfo, ResourceLocation textureLocation, DynamicTexture dynamicTexture, NativeImage nativeImage) {
-            this.mapInfo = mapInfo;
-            this.textureLocation = textureLocation;
-            this.dynamicTexture = dynamicTexture;
-            this.nativeImage = nativeImage;
-        }
-
+    public record MapTexture(MapInfo mapInfo, NativeImage biomeImage, NativeImage chunkImage) implements AutoCloseable {
         @Override
         public void close() {
-            if (dynamicTexture != null) dynamicTexture.close();
+            if (biomeImage != null) biomeImage.close(); //TODO: Look into caching biomeImage client-side and re-using for stack if network isn't invalidated
+            if (chunkImage != null) chunkImage.close();
         }
     }
 
@@ -78,47 +65,51 @@ public class MapClient {
 
         try {
             long startTime = System.nanoTime();
-            
+
             int width = mapInfo.pixelWidth();
             int height = mapInfo.pixelHeight();
             byte[] biomePixels = mapInfo.biomePixels();
             byte[] chunkPixels = mapInfo.chunkPixels() != null ? mapInfo.chunkPixels() : new byte[biomePixels.length];
-            
-            // Combine pixels: use chunk pixels where available, biome as base
-            byte[] combinedPixels = new byte[biomePixels.length];
-            for (int i = 0; i < combinedPixels.length; i++) {
-                combinedPixels[i] = (chunkPixels[i] != 0) ? chunkPixels[i] : biomePixels[i];
-            }
-            
-            // Create NativeImage and convert raw pixels to ARGB
+
             long createImageStart = System.nanoTime();
-            NativeImage image = new NativeImage(width, height, false);
+
+            NativeImage biomeImage = new NativeImage(width, height, false);
+            NativeImage chunkImage = new NativeImage(width, height, false);
+
             long createImageTime = System.nanoTime() - createImageStart;
-            
             long convertStart = System.nanoTime();
+
             for (int y = 0; y < height; y++) {
                 for (int x = 0; x < width; x++) {
                     int idx = x + y * width;
-                    int packedId = combinedPixels[idx] & 0xFF;
+                    int packedId = biomePixels[idx] & 0xFF;
                     int argb = net.minecraft.world.level.material.MapColor.getColorFromPackedId(packedId);
-                    
-                    image.setPixelRGBA(x, y, argb);
+                    biomeImage.setPixelRGBA(x, y, argb);
+                }
+            }
+
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
+                    int idx = x + y * width;
+                    int packedId = chunkPixels[idx] & 0xFF;
+                    if (packedId != 0) {
+                        int argb = net.minecraft.world.level.material.MapColor.getColorFromPackedId(packedId);
+                        chunkImage.setPixelRGBA(x, y, argb);
+                    } else {
+                        chunkImage.setPixelRGBA(x, y, 0);
+                    }
                 }
             }
             long convertTime = System.nanoTime() - convertStart;
-            
-            long uploadStart = System.nanoTime();
-            DynamicTexture texture = new DynamicTexture(image);
-            ResourceLocation location = Minecraft.getInstance().getTextureManager().register("map_network_" + mapInfo.networkId(), texture);
-            long uploadTime = System.nanoTime() - uploadStart;
-            
+
             long totalTime = System.nanoTime() - startTime;
 
-            ViaRomana.LOGGER.info("[PERF-CLIENT] Created GPU texture for network {}: total={}ms, create={}ms, convert={}ms, upload={}ms, dimensions={}x{}, pixels={}", 
-                mapInfo.networkId(), totalTime / 1_000_000.0, createImageTime / 1_000_000.0, 
-                convertTime / 1_000_000.0, uploadTime / 1_000_000.0, width, height, combinedPixels.length);
-            return new MapTexture(mapInfo, location, texture, image);
-            
+            ViaRomana.LOGGER.info("[PERF-CLIENT] Created raw map images for network {}: total={}ms, create={}ms, convert={}ms, dimensions={}x{}, pixels={}",
+                    mapInfo.networkId(), totalTime / 1_000_000.0, createImageTime / 1_000_000.0,
+                    convertTime / 1_000_000.0, width, height, biomePixels.length);
+
+            return new MapTexture(mapInfo, biomeImage, chunkImage);
+
         } catch (Exception e) {
             ViaRomana.LOGGER.error("MapClient: Failed to create texture for network {}: {}", mapInfo.networkId(), e.getMessage());
             return null;

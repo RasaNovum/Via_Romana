@@ -23,6 +23,8 @@ public class MapRenderer implements AutoCloseable {
     private static final float MIN_VISIBLE_TILE_FRACTION = 0.4f;
     private static final float GRADIENT_RANDOMNESS = 0.3f;
     private static final float MAP_OPACITY = 0.75f;
+    private static final float BIOME_LAYER_OPACITY = 0.35f;
+    private static final int BIOME_LAYER_BLUR_RADIUS = 2;
 
     private static final ResourceLocation[] CORNER_TILES = createTileLocations("corner-", 4);
     private static final ResourceLocation[] EDGE_TILES = createTileLocations("edge-", 24);
@@ -56,7 +58,7 @@ public class MapRenderer implements AutoCloseable {
 
         int availableWidth = screenWidth - SCREEN_MARGIN;
         int availableHeight = screenHeight - SCREEN_MARGIN;
-        float scale = Math.min((float) availableWidth / mapTexture.nativeImage.getWidth(), (float) availableHeight / mapTexture.nativeImage.getHeight());
+        float scale = Math.min((float) availableWidth / mapTexture.biomeImage().getWidth(), (float) availableHeight / mapTexture.biomeImage().getHeight());
 
         // Rebuild texture if it's the first render or if the scale has changed significantly
         if (bakedDynamicTexture == null || Math.abs(scale - lastRenderScale) > 0.1f) {
@@ -98,30 +100,31 @@ public class MapRenderer implements AutoCloseable {
             bakedDynamicTexture.close();
         }
 
-        try (NativeImage newBakedImage = bakeBackgroundAndMap(mapTexture.nativeImage)) {
+        try (NativeImage newBakedImage = bakeLayersOnBackground(mapTexture.biomeImage(), mapTexture.chunkImage())) {
             this.bakedTextureWidth = newBakedImage.getWidth();
             this.bakedTextureHeight = newBakedImage.getHeight();
             bakedDynamicTexture = new DynamicTexture(newBakedImage);
             bakedTextureLocation = Minecraft.getInstance().getTextureManager().register("baked_map", bakedDynamicTexture);
         }
 
-        BlockPos imageMin = new BlockPos(mapTexture.mapInfo.worldMinX(), 0, mapTexture.mapInfo.worldMinZ());
-        BlockPos imageMax = new BlockPos(mapTexture.mapInfo.worldMaxX(), 0, mapTexture.mapInfo.worldMaxZ());
+        BlockPos imageMin = new BlockPos(mapTexture.mapInfo().worldMinX(), 0, mapTexture.mapInfo().worldMinZ());
+        BlockPos imageMax = new BlockPos(mapTexture.mapInfo().worldMaxX(), 0, mapTexture.mapInfo().worldMaxZ());
 
         coordinateSystem = new MapCoordinateSystem(
             imageMin, imageMax,
-            mapTexture.nativeImage.getWidth(), mapTexture.nativeImage.getHeight(),
+            mapTexture.biomeImage().getWidth(), mapTexture.biomeImage().getHeight(),
             bakedTextureWidth, bakedTextureHeight,
-            mapTexture.mapInfo.scaleFactor()
+            mapTexture.mapInfo().scaleFactor()
         );
     }
 
     /**
-     * Creates the final texture by baking a tiled background and blending the map image on top.
+     * Creates the final texture by stacking chunk onto biome with edge gradient,
+     * then stacking that result onto a tiled background with another edge gradient.
      */
-    private NativeImage bakeBackgroundAndMap(NativeImage mapImage) {
-        int mapWidthPx = mapImage.getWidth();
-        int mapHeightPx = mapImage.getHeight();
+    private NativeImage bakeLayersOnBackground(NativeImage biomeImage, NativeImage chunkImage) {
+        int mapWidthPx = biomeImage.getWidth();
+        int mapHeightPx = biomeImage.getHeight();
         int padding = (int) Math.ceil(MIN_VISIBLE_TILE_FRACTION * BACKGROUND_TILE_SIZE);
 
         int requiredWidth = mapWidthPx + 2 * padding;
@@ -129,13 +132,34 @@ public class MapRenderer implements AutoCloseable {
         int tilesWide = Math.max(3, (requiredWidth + BACKGROUND_TILE_SIZE - 1) / BACKGROUND_TILE_SIZE);
         int tilesHigh = Math.max(3, (requiredHeight + BACKGROUND_TILE_SIZE - 1) / BACKGROUND_TILE_SIZE);
 
+        NativeImage stackedMap = new NativeImage(biomeImage.format(), mapWidthPx, mapHeightPx, false);
+        
+        // Apply biome layer with reduced opacity to allow background to show through more
+        try (NativeImage biomeWithOpacity = applyImageOpacity(biomeImage, BIOME_LAYER_OPACITY)) {
+            stackedMap.copyFrom(biomeWithOpacity);
+        }
+
+        // Apply blur to biome layer to smooth out pixelation
+        try (NativeImage biomeWithBlur = applyImageBlur(stackedMap, BIOME_LAYER_BLUR_RADIUS)) {
+            stackedMap.copyFrom(biomeWithBlur);
+        }
+        
+        // Apply edge gradient to chunk layer before blending at full opacity
+        try (NativeImage chunkGradient = applyEdgeGradient(chunkImage)) {
+            blendImage(stackedMap, chunkGradient, 0, 0, 1.0f);
+        }
+
+        // Create tiled background
         NativeImage combined = createTiledBackground(tilesWide, tilesHigh);
 
-        try (NativeImage gradientMap = applyEdgeGradient(mapImage)) {
+        // Apply stacked map onto background with edge gradient and REDUCED opacity
+        try (NativeImage mapGradient = applyEdgeGradient(stackedMap)) {
             int mapX = (combined.getWidth() - mapWidthPx) / 2;
             int mapY = (combined.getHeight() - mapHeightPx) / 2;
-            blendImage(combined, gradientMap, mapX, mapY);
+            blendImage(combined, mapGradient, mapX, mapY, MAP_OPACITY);
         }
+        
+        stackedMap.close();
 
         return combined;
     }
@@ -183,8 +207,8 @@ public class MapRenderer implements AutoCloseable {
                     gradient = gradient * gradient * (3.0f - 2.0f * gradient);
 
                     int pixel = result.getPixelRGBA(x, y);
-                    int alpha = (int) (((pixel >>> 24) & 0xFF) * gradient);
-                    result.setPixelRGBA(x, y, (alpha << 24) | (pixel & 0x00FFFFFF));
+                    int adjustedPixel = applyOpacity(pixel, gradient);
+                    result.setPixelRGBA(x, y, adjustedPixel);
                 }
             }
         }
@@ -224,7 +248,11 @@ public class MapRenderer implements AutoCloseable {
         return distanceMap;
     }
 
-    private void blendImage(NativeImage background, NativeImage foreground, int startX, int startY) {
+    /**
+     * Blends foreground onto background with the specified opacity.
+     * @param opacity 1.0f for full opacity, lower values for transparency
+     */
+    private void blendImage(NativeImage background, NativeImage foreground, int startX, int startY, float opacity) {
         for (int px = 0; px < foreground.getWidth(); px++) {
             for (int py = 0; py < foreground.getHeight(); py++) {
                 int targetX = startX + px;
@@ -232,7 +260,7 @@ public class MapRenderer implements AutoCloseable {
 
                 if (targetX >= 0 && targetX < background.getWidth() && targetY >= 0 && targetY < background.getHeight()) {
                     int bgPixel = background.getPixelRGBA(targetX, targetY);
-                    int fgPixel = applyOpacity(foreground.getPixelRGBA(px, py), MAP_OPACITY);
+                    int fgPixel = applyOpacity(foreground.getPixelRGBA(px, py), opacity);
                     background.setPixelRGBA(targetX, targetY, blendOver(bgPixel, fgPixel));
                 }
             }
@@ -313,6 +341,76 @@ public class MapRenderer implements AutoCloseable {
     private static int applyOpacity(int color, float opacity) {
         int alpha = (int) (((color >>> 24) & 0xFF) * opacity);
         return (alpha << 24) | (color & 0x00FFFFFF);
+    }
+
+    /**
+     * Creates a new image with opacity applied.
+     */
+    private NativeImage applyImageOpacity(NativeImage source, float opacity) {
+        int width = source.getWidth();
+        int height = source.getHeight();
+        NativeImage result = new NativeImage(source.format(), width, height, false);
+        
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int pixel = source.getPixelRGBA(x, y);
+                int adjustedPixel = applyOpacity(pixel, opacity);
+                result.setPixelRGBA(x, y, adjustedPixel);
+            }
+        }
+        
+        return result;
+    }
+
+    /**
+     * Creates a new image with a box blur applied.
+     */
+    private NativeImage applyImageBlur(NativeImage source, int blurRadius) {
+        if (blurRadius < 1) return source;
+        
+        NativeImage temp = applyBlurPass(source, blurRadius, true);
+        NativeImage result = applyBlurPass(temp, blurRadius, false);
+        
+        temp.close();
+        return result;
+    }
+
+    private NativeImage applyBlurPass(NativeImage source, int blurRadius, boolean horizontal) {
+        int width = source.getWidth();
+        int height = source.getHeight();
+        NativeImage result = new NativeImage(source.format(), width, height, false);
+        int kernelSize = 2 * blurRadius + 1;
+        
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int sumA = 0, sumR = 0, sumG = 0, sumB = 0;
+                
+                for (int k = -blurRadius; k <= blurRadius; k++) {
+                    int sampleX, sampleY;
+                    if (horizontal) {
+                        sampleX = Math.min(width - 1, Math.max(0, x + k));
+                        sampleY = y;
+                    } else {
+                        sampleX = x;
+                        sampleY = Math.min(height - 1, Math.max(0, y + k));
+                    }
+                    
+                    int pixel = source.getPixelRGBA(sampleX, sampleY);
+                    sumA += (pixel >> 24) & 0xFF;
+                    sumR += (pixel >> 16) & 0xFF;
+                    sumG += (pixel >> 8) & 0xFF;
+                    sumB += pixel & 0xFF;
+                }
+                
+                int avgA = sumA / kernelSize;
+                int avgR = sumR / kernelSize;
+                int avgG = sumG / kernelSize;
+                int avgB = sumB / kernelSize;
+                result.setPixelRGBA(x, y, (avgA << 24) | (avgR << 16) | (avgG << 8) | avgB);
+            }
+        }
+        
+        return result;
     }
 
     private int blendOver(int bg, int fg) {

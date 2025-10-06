@@ -61,9 +61,8 @@ public class MapPixelAssembler {
             }
 
             byte[] chunkPixelData = null;
-            boolean isRenderable = renderedChunks.contains(chunkToProcess);
 
-            if (isRenderable) {
+            if (renderedChunks.contains(chunkToProcess)) {
                 PixelResult result = getOrRenderChunkPixels(level, chunkToProcess);
                 if (result.pixels() != null && result.pixels().length == 256) {
                     chunkPixelData = result.pixels();

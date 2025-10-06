@@ -91,6 +91,7 @@ public class TeleportMapScreen extends Screen {
         MapClient.requestMap(networkId, paddedMin, paddedMax, networkNodes)
             .thenAccept(mapInfo -> {
                 if (mapInfo != null) {
+                    assert this.minecraft != null;
                     this.minecraft.execute(() -> {
                         if (this.mapTexture != null) {
                             this.mapTexture.close();
