@@ -145,7 +145,7 @@ public class MapRenderer implements AutoCloseable {
         }
         
         // Apply edge gradient to chunk layer before blending at full opacity
-        try (NativeImage chunkGradient = applyEdgeGradient(chunkImage)) {
+        try (NativeImage chunkGradient = applyEdgeGradient(chunkImage, 12)) {
             blendImage(stackedMap, chunkGradient, 0, 0, 1.0f);
         }
 
@@ -153,7 +153,7 @@ public class MapRenderer implements AutoCloseable {
         NativeImage combined = createTiledBackground(tilesWide, tilesHigh);
 
         // Apply stacked map onto background with edge gradient and REDUCED opacity
-        try (NativeImage mapGradient = applyEdgeGradient(stackedMap)) {
+        try (NativeImage mapGradient = applyEdgeGradient(stackedMap, 5)) {
             int mapX = (combined.getWidth() - mapWidthPx) / 2;
             int mapY = (combined.getHeight() - mapHeightPx) / 2;
             blendImage(combined, mapGradient, mapX, mapY, MAP_OPACITY);
@@ -188,11 +188,11 @@ public class MapRenderer implements AutoCloseable {
     /**
      * Applies a smooth, randomized gradient to the edges of the map image.
      */
-    private NativeImage applyEdgeGradient(NativeImage mapImage) {
+    private NativeImage applyEdgeGradient(NativeImage mapImage, int percentDistance) {
         int width = mapImage.getWidth();
         int height = mapImage.getHeight();
         float[][] distanceMap = calculateDistanceMap(mapImage);
-        int gradientDist = Math.max(2, Math.min(20, Math.min(width, height) / 20));
+        int gradientDist = Math.max(2, Math.min(width, height) / (100 / percentDistance));
 
         NativeImage result = new NativeImage(mapImage.format(), width, height, false);
         result.copyFrom(mapImage);
