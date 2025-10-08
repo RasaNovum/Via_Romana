@@ -113,9 +113,9 @@ public class NodeRenderer {
         Vec3 cameraPos = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
         Vec3 playerPos = player.position();
         
-        List<NodeRenderData> nodeDataList = gatherRenderData(clientLevel, playerPos);
+        List<NodeRenderData> nodeDataList = gatherRenderData(clientLevel, playerPos, level.dimension());
         
-        BlockPos selectedNodePos = findAndSetSelectedNode(player, nodeDataList);
+        BlockPos selectedNodePos = findAndSetSelectedNode(player, nodeDataList, level.dimension());
         updateAnimatedAlphas(selectedNodePos);
         currentVignetteIntensity = calculateMaxVignette(nodeDataList);
         
@@ -140,7 +140,7 @@ public class NodeRenderer {
 
         bufferSource.endBatch(getRenderType());
 
-        PathGraph graph = ClientPathData.getInstance().getGraph();
+        PathGraph graph = ClientPathData.getInstance().getGraph(level.dimension());
         if (graph != null && !graph.nodesView().isEmpty()) {
             NodeConnectionRenderer.renderConnections(poseStack, clientLevel, player, graph, animationTime, bufferSource, globalRenderAlpha);
         }
@@ -163,7 +163,7 @@ public class NodeRenderer {
     }
 
     // Gathers all visible nodes and pre-calculates their expensive data.
-    private static List<NodeRenderData> gatherRenderData(ClientLevel level, Vec3 playerPos) {
+    private static List<NodeRenderData> gatherRenderData(ClientLevel level, Vec3 playerPos, net.minecraft.resources.ResourceKey<net.minecraft.world.level.Level> dimension) {
         List<NodeRenderData> dataList = new ArrayList<>();
         double searchRadius = RENDER_DISTANCE + FADE_BUFFER_DISTANCE;
 
@@ -178,9 +178,9 @@ public class NodeRenderer {
                 .forEach(dataList::add);
         }
 
-        PathGraph graph = ClientPathData.getInstance().getGraph();
+        PathGraph graph = ClientPathData.getInstance().getGraph(dimension);
         if (graph != null) {
-            ClientPathData.getInstance().getNearbyNodes(BlockPos.containing(playerPos), searchRadius, false).stream()
+            ClientPathData.getInstance().getNearbyNodes(BlockPos.containing(playerPos), searchRadius, false, dimension).stream()
                 .map(node -> {
                     BlockPos pos = BlockPos.of(node.getPos());
                     double adjY = RenderUtil.findSuitableYPosition(level, pos, 0.25f);
@@ -193,7 +193,7 @@ public class NodeRenderer {
         return dataList;
     }
     
-    private static BlockPos findAndSetSelectedNode(Player player, List<NodeRenderData> nodeDataList) {
+    private static BlockPos findAndSetSelectedNode(Player player, List<NodeRenderData> nodeDataList, net.minecraft.resources.ResourceKey<net.minecraft.world.level.Level> dimension) {
         ClientPathData clientPathData = ClientPathData.getInstance();
         Node nodeOpt = clientPathData.getNearestNode(player.blockPosition(), getPulseDistance(), false).orElse(null);
         return nodeOpt != null ? nodeOpt.getBlockPos() : null;

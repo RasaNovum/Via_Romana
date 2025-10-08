@@ -7,7 +7,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.rasanovum.viaromana.ViaRomana;
-import net.rasanovum.viaromana.init.MapInit;
+import net.rasanovum.viaromana.init.DataInit;
+
 import java.util.Optional;
 import java.util.Set;
 
@@ -21,7 +22,7 @@ public class LevelDataManager {
         TrackedDataContainer<Level, LevelTrackedData> container = TrackedDataRegistries.LEVEL.getContainer(level);
         if (container == null) return Optional.empty();
 
-        return container.dataAnchor$getTrackedData(MapInit.CHUNK_PIXEL_KEY)
+        return container.dataAnchor$getTrackedData(DataInit.CHUNK_PIXEL_KEY)
                 .filter(data -> data instanceof LevelPixelTrackedData)
                 .flatMap(data -> data.getPixelBytes(pos));
     }
@@ -35,7 +36,7 @@ public class LevelDataManager {
 
         container.dataAnchor$createTrackedData();
 
-        container.dataAnchor$getTrackedData(MapInit.CHUNK_PIXEL_KEY)
+        container.dataAnchor$getTrackedData(DataInit.CHUNK_PIXEL_KEY)
                 .filter(data -> data instanceof LevelPixelTrackedData)
                 .ifPresent(data -> data.setPixelBytes(pos, bytes));
     }
@@ -47,7 +48,7 @@ public class LevelDataManager {
         TrackedDataContainer<Level, LevelTrackedData> container = TrackedDataRegistries.LEVEL.getContainer(level);
         if (container == null) return Optional.empty();
 
-        return container.dataAnchor$getTrackedData(MapInit.CHUNK_CORNER_KEY)
+        return container.dataAnchor$getTrackedData(DataInit.CHUNK_CORNER_KEY)
                 .filter(data -> data instanceof LevelCornerTrackedData)
                 .flatMap(data -> data.getCornerBytes(pos));
     }
@@ -61,7 +62,7 @@ public class LevelDataManager {
 
         container.dataAnchor$createTrackedData();
 
-        container.dataAnchor$getTrackedData(MapInit.CHUNK_CORNER_KEY)
+        container.dataAnchor$getTrackedData(DataInit.CHUNK_CORNER_KEY)
                 .filter(data -> data instanceof LevelCornerTrackedData)
                 .ifPresent(data -> data.setCornerBytes(pos, bytes));
     }
@@ -73,7 +74,7 @@ public class LevelDataManager {
         TrackedDataContainer<Level, LevelTrackedData> container = TrackedDataRegistries.LEVEL.getContainer(level);
         if (container == null) return;
 
-        container.dataAnchor$getTrackedData(MapInit.CHUNK_PIXEL_KEY)
+        container.dataAnchor$getTrackedData(DataInit.CHUNK_PIXEL_KEY)
                 .filter(data -> data instanceof LevelPixelTrackedData)
                 .ifPresent(data -> data.setPixelBytes(pos, null));
     }
@@ -97,7 +98,7 @@ public class LevelDataManager {
         TrackedDataContainer<Level, LevelTrackedData> container = TrackedDataRegistries.LEVEL.getContainer(level);
         if (container == null) return;
 
-        container.dataAnchor$getTrackedData(MapInit.CHUNK_PIXEL_KEY)
+        container.dataAnchor$getTrackedData(DataInit.CHUNK_PIXEL_KEY)
                 .filter(data -> data instanceof LevelPixelTrackedData)
                 .ifPresent(LevelPixelTrackedData::clearAll);
     }
@@ -109,7 +110,7 @@ public class LevelDataManager {
         TrackedDataContainer<Level, LevelTrackedData> container = TrackedDataRegistries.LEVEL.getContainer(level);
         if (container == null) return;
 
-        container.dataAnchor$getTrackedData(MapInit.CHUNK_CORNER_KEY)
+        container.dataAnchor$getTrackedData(DataInit.CHUNK_CORNER_KEY)
                 .filter(data -> data instanceof LevelCornerTrackedData)
                 .ifPresent(LevelCornerTrackedData::clearAll);
     }

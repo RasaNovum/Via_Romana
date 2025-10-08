@@ -42,7 +42,7 @@ public class ViaRomana implements ModInitializer {
         // SoundInit.load();
         TriggerInit.load();
 
-        ViaRomana.LOGGER.debug("Registered chunk PNG data: {}", MapInit.CHUNK_PIXEL_KEY);
+        ViaRomana.LOGGER.debug("Registered chunk PNG data: {}", DataInit.CHUNK_PIXEL_KEY);
 
         ServerResourcesGenerator generator = new ServerResourcesGenerator(DYNAMIC_PACK);
         generator.register();
@@ -86,6 +86,7 @@ public class ViaRomana implements ModInitializer {
 
         ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register((player, origin, destination) -> {
             DimensionHandler.preventHopping(destination, player);
+            DimensionHandler.syncPathDataOnDimensionChange(destination, player);
         });
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> ViaRomanaCommands.register(dispatcher));

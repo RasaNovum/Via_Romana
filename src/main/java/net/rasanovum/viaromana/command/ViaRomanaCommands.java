@@ -4,7 +4,7 @@ import net.rasanovum.viaromana.path.PathGraph;
 import net.rasanovum.viaromana.storage.level.LevelPixelTrackedData;
 import net.rasanovum.viaromana.storage.level.LevelCornerTrackedData;
 import net.rasanovum.viaromana.storage.level.LevelDataManager;
-import net.rasanovum.viaromana.storage.path.IPathStorage;
+import net.rasanovum.viaromana.storage.path.PathDataManager;
 import net.rasanovum.viaromana.util.PathSyncUtils;
 import net.rasanovum.viaromana.variables.VariableAccess;
 import net.rasanovum.viaromana.client.data.ClientPathData;
@@ -54,8 +54,7 @@ public class ViaRomanaCommands {
             VariableAccess.playerVariables.syncAndSave(player);
         }
 
-        IPathStorage storage = IPathStorage.get(source.getLevel());
-        PathGraph graph = storage.graph();
+        PathGraph graph = PathGraph.getInstance(source.getLevel());
         
         int nodeCount = graph.size();
         
@@ -64,7 +63,7 @@ public class ViaRomanaCommands {
         ClientPathData.getInstance().clearData();
         PathSyncUtils.syncPathGraphToAllPlayers(source.getLevel());
 
-        storage.setDirty();
+        PathDataManager.markDirty(source.getLevel());
         
         source.sendSuccess(() -> Component.literal("Cleared " + nodeCount + " nodes"), true);
         return nodeCount;

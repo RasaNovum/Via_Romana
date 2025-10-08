@@ -15,7 +15,6 @@ import net.rasanovum.viaromana.client.data.ClientPathData;
 import net.rasanovum.viaromana.map.ServerMapCache;
 import net.rasanovum.viaromana.map.ServerMapUtils;
 import net.rasanovum.viaromana.network.packets.DestinationResponseS2C;
-import net.rasanovum.viaromana.storage.path.IPathStorage;
 import net.rasanovum.viaromana.surveyor.ViaRomanaLandmark;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -84,7 +83,7 @@ public final class PathGraph {
     }
 
     public static PathGraph getInstance(ServerLevel level) {
-        return IPathStorage.get(level).graph();
+        return net.rasanovum.viaromana.storage.path.PathDataManager.getOrCreatePathGraph(level);
     }
 
     // region Network & Cache Management

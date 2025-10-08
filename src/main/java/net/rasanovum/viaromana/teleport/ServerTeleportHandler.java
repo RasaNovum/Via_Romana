@@ -21,21 +21,21 @@ import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.core.LinkHandler;
 import net.rasanovum.viaromana.network.packets.TeleportRequestC2S;
 import net.rasanovum.viaromana.path.Node;
-import net.rasanovum.viaromana.storage.path.IPathStorage;
+import net.rasanovum.viaromana.path.PathGraph;
 import net.rasanovum.viaromana.variables.VariableAccess;
 
 public class ServerTeleportHandler {
 
     public static void handleTeleportRequest(TeleportRequestC2S packet, ServerPlayer player) {
         ServerLevel level = player.serverLevel();
-        IPathStorage storage = IPathStorage.get(level);
+        PathGraph graph = PathGraph.getInstance(level);
 
-        if (storage == null || !validateOriginSign(level, packet.originSignPos())) {
+        if (graph == null || !validateOriginSign(level, packet.originSignPos())) {
             // ViaRomanaLandmarkManager.removeDestinationLandmark(level, packet.getDestinationPos());
             return;
         }
 
-        storage.graph().getNodeAt(packet.destinationPos()).ifPresent(targetNode -> {
+        graph.getNodeAt(packet.destinationPos()).ifPresent(targetNode -> {
             VariableAccess.playerVariables.setLastNodePos(player, targetNode.getBlockPos());
             VariableAccess.playerVariables.setFadeAmount(player, 0);
             VariableAccess.playerVariables.setFadeIncrease(player, true);
@@ -48,10 +48,10 @@ public class ServerTeleportHandler {
         if (targetPos == null || targetPos.equals(BlockPos.ZERO)) return;
 
         ServerLevel level = player.serverLevel();
-        IPathStorage storage = IPathStorage.get(level);
-        if (storage == null) return;
+        PathGraph graph = PathGraph.getInstance(level);
+        if (graph == null) return;
 
-        storage.graph().getNodeAt(targetPos).ifPresent(targetNode -> {
+        graph.getNodeAt(targetPos).ifPresent(targetNode -> {
             performTeleportation(player, targetNode);
         });
     }

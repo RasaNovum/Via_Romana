@@ -18,7 +18,8 @@ import net.minecraft.advancements.AdvancementHolder;
 
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.path.Node.NodeData;
-import net.rasanovum.viaromana.storage.path.IPathStorage;
+import net.rasanovum.viaromana.path.PathGraph;
+import net.rasanovum.viaromana.storage.path.PathDataManager;
 import net.rasanovum.viaromana.util.PathSyncUtils;
 import net.rasanovum.viaromana.util.VersionUtils;
 
@@ -89,7 +90,7 @@ public record ChartedPathC2S(List<NodeData> chartedNodes) implements CustomPacke
     public static void handle(PacketContext<ChartedPathC2S> ctx) {
         if (Side.SERVER.equals(ctx.side())) {
             ServerLevel level = ctx.sender().serverLevel();
-            IPathStorage storage = IPathStorage.get(level);
+            PathGraph graph = PathGraph.getInstance(level);
 
             List<NodeData> chartingNodes = ctx.message().chartedNodes();
 
@@ -99,8 +100,8 @@ public record ChartedPathC2S(List<NodeData> chartedNodes) implements CustomPacke
             }
 
             try {
-                storage.graph().createConnectedPath(chartingNodes);
-                storage.setDirty();
+                graph.createConnectedPath(chartingNodes);
+                PathDataManager.markDirty(level);
 
                 PathSyncUtils.syncPathGraphToAllPlayers(level);
 

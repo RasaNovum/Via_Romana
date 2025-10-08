@@ -12,7 +12,6 @@ import net.minecraft.world.item.DyeColor;
 import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.path.Node;
 import net.rasanovum.viaromana.path.PathGraph;
-import net.rasanovum.viaromana.storage.path.IPathStorage;
 import net.rasanovum.viaromana.util.VersionUtils;
 
 import java.util.Optional;
@@ -47,9 +46,7 @@ public record ViaRomanaLandmark(BlockPos pos, Component name, DyeColor color) im
 
         DyeColor color;
         if (CommonConfig.enable_surveyor_landmark_coloring) {
-            IPathStorage storage = IPathStorage.get(level);
-            PathGraph graph = storage.graph();
-
+            PathGraph graph = PathGraph.getInstance(level);
             color = graph.getNetworkColor(node);
         }
         else {

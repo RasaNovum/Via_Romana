@@ -1,4 +1,4 @@
-package net.rasanovum.viaromana.storage.path;
+package net.rasanovum.viaromana.storage.path.legacy;
 
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
