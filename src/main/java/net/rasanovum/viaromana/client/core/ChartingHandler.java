@@ -4,9 +4,9 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.rasanovum.viaromana.network.packets.SignLinkRequestC2S;
@@ -20,7 +20,7 @@ import net.rasanovum.viaromana.network.packets.ChartedPathC2S;
 import commonnetwork.api.Dispatcher;
 import net.rasanovum.viaromana.path.Node;
 import net.rasanovum.viaromana.path.Node.NodeData;
-import net.rasanovum.viaromana.variables.VariableAccess;
+import net.rasanovum.viaromana.storage.player.PlayerData;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,7 +29,7 @@ import java.util.Optional;
  */
 public final class ChartingHandler {
     public static void chartPath(LevelAccessor level, Entity entity) {
-        if (!VariableAccess.playerVariables.isChartingPath(entity)) return;
+        if (!PlayerData.isChartingPath((Player) entity)) return;
 
         float nodeDistance = PathUtils.calculateNodeDistance(entity);
         float infrastructureQuality = PathUtils.calculateInfrastructureQuality(level, entity);
@@ -55,14 +55,14 @@ public final class ChartingHandler {
         addChartingNode(level, entity, entity.blockPosition(), infrastructureQuality, clearance);
     }
 
-    private static void playCartographySound(LevelAccessor level, Entity entity) {
+    private static void playCartographySound(LevelAccessor level, Player player) {
         if (!(level instanceof Level lvl)) return;
 
-        var pos  = BlockPos.containing(entity.getX(), entity.getY(), entity.getZ());
+        var pos  = BlockPos.containing(player.getX(), player.getY(), player.getZ());
         var snd  = BuiltInRegistries.SOUND_EVENT.get(VersionUtils.getLocation("minecraft:ui.cartography_table.take_result"));
 
         if (lvl.isClientSide()) {
-            lvl.playLocalSound(entity.getX(), entity.getY(), entity.getZ(), snd, SoundSource.PLAYERS, 1, 1, false);
+            lvl.playLocalSound(player.getX(), player.getY(), player.getZ(), snd, SoundSource.PLAYERS, 1, 1, false);
         } else {
             lvl.playSound(null, pos, snd, SoundSource.PLAYERS, 1, 1);
         }
@@ -72,8 +72,8 @@ public final class ChartingHandler {
      * Merges with an existing nearby node (preferred) or creates a new one.
      */
     public static void addChartingNode(LevelAccessor level, Entity entity, BlockPos pos, Float quality, Float clearance) {
-        if (entity == null) return;  
-        if (Math.random() > 0.9) playCartographySound(level, entity);
+        if (entity == null || !(entity instanceof Player player)) return;
+        if (Math.random() > 0.9) playCartographySound(level, player);
 
         Optional<Node> nearbyNode = ClientPathData.getInstance().getNearestNode(pos, CommonConfig.node_utility_distance, 1.0f, true);
 
@@ -84,7 +84,7 @@ public final class ChartingHandler {
             clearance = nearbyNode.get().getClearance();
         }
 
-        VariableAccess.playerVariables.setLastNodePos(entity, pos);
+        PlayerData.setLastNodePos(player, pos, false);
         ClientPathData.getInstance().addTemporaryNode(pos, quality, clearance);
     }
 

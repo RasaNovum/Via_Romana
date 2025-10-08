@@ -22,7 +22,8 @@ import net.rasanovum.viaromana.core.LinkHandler;
 import net.rasanovum.viaromana.network.packets.TeleportRequestC2S;
 import net.rasanovum.viaromana.path.Node;
 import net.rasanovum.viaromana.path.PathGraph;
-import net.rasanovum.viaromana.variables.VariableAccess;
+import net.rasanovum.viaromana.storage.player.PlayerData;
+import net.rasanovum.viaromana.surveyor.ViaRomanaLandmarkManager;
 
 public class ServerTeleportHandler {
 
@@ -31,20 +32,19 @@ public class ServerTeleportHandler {
         PathGraph graph = PathGraph.getInstance(level);
 
         if (graph == null || !validateOriginSign(level, packet.originSignPos())) {
-            // ViaRomanaLandmarkManager.removeDestinationLandmark(level, packet.getDestinationPos());
+            // ViaRomanaLandmarkManager.removeDestinationLandmark(level, packet.originSignPos().toLongPos()); //TODO: Add back
             return;
         }
 
         graph.getNodeAt(packet.destinationPos()).ifPresent(targetNode -> {
-            VariableAccess.playerVariables.setLastNodePos(player, targetNode.getBlockPos());
-            VariableAccess.playerVariables.setFadeAmount(player, 0);
-            VariableAccess.playerVariables.setFadeIncrease(player, true);
-            VariableAccess.playerVariables.syncAndSave(player);
+            PlayerData.setLastNodePos(player, targetNode.getBlockPos());
+            PlayerData.setFadeAmount(player, 0);
+            PlayerData.setFadeIncrease(player, true);
         });
     }
 
     public static void executeTeleportation(ServerPlayer player) {
-        BlockPos targetPos = VariableAccess.playerVariables.getLastNodePos(player);
+        BlockPos targetPos = PlayerData.getLastNodePos(player);
         if (targetPos == null || targetPos.equals(BlockPos.ZERO)) return;
 
         ServerLevel level = player.serverLevel();
@@ -62,10 +62,9 @@ public class ServerTeleportHandler {
 
         if (safePos == null) {
             player.displayClientMessage(Component.translatable("message.via_romana.unsafe"), true);
-            VariableAccess.playerVariables.setFadeAmount(player, 0);
-            VariableAccess.playerVariables.setFadeIncrease(player, false);
-            VariableAccess.playerVariables.setLastNodePos(player, BlockPos.ZERO);
-            VariableAccess.playerVariables.syncAndSave(player);
+            PlayerData.setFadeAmount(player, 0);
+            PlayerData.setFadeIncrease(player, false);
+            PlayerData.setLastNodePos(player, BlockPos.ZERO);
             return;
         }
 

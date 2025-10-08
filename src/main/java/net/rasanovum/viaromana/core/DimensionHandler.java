@@ -1,12 +1,14 @@
 package net.rasanovum.viaromana.core;
 
 import net.rasanovum.viaromana.client.HudMessageManager;
+import net.rasanovum.viaromana.storage.player.PlayerData;
 import net.rasanovum.viaromana.CommonConfig;
-import net.rasanovum.viaromana.variables.VariableAccess;
 
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerPlayer;
+import net.rasanovum.viaromana.util.PathSyncUtils;
 
 import java.util.List;
 
@@ -15,12 +17,12 @@ public class DimensionHandler {
 	 * Prevents dimension hopping while charting a path.
 	 */
 	public static void preventHopping(LevelAccessor world, Entity entity) {
-		if (entity == null) return;
+		if (!(entity instanceof Player player)) return;
 
-		if (VariableAccess.playerVariables.isChartingPath(entity)) {
+		if (PlayerData.isChartingPath(player)) {
 			HudMessageManager.queueMessage("message.via_romana.cancel_path_dimension");
 
-			ResetVariables.execute(world, entity);
+			PlayerData.resetVariables(player);
 		}
 	}
 	
@@ -28,9 +30,9 @@ public class DimensionHandler {
 	 * Syncs path data for the new dimension when a player changes dimensions.
 	 */
 	public static void syncPathDataOnDimensionChange(LevelAccessor world, Entity entity) {
-		if (entity == null || !(entity instanceof ServerPlayer player)) return;
+		if (!(entity instanceof ServerPlayer player)) return;
 		
-		net.rasanovum.viaromana.util.PathSyncUtils.syncPathGraphToPlayer(player);
+		PathSyncUtils.syncPathGraphToPlayer(player);
 	}
 
 	/**

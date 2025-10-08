@@ -10,11 +10,11 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.mehvahdjukaar.moonlight.api.resources.pack.DynamicDataPack;
 import net.rasanovum.viaromana.command.ViaRomanaCommands;
 import net.rasanovum.viaromana.core.DimensionHandler;
-import net.rasanovum.viaromana.core.ResetVariables;
 import net.rasanovum.viaromana.init.*;
 import net.rasanovum.viaromana.map.ServerMapCache;
 import net.rasanovum.viaromana.network.PacketRegistration;
 import net.rasanovum.viaromana.network.ViaRomanaModVariables;
+import net.rasanovum.viaromana.storage.player.PlayerData;
 import net.rasanovum.viaromana.tags.ServerResourcesGenerator;
 import net.rasanovum.viaromana.util.VersionUtils;
 
@@ -54,7 +54,7 @@ public class ViaRomana implements ModInitializer {
     private void registerServerLifecycleEvents() {
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             ViaRomanaModVariables.playerLoggedIn(handler.player);
-            ResetVariables.execute(handler.player.level(), handler.player);
+            PlayerData.resetVariables(handler.player);
         });
 
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {

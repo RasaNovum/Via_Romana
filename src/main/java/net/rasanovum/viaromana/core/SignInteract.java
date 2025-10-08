@@ -1,8 +1,7 @@
 package net.rasanovum.viaromana.core;
 
-import net.rasanovum.viaromana.variables.VariableAccess;
 import net.rasanovum.viaromana.network.packets.DestinationRequestC2S;
-
+import net.rasanovum.viaromana.storage.player.PlayerData;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -32,7 +31,7 @@ public class SignInteract {
             BlockPos signPos = blockPos;
             if (LinkHandler.isSignLinked(world, signPos)) {
                 if (!entity.isShiftKeyDown()) {
-                    if (VariableAccess.playerVariables.getFadeAmount(entity) > 0) return false;
+                    if (PlayerData.getFadeAmount((Player) entity) > 0) return false;
                     
                     long currentTime = System.currentTimeMillis();
                     if (blockPos.equals(lastClickedPos) && (currentTime - lastClickTime) < CLICK_DEBOUNCE_MS) {

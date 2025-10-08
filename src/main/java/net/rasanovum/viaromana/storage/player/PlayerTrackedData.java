@@ -115,6 +115,13 @@ public class PlayerTrackedData extends SyncedPlayerTrackedData {
         }
     }
 
+    public void setFadeAmount(double value, boolean sync) {
+        if (this.fadeAmount != value) {
+            this.fadeAmount = value;
+            if (sync) sync();
+        }
+    }
+
     public void setFadeIncrease(boolean value) {
         if (this.fadeIncrease != value) {
             this.fadeIncrease = value;
@@ -126,6 +133,13 @@ public class PlayerTrackedData extends SyncedPlayerTrackedData {
         if (!this.lastNodePos.equals(value)) {
             this.lastNodePos = value;
             sync();
+        }
+    }
+
+    public void setLastNodePos(BlockPos value, boolean sync) {
+        if (!this.lastNodePos.equals(value)) {
+            this.lastNodePos = value;
+            if (sync) sync();
         }
     }
 

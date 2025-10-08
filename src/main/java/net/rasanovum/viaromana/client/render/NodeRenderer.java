@@ -21,8 +21,9 @@ import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.items.ChartingMap;
 import net.rasanovum.viaromana.path.Node;
 import net.rasanovum.viaromana.path.PathGraph;
+import net.rasanovum.viaromana.storage.player.PlayerData;
 import net.rasanovum.viaromana.util.VersionUtils;
-import net.rasanovum.viaromana.variables.VariableAccess;
+
 import org.joml.Matrix4f;
 
 import java.util.*;
@@ -100,7 +101,7 @@ public class NodeRenderer {
 
         updateAnimationTimer();
         
-        boolean shouldRender = VariableAccess.playerVariables.isChartingPath(player) || player.getMainHandItem().getItem() instanceof ChartingMap || player.getOffhandItem().getItem() instanceof ChartingMap;
+        boolean shouldRender = PlayerData.isChartingPath(player) || player.getMainHandItem().getItem() instanceof ChartingMap || player.getOffhandItem().getItem() instanceof ChartingMap;
         updateGlobalAlpha(shouldRender);
 
         if (globalRenderAlpha <= 0.0f) {
@@ -167,7 +168,7 @@ public class NodeRenderer {
         List<NodeRenderData> dataList = new ArrayList<>();
         double searchRadius = RENDER_DISTANCE + FADE_BUFFER_DISTANCE;
 
-        if (VariableAccess.playerVariables.isChartingPath(Minecraft.getInstance().player)) {
+        if (PlayerData.isChartingPath(Minecraft.getInstance().player)) {
             ClientPathData.getInstance().getTemporaryNodes().stream()
                 .map(nodeData -> {
                     double adjY = RenderUtil.findSuitableYPosition(level, nodeData.pos(), 0.25f);

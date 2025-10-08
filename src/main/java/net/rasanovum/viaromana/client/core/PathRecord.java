@@ -2,9 +2,7 @@ package net.rasanovum.viaromana.client.core;
 
 import net.rasanovum.viaromana.storage.player.PlayerData;
 import net.rasanovum.viaromana.client.HudMessageManager;
-// import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.core.DimensionHandler;
-import net.rasanovum.viaromana.core.ResetVariables;
 import net.rasanovum.viaromana.util.PathUtils;
 
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -31,7 +29,7 @@ public class PathRecord {
 		ChartingHandler.finishPath(player);
 
 		ChartingHandler.initializeChartingNodes(player);
-		ResetVariables.execute(world, player);
+		PlayerData.resetVariables(player);
 	}
 
 	public static void cancel(ClientLevel world, LocalPlayer player, boolean showMessage) {
@@ -40,6 +38,6 @@ public class PathRecord {
 		if (showMessage) HudMessageManager.queueMessage("message.via_romana.cancel_charting");
 		
 		ChartingHandler.initializeChartingNodes(player);
-		ResetVariables.execute(world, player);
+		PlayerData.resetVariables(player);
 	}
 }

@@ -14,9 +14,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.items.ChartingMap;
+import net.rasanovum.viaromana.storage.player.PlayerData;
 import net.rasanovum.viaromana.util.PathUtils;
 import net.rasanovum.viaromana.util.VersionUtils;
-import net.rasanovum.viaromana.variables.VariableAccess;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 
@@ -33,7 +33,7 @@ public class InvalidBlockRenderer {
     }
 
     public static void renderInfrastructureBlocks(PoseStack poseStack, Level level, Player player, float tickDelta) {
-        boolean shouldRender = getAlpha() > 0.0f && (VariableAccess.playerVariables.isChartingPath(player) || player.getMainHandItem().getItem() instanceof ChartingMap || player.getOffhandItem().getItem() instanceof ChartingMap);
+        boolean shouldRender = getAlpha() > 0.0f && (PlayerData.isChartingPath(player) || player.getMainHandItem().getItem() instanceof ChartingMap || player.getOffhandItem().getItem() instanceof ChartingMap);
 
         if (!shouldRender) return;
 

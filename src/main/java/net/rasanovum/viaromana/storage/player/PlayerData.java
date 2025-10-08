@@ -16,13 +16,14 @@ public class PlayerData {
     /**
      * Generic method to get any value from PlayerTrackedData
      */
-    private static <T> Optional<T> getValue(Player player, Function<PlayerTrackedData, T> getter) {
+    private static <T> T getValue(Player player, Function<PlayerTrackedData, T> getter, T defaultValue) {
         TrackedDataContainer<Entity, EntityTrackedData> container = TrackedDataRegistries.ENTITY.getContainer(player);
-        if (container == null) return Optional.empty();
+        if (container == null) return defaultValue;
 
         return container.dataAnchor$getTrackedData(DataInit.PLAYER_DATA_KEY)
                 .filter(data -> data instanceof PlayerTrackedData)
-                .map(getter);
+                .map(getter)
+                .orElse(defaultValue);
     }
 
     /**
@@ -45,40 +46,48 @@ public class PlayerData {
     }
 
     // Setters & Getters
-    public static Optional<Boolean> isChartingPath(Player player) {
-        return getValue(player, PlayerTrackedData::isChartingPath);
+    public static boolean isChartingPath(Player player) {
+        return getValue(player, PlayerTrackedData::isChartingPath, false);
     }
 
     public static void setChartingPath(Player player, boolean value) {
         setValue(player, data -> data.setChartingPath(value));
     }
 
-    public static Optional<Double> getFadeAmount(Player player) {
-        return getValue(player, PlayerTrackedData::getFadeAmount);
+    public static double getFadeAmount(Player player) {
+        return getValue(player, PlayerTrackedData::getFadeAmount, 0.0);
     }
 
     public static void setFadeAmount(Player player, double value) {
         setValue(player, data -> data.setFadeAmount(value));
     }
 
-    public static Optional<Boolean> isFadeIncrease(Player player) {
-        return getValue(player, PlayerTrackedData::isFadeIncrease);
+    public static void setFadeAmount(Player player, double value, boolean sync) {
+        setValue(player, data -> data.setFadeAmount(value, sync));
+    }
+
+    public static boolean isFadeIncrease(Player player) {
+        return getValue(player, PlayerTrackedData::isFadeIncrease, false);
     }
 
     public static void setFadeIncrease(Player player, boolean value) {
         setValue(player, data -> data.setFadeIncrease(value));
     }
 
-    public static Optional<BlockPos> getLastNodePos(Player player) {
-        return getValue(player, PlayerTrackedData::getLastNodePos);
+    public static BlockPos getLastNodePos(Player player) {
+        return getValue(player, PlayerTrackedData::getLastNodePos, null);
     }
 
     public static void setLastNodePos(Player player, BlockPos value) {
         setValue(player, data -> data.setLastNodePos(value));
     }
 
-    public static Optional<Boolean> hasReceivedTutorial(Player player) {
-        return getValue(player, PlayerTrackedData::hasReceivedTutorial);
+    public static void setLastNodePos(Player player, BlockPos value, boolean sync) {
+        setValue(player, data -> data.setLastNodePos(value, sync));
+    }
+
+    public static boolean hasReceivedTutorial(Player player) {
+        return getValue(player, PlayerTrackedData::hasReceivedTutorial, false);
     }
 
     public static void setReceivedTutorial(Player player, boolean value) {

@@ -1,12 +1,10 @@
 package net.rasanovum.viaromana.command;
 
 import net.rasanovum.viaromana.path.PathGraph;
-import net.rasanovum.viaromana.storage.level.LevelPixelTrackedData;
-import net.rasanovum.viaromana.storage.level.LevelCornerTrackedData;
 import net.rasanovum.viaromana.storage.level.LevelDataManager;
 import net.rasanovum.viaromana.storage.path.PathDataManager;
+import net.rasanovum.viaromana.storage.player.PlayerData;
 import net.rasanovum.viaromana.util.PathSyncUtils;
-import net.rasanovum.viaromana.variables.VariableAccess;
 import net.rasanovum.viaromana.client.data.ClientPathData;
 import net.rasanovum.viaromana.client.gui.MapRenderer;
 import net.rasanovum.viaromana.map.ServerMapCache;
@@ -50,8 +48,7 @@ public class ViaRomanaCommands {
         CommandSourceStack source = context.getSource();
 
         for (Player player : source.getLevel().players()) {
-            VariableAccess.playerVariables.setChartingPath(player, false);
-            VariableAccess.playerVariables.syncAndSave(player);
+            PlayerData.setChartingPath(player, false);
         }
 
         PathGraph graph = PathGraph.getInstance(source.getLevel());
@@ -79,7 +76,7 @@ public class ViaRomanaCommands {
         
         PathSyncUtils.syncPathGraphToPlayer(source.getPlayerOrException());
 
-        // VariableAccess.playerVariables.setReceivedTutorial(source.getPlayerOrException(), false);
+        // PlayerData.setReceivedTutorial(source.getPlayerOrException(), false);
 
         source.sendSuccess(() -> Component.literal("Cleared all Via Romana caches"), true);
         return 1;

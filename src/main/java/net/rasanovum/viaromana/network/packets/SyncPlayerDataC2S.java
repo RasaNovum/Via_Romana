@@ -102,7 +102,6 @@ public record SyncPlayerDataC2S(int playerId, ResourceLocation keyId, CompoundTa
                     .ifPresent(data -> {
                         try {
                             data.readFromNetwork(packet.dataTag);
-                            data.sync();
                         } catch (Exception e) {
                             ViaRomana.LOGGER.error("Failed to apply C2S sync for player {}: {}", player.getName().getString(), e.getMessage());
                         }

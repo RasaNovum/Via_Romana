@@ -16,9 +16,9 @@ import net.rasanovum.viaromana.client.gui.elements.MapActionButton;
 import net.rasanovum.viaromana.client.gui.elements.MapSquareButton;
 import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.network.packets.RoutedActionC2S;
+import net.rasanovum.viaromana.storage.player.PlayerData;
 import net.rasanovum.viaromana.util.PathUtils;
 import net.rasanovum.viaromana.util.VersionUtils;
-import net.rasanovum.viaromana.variables.VariableAccess;
 
 import java.util.List;
 import java.util.Objects;
@@ -404,7 +404,7 @@ public class ChartingScreen extends Screen {
     }
 
     private void syncScreenState() {
-        boolean isPlayerCharting = VariableAccess.playerVariables.isChartingPath(Objects.requireNonNull(this.minecraft).player);
+        boolean isPlayerCharting = PlayerData.isChartingPath(this.minecraft.player);
         if (isPlayerCharting && this.currentScreenState == ScreenState.IDLE) {
             setState(ScreenState.CHARTING);
         } else if (!isPlayerCharting && this.currentScreenState == ScreenState.CHARTING) {
@@ -580,9 +580,8 @@ public class ChartingScreen extends Screen {
         return new MapActionButton(usableX + USABLE_WIDTH - btnWidth - PADDING + 10, usableY + USABLE_HEIGHT - btnHeight - PADDING, btnWidth, btnHeight,
             Component.translatable("gui.viaromana.tutorial_title"), Component.translatable("gui.viaromana.tutorial_tooltip"),
             button -> {
-                // if (!VariableAccess.playerVariables.hasReceivedTutorial(this.minecraft.player)) {
-                //     VariableAccess.playerVariables.setReceivedTutorial(this.minecraft.player, true);
-                //     VariableAccess.playerVariables.syncAndSave(this.minecraft.player);
+                // if (!PlayerData.hasReceivedTutorial(this.minecraft.player)) {
+                //     PlayerData.setReceivedTutorial(this.minecraft.player, true);
                 //     ViaRomana.LOGGER.info("Player {} has completed the tutorial.", this.minecraft.player.getName().getString());
                 // }
 

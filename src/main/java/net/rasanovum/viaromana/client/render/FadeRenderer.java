@@ -1,7 +1,7 @@
 package net.rasanovum.viaromana.client.render;
 
+import net.rasanovum.viaromana.storage.player.PlayerData;
 import net.rasanovum.viaromana.util.VersionUtils;
-import net.rasanovum.viaromana.variables.VariableAccess;
 
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.resources.ResourceLocation;
@@ -22,7 +22,7 @@ public class FadeRenderer {
         int screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();
         Player entity = Minecraft.getInstance().player;
         if (entity != null) {
-            _fade = (int) VariableAccess.playerVariables.getFadeAmount(entity);
+            _fade = (int) PlayerData.getFadeAmount(entity);
         }
         RenderSystem.disableDepthTest();
         RenderSystem.depthMask(false);
