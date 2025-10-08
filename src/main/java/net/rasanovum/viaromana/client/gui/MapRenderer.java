@@ -6,6 +6,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
+import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.client.MapClient;
 import net.rasanovum.viaromana.util.VersionUtils;
@@ -23,7 +24,6 @@ public class MapRenderer implements AutoCloseable {
     private static final float MIN_VISIBLE_TILE_FRACTION = 0.4f;
     private static final float GRADIENT_RANDOMNESS = 0.3f;
     private static final float MAP_OPACITY = 0.75f;
-    private static final float BIOME_LAYER_OPACITY = 0.35f;
     private static final int BIOME_LAYER_BLUR_RADIUS = 2;
 
     private static final ResourceLocation[] CORNER_TILES = createTileLocations("corner-", 4);
@@ -135,7 +135,7 @@ public class MapRenderer implements AutoCloseable {
         NativeImage stackedMap = new NativeImage(biomeImage.format(), mapWidthPx, mapHeightPx, false);
         
         // Apply biome layer with reduced opacity to allow background to show through more
-        try (NativeImage biomeWithOpacity = applyImageOpacity(biomeImage, BIOME_LAYER_OPACITY)) {
+        try (NativeImage biomeWithOpacity = applyImageOpacity(biomeImage, CommonConfig.biome_map_opacity)) {
             stackedMap.copyFrom(biomeWithOpacity);
         }
 

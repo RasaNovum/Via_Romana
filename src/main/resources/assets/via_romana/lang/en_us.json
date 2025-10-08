@@ -94,6 +94,7 @@
   "via_romana.midnightconfig.title": "Via Romana Config",
 
   "via_romana.midnightconfig.category.variables": "Server Variables",
+  "via_romana.midnightconfig.category.map": "Map Management",
   "via_romana.midnightconfig.category.management": "Server Management",
   "via_romana.midnightconfig.category.client": "Client Variables",
 
@@ -112,12 +113,15 @@
   "via_romana.midnightconfig.path_quality_threshold.tooltip": "Minimum percentage of valid infrastructure blocks required between two nodes.",
   "via_romana.midnightconfig.travel_fatigue_cooldown": "Travel Fatigue Cooldown",
   "via_romana.midnightconfig.travel_fatigue_cooldown.tooltip": "Cooldown (in ticks) before a player can fast-travel again.",
+
   "via_romana.midnightconfig.fog_of_war_distance": "Fog of War Distance",
   "via_romana.midnightconfig.fog_of_war_distance.tooltip": "The radius (in chunks) around charted areas that will be rendered on the map.",
   "via_romana.midnightconfig.spline_animation_speed": "Map Path Animation Speed",
   "via_romana.midnightconfig.spline_animation_speed.tooltip": "The speed at which the teleport screen path animates (this will impact performance).",
   "via_romana.midnightconfig.maximum_map_dimension": "Maximum Map Dimension",
   "via_romana.midnightconfig.maximum_map_dimension.tooltip": "The maximum dimension (in blocks) of the generated map texture.",
+  "via_romana.midnightconfig.biome_map_opacity": "Biome Background Opacity",
+  "via_romana.midnightconfig.biome_map_opacity.tooltip": "The opacity of the biome fallback texture in Teleport Map Screen.",
   "via_romana.midnightconfig.map_refresh_interval": "Map Refresh Interval",
   "via_romana.midnightconfig.map_refresh_interval.tooltip": "The interval (in seconds) to refresh any rendered maps.",
   "via_romana.midnightconfig.map_save_interval": "Map Save Interval",

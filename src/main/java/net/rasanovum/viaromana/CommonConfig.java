@@ -8,6 +8,7 @@ import com.google.common.collect.Lists;
 public class CommonConfig extends MidnightConfig {
 
     public static final String VARIABLES = "variables";
+    public static final String MAP = "map";
     public static final String MANAGEMENT = "management";
     public static final String CLIENT = "client";
 
@@ -18,11 +19,14 @@ public class CommonConfig extends MidnightConfig {
     @Entry(category = VARIABLES, min = 1) public static int node_utility_distance = 3;
     @Entry(category = VARIABLES, min = 0f, max = 1f) public static float path_quality_threshold = 0.6f;
     @Entry(category = VARIABLES, min = 0) public static int travel_fatigue_cooldown = 30;
-    @Entry(category = VARIABLES, min = 1) public static int fog_of_war_distance = 10;
-    @Entry(category = VARIABLES, min = 0f, max = 200f) public static float spline_animation_speed = 2.0f;
-    @Entry(category = VARIABLES, min = 128) public static int maximum_map_dimension = 512;
-    @Entry(category = VARIABLES, min = 0) public static int map_refresh_interval = 10;
-    @Entry(category = VARIABLES, min = 0) public static int map_save_interval = 5;
+
+    // Map Category
+    @Entry(category = MAP, min = 1) public static int fog_of_war_distance = 10;
+    @Entry(category = MAP, min = 0f, max = 200f) public static float spline_animation_speed = 2.0f;
+    @Entry(category = MAP, min = 128) public static int maximum_map_dimension = 512;
+    @Entry(category = MAP, min = 0f, max = 1f) public static float biome_map_opacity = 0.4f;
+    @Entry(category = MAP, min = 0) public static int map_refresh_interval = 10;
+    @Entry(category = MAP, min = 0) public static int map_save_interval = 5;
     @Entry(category = VARIABLES) public static boolean enable_surveyor_landmark = false;
     @Entry(category = VARIABLES) public static boolean enable_surveyor_landmark_coloring = false;
 
