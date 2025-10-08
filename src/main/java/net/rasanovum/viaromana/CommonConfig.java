@@ -21,9 +21,9 @@ public class CommonConfig extends MidnightConfig {
     @Entry(category = CHARTING) public static List<String> path_block_tags = Lists.newArrayList("minecraft:slabs", "minecraft:stairs", "minecraft:wool", "minecraft:wool_carpets", "minecraft:planks", "minecraft:logs", "minecraft:rails", "minecraft:buttons", "minecraft:pressure_plates");
     @Entry(category = CHARTING) public static List<String> path_block_strings = Lists.newArrayList("sandstone", "polished", "cobble", "brick", "smooth", "basalt", "path", "road", "concrete", "pavement", "terracotta", "tile", "wall", "fence");
     @Entry(category = CHARTING) public static List<String> block_string_blacklist = Lists.newArrayList("diagonalwalls:", "diagonalfences:", "diagonalwindows:");
+    @Entry(category = CHARTING) public static List<String> invalid_dimensions = Lists.newArrayList();
 
     @Entry(category = WARP) public static List<String> invalid_entities = Lists.newArrayList();
-    @Entry(category = WARP) public static List<String> invalid_dimensions = Lists.newArrayList();
     @Entry(category = WARP) public static List<String> warp_block_ids = Lists.newArrayList("via_romana:warp_block");
     @Entry(category = WARP) public static List<String> warp_block_tags = Lists.newArrayList("minecraft:all_signs");
     @Entry(category = WARP, min = 0) public static int travel_fatigue_cooldown = 30;
