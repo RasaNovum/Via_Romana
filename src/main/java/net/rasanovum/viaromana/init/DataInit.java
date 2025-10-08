@@ -6,6 +6,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.rasanovum.viaromana.storage.level.LevelCornerTrackedData;
 import net.rasanovum.viaromana.storage.level.LevelPixelTrackedData;
 import net.rasanovum.viaromana.storage.path.LevelPathTrackedData;
+import net.rasanovum.viaromana.storage.player.PlayerTrackedData;
 import net.rasanovum.viaromana.util.VersionUtils;
 
 public class DataInit {
@@ -43,5 +44,12 @@ public class DataInit {
                                 }
                                 return null;
                         }
+                );
+
+        public static final TrackedDataKey<PlayerTrackedData> PLAYER_DATA_KEY = 
+                TrackedDataRegistries.ENTITY.register(
+                        VersionUtils.getLocation("viaromana:player_data"),
+                        PlayerTrackedData.class,
+                        PlayerTrackedData::new
                 );
 }
