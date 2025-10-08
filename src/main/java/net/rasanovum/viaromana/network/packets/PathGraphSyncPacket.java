@@ -32,18 +32,10 @@ public record PathGraphSyncPacket(CompoundTag pathGraphData, ResourceKey<Level> 
 
     public static final StreamCodec<FriendlyByteBuf, PathGraphSyncPacket> STREAM_CODEC = new StreamCodec<>() {
         @Override
-        public PathGraphSyncPacket decode(FriendlyByteBuf buffer) {
-            CompoundTag data = buffer.readNbt();
-            String dimensionStr = buffer.readUtf();
-            ResourceKey<Level> dimension = ResourceKey.create(Registries.DIMENSION, VersionUtils.getLocation(dimensionStr));
-            return new PathGraphSyncPacket(data, dimension);
-        }
+        public PathGraphSyncPacket decode(FriendlyByteBuf buffer) { return PathGraphSyncPacket.decode(buffer); }
 
         @Override
-        public void encode(FriendlyByteBuf buffer, PathGraphSyncPacket packet) {
-            buffer.writeNbt(packet.pathGraphData);
-            buffer.writeUtf(packet.dimension.location().toString());
-        }
+        public void encode(FriendlyByteBuf buffer, PathGraphSyncPacket packet) { PathGraphSyncPacket.encode(buffer, packet); }
     };
     //?}
 
@@ -66,7 +58,7 @@ public record PathGraphSyncPacket(CompoundTag pathGraphData, ResourceKey<Level> 
     public static PathGraphSyncPacket decode(FriendlyByteBuf buf) {
         CompoundTag data = buf.readNbt();
         String dimensionStr = buf.readUtf();
-        ResourceKey<Level> dimension = ResourceKey.create(Registries.DIMENSION, VersionUtils.getLocation(dimensionStr));
+        ResourceKey<Level> dimension = ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(dimensionStr));
         return new PathGraphSyncPacket(data, dimension);
     }
 

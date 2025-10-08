@@ -7,6 +7,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -164,7 +165,7 @@ public class NodeRenderer {
     }
 
     // Gathers all visible nodes and pre-calculates their expensive data.
-    private static List<NodeRenderData> gatherRenderData(ClientLevel level, Vec3 playerPos, net.minecraft.resources.ResourceKey<net.minecraft.world.level.Level> dimension) {
+    private static List<NodeRenderData> gatherRenderData(ClientLevel level, Vec3 playerPos, ResourceKey<Level> dimension) {
         List<NodeRenderData> dataList = new ArrayList<>();
         double searchRadius = RENDER_DISTANCE + FADE_BUFFER_DISTANCE;
 

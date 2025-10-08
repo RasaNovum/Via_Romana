@@ -39,7 +39,7 @@ public class LinkHandler {
         if (level instanceof Level levelInstance) {
             if (levelInstance.isClientSide()) {
                 ClientPathData clientData = ClientPathData.getInstance();
-                return clientData.hasValidData() ? clientData.getGraph() : null;
+                return clientData.hasValidData() ? clientData.getGraph(levelInstance.dimension()) : null;
             } else {
                 if (levelInstance instanceof ServerLevel serverLevel) {
                     return PathGraph.getInstance(serverLevel);
