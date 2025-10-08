@@ -35,7 +35,7 @@ public record PathGraphSyncPacket(CompoundTag pathGraphData, ResourceKey<Level> 
         public PathGraphSyncPacket decode(FriendlyByteBuf buffer) {
             CompoundTag data = buffer.readNbt();
             String dimensionStr = buffer.readUtf();
-            ResourceKey<Level> dimension = ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(dimensionStr));
+            ResourceKey<Level> dimension = ResourceKey.create(Registries.DIMENSION, VersionUtils.getLocation(dimensionStr));
             return new PathGraphSyncPacket(data, dimension);
         }
 
@@ -66,7 +66,7 @@ public record PathGraphSyncPacket(CompoundTag pathGraphData, ResourceKey<Level> 
     public static PathGraphSyncPacket decode(FriendlyByteBuf buf) {
         CompoundTag data = buf.readNbt();
         String dimensionStr = buf.readUtf();
-        ResourceKey<Level> dimension = ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(dimensionStr));
+        ResourceKey<Level> dimension = ResourceKey.create(Registries.DIMENSION, VersionUtils.getLocation(dimensionStr));
         return new PathGraphSyncPacket(data, dimension);
     }
 

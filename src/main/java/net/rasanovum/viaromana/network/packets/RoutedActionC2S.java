@@ -10,6 +10,7 @@ import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.path.PathGraph;
 import net.rasanovum.viaromana.storage.path.PathDataManager;
 import net.rasanovum.viaromana.util.VersionUtils;
+import net.minecraft.resources.ResourceLocation;
 
 /**
  * C2S action packet for path operations.

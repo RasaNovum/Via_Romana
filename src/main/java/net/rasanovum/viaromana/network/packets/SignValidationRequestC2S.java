@@ -1,6 +1,7 @@
 package net.rasanovum.viaromana.network.packets;
 
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.BlockPos;
 //? if >=1.21 {
 import net.minecraft.network.codec.StreamCodec;
