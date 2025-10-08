@@ -22,7 +22,6 @@ import net.rasanovum.viaromana.util.VersionUtils;
 
 /**
  * C2S Packet for syncing player TrackedData changes from client to server.
- * Carries the TrackedData key ID and the NBT data diff for application and subsequent S2C broadcast.
  */
 //? if <1.21 {
 /*public record SyncPlayerDataC2S(int playerId, ResourceLocation keyId, CompoundTag dataTag) {

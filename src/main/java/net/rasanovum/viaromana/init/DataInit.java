@@ -46,10 +46,15 @@ public class DataInit {
                         }
                 );
 
-        public static final TrackedDataKey<PlayerTrackedData> PLAYER_DATA_KEY = 
+        public static final TrackedDataKey<PlayerTrackedData> PLAYER_DATA_KEY =
                 TrackedDataRegistries.ENTITY.register(
                         VersionUtils.getLocation("viaromana:player_data"),
                         PlayerTrackedData.class,
-                        PlayerTrackedData::new
+                        (key, entity) -> {
+                                if (entity instanceof net.minecraft.world.entity.player.Player player) {
+                                        return new PlayerTrackedData(key, player);
+                                }
+                                return null;
+                        }
                 );
 }

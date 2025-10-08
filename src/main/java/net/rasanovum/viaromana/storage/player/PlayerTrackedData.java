@@ -2,31 +2,34 @@ package net.rasanovum.viaromana.storage.player;
 
 import dev.corgitaco.dataanchor.data.registry.TrackedDataKey;
 import dev.corgitaco.dataanchor.data.type.entity.EntityTrackedData;
-import dev.corgitaco.dataanchor.data.type.entity.SyncedEntityTrackedData;
+import dev.corgitaco.dataanchor.data.type.entity.SyncedPlayerTrackedData;
 import commonnetwork.api.Dispatcher;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.network.packets.SyncPlayerDataC2S;
 
 /**
  * Player-specific tracked data for Via Romana path charting.
  */
-public class PlayerTrackedData extends SyncedEntityTrackedData {
+public class PlayerTrackedData extends SyncedPlayerTrackedData {
     private boolean chartingPath = false;
     private double fadeAmount = 0.0;
     private boolean fadeIncrease = false;
     private BlockPos lastNodePos = BlockPos.ZERO;
     private boolean receivedTutorial = false;
 
-    public PlayerTrackedData(TrackedDataKey<? extends EntityTrackedData> key, Entity entity) {
-        super((TrackedDataKey<? extends SyncedEntityTrackedData>) key, entity);
+    public PlayerTrackedData(TrackedDataKey<? extends EntityTrackedData> key, Player player) {
+        super((TrackedDataKey<? extends SyncedPlayerTrackedData>) key, player);
     }
 
     @Override
     public CompoundTag save() {
+        ViaRomana.LOGGER.info("Saving PlayerTrackedData for entity ID {}: chartingPath={}, fadeAmount={}, fadeIncrease={}, lastNodePos={}, receivedTutorial={}", 
+                this.entity.getId(), this.chartingPath, this.fadeAmount, this.fadeIncrease, this.lastNodePos, this.receivedTutorial);
         CompoundTag tag = new CompoundTag();
         tag.putBoolean("ChartingPath", this.chartingPath);
         tag.putDouble("FadeAmount", this.fadeAmount);
@@ -38,6 +41,7 @@ public class PlayerTrackedData extends SyncedEntityTrackedData {
 
     @Override
     public void load(CompoundTag tag) {
+        ViaRomana.LOGGER.info("Loading PlayerTrackedData for entity ID {}: {}", this.entity.getId(), tag);
         if (tag.contains("ChartingPath")) {
             this.chartingPath = tag.getBoolean("ChartingPath");
         }
