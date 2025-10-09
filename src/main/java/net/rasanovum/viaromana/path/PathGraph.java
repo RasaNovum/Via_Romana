@@ -60,6 +60,7 @@ public final class PathGraph {
             return new BlockPos(bounds.maxX, bounds.maxY, bounds.maxZ);
         }
 
+        @SuppressWarnings("deprecation")
         public List<DestinationResponseS2C.NodeNetworkInfo> getNodesAsInfo(Long2IntOpenHashMap posToIndex, ObjectArrayList<Node> allNodes) {
             return nodePositions.stream()
                     .map(pos -> {
@@ -575,22 +576,55 @@ public final class PathGraph {
         return result;
     }
 
-    public FoWCache getOrComputeFoWCache(NetworkCache cache) {
-        return fowCacheById.computeIfAbsent(cache.id(), id -> {
-            int cacheWidth = cache.bounds.maxX - cache.bounds.minX;
-            int cacheHeight = cache.bounds.maxZ - cache.bounds.minZ;
+    /**
+     * Gets or computes the Fog-of-War cache for a given network, calculating it if not already present.
+     * This includes determining the bounding box and allowed chunks for the network's nodes.
+     * 
+     * @param network The network for which to get or compute the FoW cache.
+     * @return The FoWCache object containing the calculated data, or null if the network has no nodes.
+     */
+    public FoWCache getOrComputeFoWCache(NetworkCache network) {
+        return fowCacheById.computeIfAbsent(network.id(), id -> calculateFoWData(network.nodePositions()));
+    }
 
-            int padding = ServerMapUtils.calculateUniformPadding(cacheWidth, cacheHeight);
+    /**
+     * Calculates the Fog-of-War data for a set of node positions, determining the bounding box and allowed chunks.
+     * 
+     * @param nodeLongs A set of node positions represented as packed long values.
+     * @return A FoWCache object containing the calculated data, or null if input is empty.
+     */
+    public FoWCache calculateFoWData(Set<Long> nodeLongs) {
+        if (nodeLongs.isEmpty()) return null;
+        
+        int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE;
+        int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE, maxZ = Integer.MIN_VALUE;
+        
+        for (Long nodeLong : nodeLongs) {
+            int x = BlockPos.getX(nodeLong);
+            int y = BlockPos.getY(nodeLong);
+            int z = BlockPos.getZ(nodeLong);
 
-            BlockPos paddedMin = new BlockPos(cache.bounds.minX - padding, cache.bounds.minY, cache.bounds.minZ - padding);
-            BlockPos paddedMax = new BlockPos(cache.bounds.maxX + padding, cache.bounds.maxY, cache.bounds.maxZ + padding);
-
-            ChunkPos minChunk = new ChunkPos(paddedMin);
-            ChunkPos maxChunk = new ChunkPos(paddedMax);
-
-            Set<ChunkPos> allowedChunks = ServerMapUtils.calculateFogOfWarChunks(cache.getNodesAsInfo(this.posToIndex, this.nodes), minChunk, maxChunk);
-            return new FoWCache(minChunk, maxChunk, paddedMin, paddedMax, allowedChunks);
-        });
+            minX = Math.min(minX, x);
+            minY = Math.min(minY, y);
+            minZ = Math.min(minZ, z);
+            maxX = Math.max(maxX, x);
+            maxY = Math.max(maxY, y);
+            maxZ = Math.max(maxZ, z);
+        }
+        
+        int cacheWidth = maxX - minX;
+        int cacheHeight = maxZ - minZ;
+        int padding = ServerMapUtils.calculateUniformPadding(cacheWidth, cacheHeight);
+        
+        BlockPos paddedMin = new BlockPos(minX - padding, minY, minZ - padding);
+        BlockPos paddedMax = new BlockPos(maxX + padding, maxY, maxZ + padding);
+        
+        ChunkPos minChunk = new ChunkPos(paddedMin);
+        ChunkPos maxChunk = new ChunkPos(paddedMax);
+        
+        Set<ChunkPos> allowedChunks = ServerMapUtils.calculateFogOfWarChunks(nodeLongs, minChunk, maxChunk);
+        
+        return new FoWCache(minChunk, maxChunk, paddedMin, paddedMax, allowedChunks);
     }
 
     public List<Node> queryNearby(BlockPos center, double radius) {

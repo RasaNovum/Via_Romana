@@ -1,12 +1,11 @@
 package net.rasanovum.viaromana.map;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.ChunkPos;
 import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.ViaRomana;
-import net.rasanovum.viaromana.network.packets.DestinationResponseS2C;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public final class ServerMapUtils {
@@ -25,22 +24,21 @@ public final class ServerMapUtils {
         return Math.max(MAP_BOUNDS_MIN_PADDING, (int) (maxDim * MAP_BOUNDS_PADDING_PERCENTAGE));
     }
 
-    public static Set<ChunkPos> calculateFogOfWarChunks(List<DestinationResponseS2C.NodeNetworkInfo> networkNodes, ChunkPos minChunk, ChunkPos maxChunk) {
+    public static Set<ChunkPos> calculateFogOfWarChunks(Set<Long> nodeLongs, ChunkPos minChunk, ChunkPos maxChunk) {
         Set<ChunkPos> allowedChunks = new HashSet<>();
-        if (networkNodes == null || networkNodes.isEmpty()) {
+        if (nodeLongs == null || nodeLongs.isEmpty()) {
             ViaRomana.LOGGER.warn("No nodes provided for Fog of War calculation, returning empty set");
             return allowedChunks;
         }
-        ViaRomana.LOGGER.info("Bounds: {}, {}", minChunk, maxChunk);
         final int FOG_OF_WAR_DISTANCE = CommonConfig.fog_of_war_distance;
         final int radiusSq = FOG_OF_WAR_DISTANCE * FOG_OF_WAR_DISTANCE;
-        for (DestinationResponseS2C.NodeNetworkInfo node : networkNodes) {
-            ChunkPos nodeChunk = new ChunkPos(node.position);
+        for (Long nodeLong : nodeLongs) {
+
             for (int dx = -FOG_OF_WAR_DISTANCE; dx <= FOG_OF_WAR_DISTANCE; dx++) {
                 for (int dz = -FOG_OF_WAR_DISTANCE; dz <= FOG_OF_WAR_DISTANCE; dz++) {
                     if (dx * dx + dz * dz > radiusSq) continue;
-                    int tx = nodeChunk.x + dx;
-                    int tz = nodeChunk.z + dz;
+                    int tx = (BlockPos.getX(nodeLong) >> 4) + dx;
+                    int tz = (BlockPos.getZ(nodeLong) >> 4) + dz;
                     if (tx >= minChunk.x && tx <= maxChunk.x && tz >= minChunk.z && tz <= maxChunk.z) {
                         allowedChunks.add(new ChunkPos(tx, tz));
                     }
