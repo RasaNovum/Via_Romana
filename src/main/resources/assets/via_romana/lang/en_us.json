@@ -18,9 +18,10 @@
   "message.via_romana.too_far_from_node_message": "Too far off path",
   "message.via_romana.low_quality_message": "Region underdeveloped",
   "message.via_romana.has_fatigue": "Cannot warp while fatigued",
+  "message.via_romana.cannot_warp_when_warping": "Cannot warp while warping",
   "message.via_romana.cannot_warp_when_recording": "Cannot warp while charting",
   "message.via_romana.entity_not_allowed": "Warping with current entity not allowed",
-  "message.via_romana.unsafe": "Cannot warp: unsafe destination",
+  "message.via_romana.unsafe": "Cannot warp to an unsafe destination",
 
   "gui.viaromana.player_marker": "You are here",
   "gui.viaromana.warp_block": "Warp Block",
@@ -96,7 +97,7 @@
   "via_romana.midnightconfig.category.charting": "Charting",
   "via_romana.midnightconfig.category.map": "Maps",
   "via_romana.midnightconfig.category.warp": "Warping",
-  "via_romana.midnightconfig.category.client": "Client Visuals",
+  "via_romana.midnightconfig.category.visuals": "Visuals",
 
   "via_romana.midnightconfig.server_title": "§lServer Settings§r",
   "via_romana.midnightconfig.client_title": "§lClient Settings§r",
@@ -112,7 +113,7 @@
   "via_romana.midnightconfig.path_quality_threshold": "Path Quality Threshold",
   "via_romana.midnightconfig.path_quality_threshold.tooltip": "Minimum percentage of valid infrastructure blocks required between two nodes.",
   "via_romana.midnightconfig.travel_fatigue_cooldown": "Travel Fatigue Cooldown",
-  "via_romana.midnightconfig.travel_fatigue_cooldown.tooltip": "Cooldown (in ticks) before a player can warp again.",
+  "via_romana.midnightconfig.travel_fatigue_cooldown.tooltip": "Cooldown (in seconds) before a player can warp again.",
 
   "via_romana.midnightconfig.fog_of_war_distance": "Fog of War Distance",
   "via_romana.midnightconfig.fog_of_war_distance.tooltip": "The radius (in chunks) around charted areas that will be rendered on the map (this will impact performance).",
@@ -120,8 +121,6 @@
   "via_romana.midnightconfig.spline_animation_speed.tooltip": "The speed at which the teleport screen path animates (this will impact performance).",
   "via_romana.midnightconfig.maximum_map_dimension": "Maximum Map Dimension",
   "via_romana.midnightconfig.maximum_map_dimension.tooltip": "The maximum dimension (in blocks) of the generated map texture (this will impact performance).",
-  "via_romana.midnightconfig.biome_map_opacity": "Biome Background Opacity",
-  "via_romana.midnightconfig.biome_map_opacity.tooltip": "The opacity of the biome fallback texture in Teleport Map Screen.",
   "via_romana.midnightconfig.map_refresh_interval": "Map Refresh Interval",
   "via_romana.midnightconfig.map_refresh_interval.tooltip": "The interval (in seconds) to refresh any rendered maps (this will impact performance).",
   "via_romana.midnightconfig.map_save_interval": "Map Save Interval",
@@ -149,5 +148,9 @@
   "via_romana.midnightconfig.block_string_blacklist.tooltip": "Substrings to search for in block IDs to exclude them from being valid for paths (used to avoid crashes with other mods).",
 
   "via_romana.midnightconfig.invalid_block_overlay_opacity": "Invalid Block Overlay Opacity",
-  "via_romana.midnightconfig.invalid_block_overlay_opacity.tooltip": "Highlights blocks that do not count as valid infrastructure for charting. Set to 0 to disable."
+  "via_romana.midnightconfig.invalid_block_overlay_opacity.tooltip": "Highlights blocks that do not count as valid infrastructure for charting. Set to 0 to disable.",
+  "via_romana.midnightconfig.biome_map_opacity": "Biome Background Opacity",
+  "via_romana.midnightconfig.biome_map_opacity.tooltip": "The opacity of the biome fallback texture in Teleport Map Screen.",
+  "via_romana.midnightconfig.enable_teleport_particles": "Enable Warp Particles",
+  "via_romana.midnightconfig.enable_teleport_particles.tooltip": "Enables particle effects during player warping."
 }

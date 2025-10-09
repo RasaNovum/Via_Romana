@@ -1,6 +1,7 @@
 package net.rasanovum.viaromana.init;
 
 import net.rasanovum.viaromana.client.HudMessageManager;
+import net.rasanovum.viaromana.client.FadeManager;
 import net.rasanovum.viaromana.client.triggers.OnClientPlayerTick;
 import net.rasanovum.viaromana.network.PacketRegistration;
 import net.fabricmc.api.Environment;
@@ -25,6 +26,7 @@ public class ClientInit implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             HudMessageManager.onClientTick();
             OnClientPlayerTick.onClientTick();
+            FadeManager.onClientTick();
         });
     }
 }

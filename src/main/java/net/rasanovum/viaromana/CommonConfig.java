@@ -10,7 +10,7 @@ public class CommonConfig extends MidnightConfig {
     public static final String CHARTING = "charting";
     public static final String MAP = "map";
     public static final String WARP = "warp";
-    public static final String VISUALS = "client";
+    public static final String VISUALS = "visuals";
 
     @Entry(category = CHARTING, min = 1) public static int infrastructure_check_radius = 1;
     @Entry(category = CHARTING, min = 0f, max = 1f) public static float path_quality_threshold = 0.6f;
@@ -26,7 +26,7 @@ public class CommonConfig extends MidnightConfig {
     @Entry(category = WARP) public static List<String> invalid_entities = Lists.newArrayList();
     @Entry(category = WARP) public static List<String> warp_block_ids = Lists.newArrayList("via_romana:warp_block");
     @Entry(category = WARP) public static List<String> warp_block_tags = Lists.newArrayList("minecraft:all_signs");
-    @Entry(category = WARP, min = 0) public static int travel_fatigue_cooldown = 30;
+    @Entry(category = WARP, min = 0) public static int travel_fatigue_cooldown = 10;
 
     @Entry(category = MAP, min = 1) public static int fog_of_war_distance = 10;
     @Entry(category = MAP, min = 0f, max = 200f) public static float spline_animation_speed = 2.0f;
@@ -38,4 +38,5 @@ public class CommonConfig extends MidnightConfig {
 
     @Entry(category = VISUALS, min = 0f, max = 1f) public static float invalid_block_overlay_opacity = 0.4f;
     @Entry(category = VISUALS, min = 0f, max = 1f) public static float biome_map_opacity = 0.4f;
+    @Entry(category = VISUALS) public static boolean enable_teleport_particles = true;
 }

@@ -9,11 +9,15 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.ViaRomana;
+import net.rasanovum.viaromana.client.FadeManager;
+import net.rasanovum.viaromana.client.HudMessageManager;
 import net.rasanovum.viaromana.client.MapClient;
 import net.rasanovum.viaromana.network.packets.DestinationResponseS2C;
 import net.rasanovum.viaromana.network.packets.SignValidationRequestC2S;
 import net.rasanovum.viaromana.network.packets.TeleportRequestC2S;
+import net.rasanovum.viaromana.storage.player.PlayerData;
 import net.rasanovum.viaromana.teleport.TeleportHelper;
+import net.rasanovum.viaromana.util.EffectUtils;
 import net.rasanovum.viaromana.util.VersionUtils;
 
 import java.awt.Point;
@@ -362,7 +366,7 @@ public class TeleportMapScreen extends Screen {
     //region Input & Interaction
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (button == 0) {
+        if (button == 0) { // Left Click
             Set<BlockPos> revealedNodes = new HashSet<>(animatedNodes);
             nodesToAnimate.forEach(node -> revealedNodes.add(node.position));
             getDestinationAtPosition(revealedNodes, (int) mouseX, (int) mouseY).ifPresent(this::selectDestination);
@@ -373,8 +377,28 @@ public class TeleportMapScreen extends Screen {
 
     public void selectDestination(TeleportHelper.TeleportDestination destination) {
         if (minecraft == null || minecraft.player == null) return;
-        TeleportRequestC2S packet = new TeleportRequestC2S(this.signPos, destination.position);
 
+        if (PlayerData.isChartingPath(minecraft.player)) {
+            HudMessageManager.queueMessage("message.via_romana.cannot_warp_when_recording");
+            this.onClose();
+            return;
+        }
+
+        if (EffectUtils.hasEffect(minecraft.player, "travellers_fatigue")) {
+            HudMessageManager.queueMessage("message.via_romana.has_fatigue");
+            this.onClose();
+            return;
+        }
+
+        if (FadeManager.isActive()) {
+            HudMessageManager.queueMessage("message.via_romana.cannot_warp_when_warping");
+            this.onClose();
+            return;
+        }
+
+        //TODO: Display text over map without closing screen
+
+        TeleportRequestC2S packet = new TeleportRequestC2S(this.signPos, destination.position);
         commonnetwork.api.Dispatcher.sendToServer(packet);
         this.onClose();
     }

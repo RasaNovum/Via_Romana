@@ -6,8 +6,10 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.mehvahdjukaar.moonlight.api.resources.pack.DynamicDataPack;
+import net.minecraft.world.level.GameRules;
 import net.rasanovum.viaromana.command.ViaRomanaCommands;
 import net.rasanovum.viaromana.core.DimensionHandler;
 import net.rasanovum.viaromana.init.*;
@@ -16,6 +18,7 @@ import net.rasanovum.viaromana.network.PacketRegistration;
 import net.rasanovum.viaromana.network.ViaRomanaModVariables;
 import net.rasanovum.viaromana.storage.player.PlayerData;
 import net.rasanovum.viaromana.tags.ServerResourcesGenerator;
+import net.rasanovum.viaromana.teleport.ServerTeleportHandler;
 import net.rasanovum.viaromana.util.VersionUtils;
 
 import org.apache.logging.log4j.LogManager;
@@ -41,14 +44,12 @@ public class ViaRomana implements ModInitializer {
         ItemInit.load();
         // SoundInit.load();
         TriggerInit.load();
-
-        ViaRomana.LOGGER.debug("Registered chunk PNG data: {}", DataInit.CHUNK_PIXEL_KEY);
+        DataInit.load();
 
         ServerResourcesGenerator generator = new ServerResourcesGenerator(DYNAMIC_PACK);
         generator.register();
 
         registerServerLifecycleEvents();
-
     }
 
     private void registerServerLifecycleEvents() {
@@ -59,6 +60,12 @@ public class ViaRomana implements ModInitializer {
 
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
             ViaRomanaModVariables.playerLoggedOut(handler.player);
+        });
+        
+        ServerTickEvents.END_SERVER_TICK.register(server -> {
+            for (var level : server.getAllLevels()) {
+                ServerTeleportHandler.tick(level);
+            }
         });
         
         ServerLifecycleEvents.SERVER_STARTING.register(server -> {
@@ -72,7 +79,7 @@ public class ViaRomana implements ModInitializer {
         });
 
         ServerPlayerEvents.COPY_FROM.register((oldPlayer, newPlayer, alive) -> {
-            boolean keepInventory = oldPlayer.level().getGameRules().getBoolean(net.minecraft.world.level.GameRules.RULE_KEEPINVENTORY);
+            boolean keepInventory = oldPlayer.level().getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY);
             ViaRomanaModVariables.playerRespawned(oldPlayer, newPlayer, keepInventory || !alive);
         });
 

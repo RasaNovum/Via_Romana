@@ -13,7 +13,7 @@ import net.minecraft.core.BlockPos;
 public class PathUtils {
     
     public static float calculateNodeDistance(Entity entity) {
-        if (entity == null || !(entity instanceof Player player)) return 0;
+        if (!(entity instanceof Player player)) return 0;
 
         BlockPos lastNodePos = PlayerData.getLastNodePos(player);
         
@@ -28,9 +28,7 @@ public class PathUtils {
 
         BlockState blockState = world.getBlockState(targetBlock);
 
-        if (blockState.is(TagKey.create(Registries.BLOCK, VersionUtils.getLocation("via_romana:path_block")))) return true;
-
-        return false;
+        return blockState.is(TagKey.create(Registries.BLOCK, VersionUtils.getLocation("via_romana:path_block"))); //TODO Look into caching/hashing path_block list for performance, idk if it would make a difference
     }
 
     public static float calculateInfrastructureQuality(LevelAccessor world, Entity entity) {

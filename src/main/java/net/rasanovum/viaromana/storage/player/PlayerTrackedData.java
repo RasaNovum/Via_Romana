@@ -17,8 +17,6 @@ import net.rasanovum.viaromana.network.packets.SyncPlayerDataC2S;
  */
 public class PlayerTrackedData extends SyncedPlayerTrackedData {
     private boolean chartingPath = false;
-    private double fadeAmount = 0.0;
-    private boolean fadeIncrease = false;
     private BlockPos lastNodePos = BlockPos.ZERO;
     private boolean receivedTutorial = false;
 
@@ -28,12 +26,9 @@ public class PlayerTrackedData extends SyncedPlayerTrackedData {
 
     @Override
     public CompoundTag save() {
-        ViaRomana.LOGGER.info("Saving PlayerTrackedData for entity ID {}: chartingPath={}, fadeAmount={}, fadeIncrease={}, lastNodePos={}, receivedTutorial={}", 
-                this.entity.getId(), this.chartingPath, this.fadeAmount, this.fadeIncrease, this.lastNodePos, this.receivedTutorial);
+        // ViaRomana.LOGGER.info("Saving PlayerTrackedData for entity ID {}: chartingPath={}, lastNodePos={}, receivedTutorial={}", this.entity.getId(), this.chartingPath, this.lastNodePos, this.receivedTutorial);
         CompoundTag tag = new CompoundTag();
         tag.putBoolean("ChartingPath", this.chartingPath);
-        tag.putDouble("FadeAmount", this.fadeAmount);
-        tag.putBoolean("FadeIncrease", this.fadeIncrease);
         tag.putLong("LastNodePos", this.lastNodePos.asLong());
         tag.putBoolean("ReceivedTutorial", this.receivedTutorial);
         return tag;
@@ -44,12 +39,6 @@ public class PlayerTrackedData extends SyncedPlayerTrackedData {
         ViaRomana.LOGGER.info("Loading PlayerTrackedData for entity ID {}: {}", this.entity.getId(), tag);
         if (tag.contains("ChartingPath")) {
             this.chartingPath = tag.getBoolean("ChartingPath");
-        }
-        if (tag.contains("FadeAmount")) {
-            this.fadeAmount = tag.getDouble("FadeAmount");
-        }
-        if (tag.contains("FadeIncrease")) {
-            this.fadeIncrease = tag.getBoolean("FadeIncrease");
         }
         if (tag.contains("LastNodePos")) {
             this.lastNodePos = BlockPos.of(tag.getLong("LastNodePos"));
@@ -84,14 +73,6 @@ public class PlayerTrackedData extends SyncedPlayerTrackedData {
         return chartingPath; 
     }
     
-    public double getFadeAmount() { 
-        return fadeAmount; 
-    }
-    
-    public boolean isFadeIncrease() { 
-        return fadeIncrease; 
-    }
-    
     public BlockPos getLastNodePos() { 
         return lastNodePos; 
     }
@@ -104,34 +85,6 @@ public class PlayerTrackedData extends SyncedPlayerTrackedData {
     public void setChartingPath(boolean value) {
         if (this.chartingPath != value) {
             this.chartingPath = value;
-            sync();
-        }
-    }
-
-    public void setFadeAmount(double value) {
-        if (this.fadeAmount != value) {
-            this.fadeAmount = value;
-            sync();
-        }
-    }
-
-    public void setFadeAmount(double value, boolean sync) {
-        if (this.fadeAmount != value) {
-            this.fadeAmount = value;
-            if (sync) sync();
-        }
-    }
-
-    public void setFadeIncrease(boolean value) {
-        if (this.fadeIncrease != value) {
-            this.fadeIncrease = value;
-            sync();
-        }
-    }
-
-    public void setLastNodePos(BlockPos value) {
-        if (!this.lastNodePos.equals(value)) {
-            this.lastNodePos = value;
             sync();
         }
     }

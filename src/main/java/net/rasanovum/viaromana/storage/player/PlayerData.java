@@ -54,40 +54,12 @@ public class PlayerData {
         setValue(player, data -> data.setChartingPath(value));
     }
 
-    public static double getFadeAmount(Player player) {
-        return getValue(player, PlayerTrackedData::getFadeAmount, 0.0);
-    }
-
-    public static void setFadeAmount(Player player, double value) {
-        setValue(player, data -> data.setFadeAmount(value));
-    }
-
-    public static void setFadeAmount(Player player, double value, boolean sync) {
-        setValue(player, data -> data.setFadeAmount(value, sync));
-    }
-
-    public static boolean isFadeIncrease(Player player) {
-        return getValue(player, PlayerTrackedData::isFadeIncrease, false);
-    }
-
-    public static void setFadeIncrease(Player player, boolean value) {
-        setValue(player, data -> data.setFadeIncrease(value));
-    }
-
     public static BlockPos getLastNodePos(Player player) {
         return getValue(player, PlayerTrackedData::getLastNodePos, null);
     }
 
-    public static void setLastNodePos(Player player, BlockPos value) {
-        setValue(player, data -> data.setLastNodePos(value));
-    }
-
     public static void setLastNodePos(Player player, BlockPos value, boolean sync) {
         setValue(player, data -> data.setLastNodePos(value, sync));
-    }
-
-    public static boolean hasReceivedTutorial(Player player) {
-        return getValue(player, PlayerTrackedData::hasReceivedTutorial, false);
     }
 
     public static void setReceivedTutorial(Player player, boolean value) {
