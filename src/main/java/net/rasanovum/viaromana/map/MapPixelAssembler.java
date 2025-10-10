@@ -38,12 +38,17 @@ public class MapPixelAssembler {
         int chunksFromBiome = 0;
         int scaledChunkSize = 16 / scaleFactor;
 
+        var chunkSource = level.getChunkSource();
+        var randomState = chunkSource.randomState();
+        var biomeSource = chunkSource.getGenerator().getBiomeSource();
+        var climateSampler = randomState.sampler();
+
         int totalChunks = allChunks.size();
 
         ViaRomana.LOGGER.info("Total chunks={}, renderable={}", totalChunks, renderedChunks.size());
 
         for (ChunkPos chunkToProcess : allChunks) {
-            byte[] biomeChunkPixels = ChunkPixelRenderer.getOrRenderBiomePixels(level, chunkToProcess);
+            byte[] biomeChunkPixels = ChunkPixelRenderer.getOrRenderBiomePixels(level, chunkToProcess, biomeSource, climateSampler);
             if (biomeChunkPixels.length != 256) {
                 ViaRomana.LOGGER.warn("Failed to generate biome pixels for chunk {}", chunkToProcess);
                 continue;

@@ -8,12 +8,14 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.BiomeSource;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.tags.FluidTags;
+import net.minecraft.world.level.biome.Climate;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.storage.level.LevelDataManager;
 import net.rasanovum.viaromana.util.VersionUtils;
@@ -24,9 +26,8 @@ import java.util.*;
  * Utility for rendering/loading chunk pixels.
  */
 public class ChunkPixelRenderer {
-    
     private static final Map<ResourceLocation, Integer> biomeColorCache = new HashMap<>();
-    
+
     /**
      * Renders 16x16 raw pixel bytes from chunk surface.
      */
@@ -54,7 +55,7 @@ public class ChunkPixelRenderer {
             for (int z = 0; z < 16; z++) {
                 int idx = x + z * 16;
                 int surfaceY = heights[idx];
-                
+
                 if (surfaceY <= minY) {
                     pixels[idx] = 0;
                     continue;
@@ -62,7 +63,7 @@ public class ChunkPixelRenderer {
 
                 BlockPos posBlock = new BlockPos(chunkMinX + x, surfaceY, chunkMinZ + z);
                 BlockState state = chunk.getBlockState(posBlock);
-                
+
                 // Calculate water depth
                 int waterDepth = 0;
                 if (state.is(Blocks.WATER)) {
@@ -79,7 +80,7 @@ public class ChunkPixelRenderer {
 
                 MapColor mapColor;
                 MapColor.Brightness brightness;
-                
+
                 if (waterDepth > 0) {
                     mapColor = MapColor.WATER;
                     brightness = calculateWaterBrightness(idx, waterDepth);
@@ -91,14 +92,14 @@ public class ChunkPixelRenderer {
                     }
                     brightness = calculateTerrainBrightness(heights, idx);
                 }
-                
+
                 pixels[idx] = mapColor.getPackedId(brightness);
             }
         }
 
         long totalTime = System.nanoTime() - startTime;
         ViaRomana.LOGGER.debug("[PERF] Chunk {} render (raw pixels): total={}ms, size=256B", pos, totalTime / 1_000_000.0);
-        
+
         return pixels;
     }
 
@@ -107,10 +108,10 @@ public class ChunkPixelRenderer {
      */
     public static byte[] scalePixels(byte[] pixels, int scaleFactor) {
         if (scaleFactor == 1) return pixels;
-        
+
         int newSize = 16 / scaleFactor;
         byte[] scaled = new byte[newSize * newSize];
-        
+
         for (int dx = 0; dx < newSize; dx++) {
             for (int dz = 0; dz < newSize; dz++) {
                 int srcX = dx * scaleFactor;
@@ -119,7 +120,7 @@ public class ChunkPixelRenderer {
                 scaled[dx + dz * newSize] = pixels[srcIdx];
             }
         }
-        
+
         return scaled;
     }
 
@@ -129,7 +130,7 @@ public class ChunkPixelRenderer {
     private static MapColor.Brightness calculateWaterBrightness(int idx, int waterDepth) {
         double shade = Math.min(waterDepth / 8.0, 1.0) + (((idx >> 4) + (idx & 15)) & 1) * 0.15;
         shade = Math.max(0.1, Math.min(0.9, shade));
-        
+
         if (shade < 0.3) return MapColor.Brightness.HIGH;
         if (shade > 0.7) return MapColor.Brightness.LOW;
         return MapColor.Brightness.NORMAL;
@@ -145,14 +146,24 @@ public class ChunkPixelRenderer {
         int westHeight = (x > 0) ? heights[idx - 16] : currentHeight;
 
         double shade = (currentHeight - westHeight) * 4.0 / 2.0 + ((((z + x) & 1) - 0.5) * 0.4);
-        
+
         if (shade > 0.6) return MapColor.Brightness.HIGH;
         if (shade < -0.6) return MapColor.Brightness.LOW;
 
         return MapColor.Brightness.NORMAL;
     }
 
-    public static byte[] getOrRenderBiomePixels(ServerLevel level, ChunkPos biomeChunk) {
+    /**
+     * Generates or retrieves from cache a 16x16 byte array representing the
+     * low-resolution biome map of a chunk.
+     *
+     * @param level          The server level.
+     * @param biomeChunk     The position of the chunk to process.
+     * @param biomeSource    The world's BiomeSource, from {@code level.getChunkSource().getGenerator().getBiomeSource()}.
+     * @param climateSampler The world's Climate.Sampler, from {@code level.getChunkSource().randomState().sampler()}.
+     * @return A 256-byte array of pixel data.
+     */
+    public static byte[] getOrRenderBiomePixels(ServerLevel level, ChunkPos biomeChunk, BiomeSource biomeSource, Climate.Sampler climateSampler) {
         Optional<byte[]> cachedCorners = LevelDataManager.getCornerBytes(level, biomeChunk);
         int[] cornerPackedIds = new int[4];
 
@@ -168,11 +179,17 @@ public class ChunkPixelRenderer {
             for (int c = 0; c < 4; c++) {
                 int blockX = biomeChunk.getMinBlockX() + corners[c][0] * 4;
                 int blockZ = biomeChunk.getMinBlockZ() + corners[c][1] * 4;
-                BlockPos samplePos = new BlockPos(blockX, 70, blockZ);
-                cornerBiomes[c] = level.getBiome(samplePos);
+                int blockY = 70;
+
+                int quartX = blockX >> 2;
+                int quartY = blockY >> 2;
+                int quartZ = blockZ >> 2;
+
+                cornerBiomes[c] = biomeSource.getNoiseBiome(quartX, quartY, quartZ, climateSampler);
             }
 
             byte[] cornerBytes = new byte[4];
+
             for (int c = 0; c < 4; c++) {
                 int colorIndex = getColorIndex(level, cornerBiomes[c]);
                 int brightness = (colorIndex == 12) ? 0 : 1;
@@ -188,9 +205,7 @@ public class ChunkPixelRenderer {
         for (int i = 0; i < 256; i++) {
             int px = i % 16;
             int pz = i / 16;
-            
             int cornerIndex = ((pz >> 3) << 1) | (px >> 3);
-            
             pixels[i] = (byte) cornerPackedIds[cornerIndex];
         }
 
@@ -256,4 +271,3 @@ public class ChunkPixelRenderer {
         return colorIndex;
     }
 }
-
