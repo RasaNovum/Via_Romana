@@ -1,6 +1,5 @@
 package net.rasanovum.viaromana.map;
 
-import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
@@ -65,6 +64,7 @@ public final class ServerMapCache {
                 CommonConfig.map_refresh_interval,
                 TimeUnit.SECONDS
         );
+
         ViaRomana.LOGGER.debug("Scheduled map reprocessing every {} seconds.", CommonConfig.map_refresh_interval);
 
         scheduler.scheduleAtFixedRate(
@@ -73,6 +73,7 @@ public final class ServerMapCache {
                 CommonConfig.map_save_interval,
                 TimeUnit.MINUTES
         );
+
         ViaRomana.LOGGER.debug("Scheduled map saving every {} minutes.", CommonConfig.map_save_interval);
     }
 
@@ -102,6 +103,14 @@ public final class ServerMapCache {
         if ((scheduler != null && scheduler.isShutdown()) || (mapBakingExecutor != null && mapBakingExecutor.isShutdown())) {
             ViaRomana.LOGGER.info("Via Romana schedulers shut down.");
         }
+    }
+
+    /**
+     * Returns the executor service used for async map baking tasks.
+     * @return The map baking executor, or null if not initialized
+     */
+    public static ExecutorService getMapBakingExecutor() {
+        return mapBakingExecutor;
     }
 
     /**
@@ -149,24 +158,27 @@ public final class ServerMapCache {
                         return CompletableFuture.<MapInfo>completedFuture(null);
                     }
 
-                    return CompletableFuture.supplyAsync(() -> {
-                        MapBaker worker = new MapBaker();
-                        MapInfo previousResult = cache.get(networkId);
-                        MapInfo newResult;
+                    MapInfo previousResult = cache.get(networkId);
 
-                        if (previousResult != null && previousResult.hasImageData()) {
-                            ViaRomana.LOGGER.debug("Performing incremental update for network {}.", networkId);
-                            newResult = worker.updateMap(previousResult, new HashSet<>(chunksToUpdate), level, network);
-                        } else {
-                            ViaRomana.LOGGER.debug("Performing full bake for network {}.", networkId);
-                            newResult = worker.bake(networkId, level, network.getMin(), network.getMax(), graph.getNodesAsInfo(network));
-                        }
-
+                    CompletableFuture<MapInfo> bakeFuture;
+                    
+                    if (previousResult != null && previousResult.hasImageData()) {
+                        ViaRomana.LOGGER.debug("Performing incremental update for network {}.", networkId);
+                        bakeFuture = CompletableFuture.supplyAsync(() -> {
+                            MapBaker worker = new MapBaker();
+                            return worker.updateMap(previousResult, new HashSet<>(chunksToUpdate), level, network);
+                        }, mapBakingExecutor);
+                    } else {
+                        ViaRomana.LOGGER.debug("Performing full bake for network {}.", networkId);
+                        bakeFuture = MapBaker.bakeAsync(networkId, level, graph.getNodesAsInfo(network), mapBakingExecutor);
+                    }
+                    
+                    return bakeFuture.thenApply(newResult -> {
                         cache.put(networkId, newResult);
                         modifiedForSaving.add(networkId);
                         ViaRomana.LOGGER.debug("Map update completed for network {}.", networkId);
                         return newResult;
-                    }, mapBakingExecutor).exceptionally(ex -> {
+                    }).exceptionally(ex -> {
                         ViaRomana.LOGGER.error("Failed during map update for network {}", networkId, ex);
                         return null;
                     });

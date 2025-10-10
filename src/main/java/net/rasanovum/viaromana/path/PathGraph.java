@@ -77,6 +77,15 @@ public final class PathGraph {
         }
     }
 
+    /**
+     * A cached snapshot of a network's Fog-of-War data, including bounding box and allowed chunks.
+     * 
+     * @param minChunk The minimum chunk coordinates covering all nodes in the network.
+     * @param maxChunk The maximum chunk coordinates covering all nodes in the network.
+     * @param minBlock The minimum block coordinates covering all nodes in the network.
+     * @param maxBlock The maximum block coordinates covering all nodes in the network.
+     * @param allowedChunks The set of chunks that contain at least one node in the network.
+     */
     public record FoWCache(ChunkPos minChunk, ChunkPos maxChunk, BlockPos minBlock, BlockPos maxBlock, Set<ChunkPos> allowedChunks) { }
 
     public record BoundingBox(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
@@ -593,7 +602,7 @@ public final class PathGraph {
      * @param nodeLongs A set of node positions represented as packed long values.
      * @return A FoWCache object containing the calculated data, or null if input is empty.
      */
-    public FoWCache calculateFoWData(Set<Long> nodeLongs) {
+    public static FoWCache calculateFoWData(Set<Long> nodeLongs) {
         if (nodeLongs.isEmpty()) return null;
         
         int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE;

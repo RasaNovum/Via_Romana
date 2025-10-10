@@ -17,6 +17,7 @@ import net.rasanovum.viaromana.client.data.ClientPathData;
 import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.core.LinkHandler.LinkData;
 import net.rasanovum.viaromana.network.packets.ChartedPathC2S;
+import net.rasanovum.viaromana.network.packets.PreProcessChunksC2S;
 import commonnetwork.api.Dispatcher;
 import net.rasanovum.viaromana.path.Node;
 import net.rasanovum.viaromana.path.Node.NodeData;
@@ -28,6 +29,8 @@ import java.util.Optional;
  * Handles start / progress / completion of player path-charting.
  */
 public final class ChartingHandler {
+    private static final int PREPROCESS_INTERVAL = 5;
+
     public static void chartPath(LevelAccessor level, Entity entity) {
         if (!PlayerData.isChartingPath((Player) entity)) return;
 
@@ -79,13 +82,18 @@ public final class ChartingHandler {
 
         if (nearbyNode.isPresent()) {
             BlockPos nearbyPos = nearbyNode.get().getBlockPos();
-            
             pos = nearbyPos;
             clearance = nearbyNode.get().getClearance();
         }
 
         PlayerData.setLastNodePos(player, pos, false);
         ClientPathData.getInstance().addTemporaryNode(pos, quality, clearance);
+        
+        List<NodeData> tempNodes = ClientPathData.getInstance().getTemporaryNodes();
+        if (tempNodes.size() % PREPROCESS_INTERVAL == 0 && tempNodes.size() >= 2) {
+            PreProcessChunksC2S packet = new PreProcessChunksC2S(tempNodes);
+            Dispatcher.sendToServer(packet);
+        }
     }
 
     /**

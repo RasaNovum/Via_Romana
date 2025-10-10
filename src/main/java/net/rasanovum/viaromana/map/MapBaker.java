@@ -6,8 +6,11 @@ import net.minecraft.world.level.ChunkPos;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.network.packets.DestinationResponseS2C.NodeNetworkInfo;
 import net.rasanovum.viaromana.path.PathGraph;
+import net.rasanovum.viaromana.path.PathGraph.FoWCache;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 
 public class MapBaker {
     private static final int[] COLOR_LOOKUP = new int[256]; // ARGB color lookup table
@@ -23,19 +26,77 @@ public class MapBaker {
         }
     }
 
-    public MapInfo bake(UUID networkId, ServerLevel level, BlockPos minBounds, BlockPos maxBounds, List<NodeNetworkInfo> networkNodes) {
-        long bakeStartTime = System.nanoTime();
-        ViaRomana.LOGGER.info("[PERF] Starting full map bake for network {}", networkId);
-        ViaRomana.LOGGER.info("Bounds: ({}), ({})", minBounds, maxBounds);
-        
-        // 1. Get FoW data and full chunk bounds
+    /**
+     * Asynchronously bakes a full map image for a network ID.
+     * 
+     * @param networkId The network UUID
+     * @param level The server level
+     * @param networkNodes The list of network nodes
+     * @param executor The executor to run the task on
+     * @return CompletableFuture that completes with the baked MapInfo
+     */
+    public static CompletableFuture<MapInfo> bakeAsync(
+            UUID networkId, 
+            ServerLevel level, 
+            List<NodeNetworkInfo> networkNodes,
+            ExecutorService executor) {
+        return CompletableFuture.supplyAsync(
+            () -> bake(networkId, level, networkNodes),
+            executor
+        );
+    }
+
+    /**
+     * Asynchronously bakes a full map image to generate per-chunk data.
+     * 
+     * @param fowCache The fog of war cache containing bounds and chunks
+     * @param level The server level
+     * @param executor The executor to run the task on
+     * @return CompletableFuture that completes when baking is done
+     */
+    public static CompletableFuture<MapInfo> bakeAsync(
+            FoWCache fowCache, 
+            ServerLevel level, 
+            ExecutorService executor) {
+        return CompletableFuture.supplyAsync(
+            () -> bake(fowCache, level, Optional.empty(), Optional.empty()),
+            executor
+        );
+    }
+
+    /**
+     * Bakes a full map image for the given network ID using its FoW data and node information.
+     * 
+     * @param networkId
+     * @param level
+     * @param networkNodes
+     * @return MapInfo object containing the baked map data.
+     */
+    public static MapInfo bake(UUID networkId, ServerLevel level, List<NodeNetworkInfo> networkNodes) {
         PathGraph graph = PathGraph.getInstance(level);
         if (graph == null) throw new IllegalStateException("PathGraph is null");
         PathGraph.NetworkCache network = graph.getNetworkCache(networkId);
         PathGraph.FoWCache fowCache = graph.getOrComputeFoWCache(network);
         if (fowCache == null) throw new IllegalStateException("FoW cache is null");
+        return bake(fowCache, level, Optional.of(graph.getNodesAsInfo(network)), Optional.of(networkId));
+    }
+
+    /**
+     * Bakes a full map image for the given network using its FoW data and node information.
+     * 
+     * @param fowCache
+     * @param level
+     * @param networkNodes
+     * @param networkIdOpt
+     * @return MapInfo object containing the baked map data.
+     */
+    public static MapInfo bake(FoWCache fowCache, ServerLevel level, Optional<List<NodeNetworkInfo>> networkNodes, Optional<UUID> networkIdOpt) {
+        ViaRomana.LOGGER.info("[PERF] Starting full map bake for network");
+
+        long bakeStartTime = System.nanoTime();
 
         // Create list of all chunks in the bounding box
+        UUID networkId = networkIdOpt.orElse(null);
         Set<ChunkPos> bakeChunks = fowCache.allowedChunks();
         BlockPos desiredMinBlock = fowCache.minBlock();
         BlockPos desiredMaxBlock = fowCache.maxBlock();
@@ -50,12 +111,12 @@ public class MapBaker {
             }
         }
 
-        // 2. Calculate scale factor for FULL chunk region
+        // Calculate scale factor for FULL chunk region
         int fullChunkWidth = (bakeMaxChunk.x - bakeMinChunk.x + 1) * 16;
         int fullChunkHeight = (bakeMaxChunk.z - bakeMinChunk.z + 1) * 16;
         int scaleFactor = MapPixelAssembler.calculateScaleFactor(fullChunkWidth, fullChunkHeight);
 
-        // 3. Render chunk region to pixel arrays
+        // Render chunk region to pixel arrays
         long renderStartTime = System.nanoTime();
         int fullPixelWidth = fullChunkWidth / scaleFactor;
         int fullPixelHeight = fullChunkHeight / scaleFactor;
@@ -63,6 +124,8 @@ public class MapBaker {
         byte[] chunkPixels = new byte[fullPixelWidth * fullPixelHeight];
         int chunksWithData = MapPixelAssembler.processChunkPixels(biomePixels, chunkPixels, level, mapChunks, bakeChunks, scaleFactor, fullPixelWidth, fullPixelHeight, bakeMinChunk);
         long renderTime = System.nanoTime() - renderStartTime;
+
+        if (networkId == null) return null;
         
         int desiredMinX = desiredMinBlock.getX();
         int desiredMinZ = desiredMinBlock.getZ();
@@ -85,6 +148,8 @@ public class MapBaker {
         
         byte[] croppedBiomePixels = new byte[effectiveWidth * effectiveHeight];
         byte[] croppedChunkPixels = new byte[effectiveWidth * effectiveHeight];
+
+        // Copy relevant region to cropped arrays
         for (int z = 0; z < effectiveHeight; z++) {
             int srcZ = effectiveStartZ + z;
             if (srcZ >= fullPixelHeight) break;
@@ -95,16 +160,16 @@ public class MapBaker {
             System.arraycopy(chunkPixels, srcIdx, croppedChunkPixels, dstIdx, copyWidth);
         }
 
-        // 5. Return with chunk-aligned world coordinates from FoW
+        // Return with chunk-aligned world coordinates from FoW
         long totalBakeTime = System.nanoTime() - bakeStartTime;
         
         ViaRomana.LOGGER.info("[PERF] Map bake completed for network {}: total={}ms, render={}ms, " +
             "dimensions={}x{}, scale={}, rawSize={}KB, chunks={}",
-            networkId, totalBakeTime / 1_000_000.0, renderTime / 1_000_000.0, 
-            effectiveWidth, effectiveHeight, scaleFactor, (croppedBiomePixels.length + croppedChunkPixels.length) / 1024.0, 
+            networkId, totalBakeTime / 1_000_000.0, renderTime / 1_000_000.0,
+            effectiveWidth, effectiveHeight, scaleFactor, (croppedBiomePixels.length + croppedChunkPixels.length) / 1024.0,
             chunksWithData);
-        
-        return MapInfo.fromServer(networkId, croppedBiomePixels, croppedChunkPixels, effectiveWidth, effectiveHeight, scaleFactor, desiredMinX, desiredMinZ, desiredMaxX, desiredMaxZ, new ArrayList<>(bakeChunks), networkNodes);
+
+        return MapInfo.fromServer(networkId, croppedBiomePixels, croppedChunkPixels, effectiveWidth, effectiveHeight, scaleFactor, desiredMinX, desiredMinZ, desiredMaxX, desiredMaxZ, new ArrayList<>(bakeChunks), networkNodes.orElse(Collections.emptyList()));
     }
 
 
@@ -116,6 +181,6 @@ public class MapBaker {
     public MapInfo updateMap(MapInfo previousResult, Set<ChunkPos> dirtyChunks, ServerLevel level, PathGraph.NetworkCache network) {
         ViaRomana.LOGGER.info("Incremental update requested for {} dirty chunks, performing full rebake due to dual map system", dirtyChunks.size());
         PathGraph graph = PathGraph.getInstance(level);
-        return bake(previousResult.networkId(), level, network.getMin(), network.getMax(), graph.getNodesAsInfo(network));
+        return bake(previousResult.networkId(), level, graph.getNodesAsInfo(network));
     }
 }

@@ -32,8 +32,8 @@ public final class ServerMapUtils {
         }
         final int FOG_OF_WAR_DISTANCE = CommonConfig.fog_of_war_distance;
         final int radiusSq = FOG_OF_WAR_DISTANCE * FOG_OF_WAR_DISTANCE;
-        for (Long nodeLong : nodeLongs) {
 
+        for (Long nodeLong : nodeLongs) {
             for (int dx = -FOG_OF_WAR_DISTANCE; dx <= FOG_OF_WAR_DISTANCE; dx++) {
                 for (int dz = -FOG_OF_WAR_DISTANCE; dz <= FOG_OF_WAR_DISTANCE; dz++) {
                     if (dx * dx + dz * dz > radiusSq) continue;

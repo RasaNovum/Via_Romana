@@ -2,26 +2,20 @@ package net.rasanovum.viaromana.network.packets;
 
 import commonnetwork.networking.data.PacketContext;
 import commonnetwork.networking.data.Side;
-import net.minecraft.advancements.AdvancementHolder;
-import net.minecraft.advancements.AdvancementProgress;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.rasanovum.viaromana.ViaRomana;
+import net.rasanovum.viaromana.map.MapBaker;
 import net.rasanovum.viaromana.map.ServerMapCache;
-import net.rasanovum.viaromana.map.ServerMapUtils;
-import net.rasanovum.viaromana.network.packets.DestinationResponseS2C.NodeNetworkInfo;
 import net.rasanovum.viaromana.path.Node.NodeData;
 import net.rasanovum.viaromana.path.PathGraph;
-import net.rasanovum.viaromana.storage.path.PathDataManager;
-import net.rasanovum.viaromana.util.PathSyncUtils;
+import net.rasanovum.viaromana.path.PathGraph.FoWCache;
 import net.rasanovum.viaromana.util.VersionUtils;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import java.util.Set;
 
 //? if >=1.21 {
 import net.minecraft.network.codec.StreamCodec;
@@ -49,9 +43,7 @@ public record PreProcessChunksC2S(List<NodeData> tempNodes) implements CustomPac
         public void encode(FriendlyByteBuf buffer, PreProcessChunksC2S packet) { PreProcessChunksC2S.encode(buffer, packet); }
 
         @Override
-        public PreProcessChunksC2S decode(FriendlyByteBuf buffer) {
-            return PreProcessChunksC2S.decode(buffer);
-        }
+        public PreProcessChunksC2S decode(FriendlyByteBuf buffer) { return PreProcessChunksC2S.decode(buffer); }
     };
     //?}
 
@@ -92,24 +84,32 @@ public record PreProcessChunksC2S(List<NodeData> tempNodes) implements CustomPac
             ServerLevel level = ctx.sender().serverLevel();
             List<NodeData> tempNodes = ctx.message().tempNodes();
             
-            if (tempNodes.isEmpty() || tempNodes.size() < 2) {
-                return;
+            if (tempNodes.isEmpty() || tempNodes.size() < 2) return;
+            
+            Set<Long> nodePosLongs = tempNodes.stream()
+                .map(node -> node.pos().asLong())
+                .collect(java.util.stream.Collectors.toSet());
+            
+            FoWCache fowData = PathGraph.calculateFoWData(nodePosLongs);
+            if (fowData == null) return;
+
+            ViaRomana.LOGGER.info("Received request to pre-process {} chunks for {} temporary nodes from player {}", fowData.allowedChunks().size(), tempNodes.size(), ctx.sender().getName().getString());
+
+            java.util.concurrent.ExecutorService executor = ServerMapCache.getMapBakingExecutor();
+            if (executor != null && !executor.isShutdown()) {
+                MapBaker.bakeAsync(fowData, level, executor)
+                    .thenAccept(mapInfo -> {
+                        if (mapInfo != null) {
+                            ViaRomana.LOGGER.info("Completed async chunk pre-processing: {}x{} pixels", mapInfo.pixelWidth(), mapInfo.pixelHeight());
+                        }
+                    })
+                    .exceptionally(ex -> {
+                        ViaRomana.LOGGER.error("Error during async chunk pre-processing", ex);
+                        return null;
+                    });
+            } else {
+                ViaRomana.LOGGER.warn("Map baking executor not available, skipping chunk pre-processing");
             }
-            
-            // Convert NodeData to NodeNetworkInfo for FoW calculation
-            List<NodeNetworkInfo> nodeInfos = tempNodes.stream()
-                .map(nd -> new NodeNetworkInfo(nd.pos(), nd.clearance(), List.of()))
-                .toList();
-            
-            // Calculate FoW data without creating a network cache
-            // ServerMapUtils.FoWData fowData = ServerMapUtils.calculateFoWData(nodeInfos);
-            
-            // if (fowData != null) {
-            //     // Pre-process chunks asynchronously
-            //     CompletableFuture.runAsync(() -> {
-            //         ChunkPreProcessor.processChunks(level, fowData);
-            //     }, ServerMapCache.getExecutor());
-            // }
         }
     }
 }

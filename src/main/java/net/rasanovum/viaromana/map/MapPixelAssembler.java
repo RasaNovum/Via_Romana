@@ -38,22 +38,11 @@ public class MapPixelAssembler {
         int chunksFromBiome = 0;
         int scaledChunkSize = 16 / scaleFactor;
 
-        long lastLogTime = System.nanoTime();
-        int processedCount = 0;
         int totalChunks = allChunks.size();
 
         ViaRomana.LOGGER.info("Total chunks={}, renderable={}", totalChunks, renderedChunks.size());
 
         for (ChunkPos chunkToProcess : allChunks) {
-            processedCount++;
-            long now = System.nanoTime();
-            if (processedCount % 500 == 0 || (now - lastLogTime) > 2_000_000_000L) {
-                ViaRomana.LOGGER.info("[PERF] Baking progress: {}/{} chunks ({} cached, {} rendered, {} biome)",
-                        processedCount, totalChunks, chunksFromCache, chunksRendered, chunksFromBiome);
-                lastLogTime = now;
-            }
-
-            // Always generate biome pixels
             byte[] biomeChunkPixels = ChunkPixelRenderer.getOrRenderBiomePixels(level, chunkToProcess);
             if (biomeChunkPixels.length != 256) {
                 ViaRomana.LOGGER.warn("Failed to generate biome pixels for chunk {}", chunkToProcess);
@@ -98,8 +87,8 @@ public class MapPixelAssembler {
             chunksWithData++;
         }
 
-        ViaRomana.LOGGER.info("Render attempt complete: {}/{} chunks had pixel data ({} cached, {} freshly rendered, {} biome fallbacks)",
-                chunksWithData, totalChunks, chunksFromCache, chunksRendered, chunksFromBiome);
+        ViaRomana.LOGGER.info("Render attempt complete: {}/{} chunks had pixel data ({} cached chunkPixels, {} cached biomePixels, {} freshly rendered)",
+                chunksWithData, totalChunks, chunksFromCache, chunksFromBiome, chunksRendered);
 
         int missingCount = totalChunks - chunksWithData;
         if (chunksWithData == 0 && totalChunks > 0) {
@@ -118,7 +107,7 @@ public class MapPixelAssembler {
         Optional<byte[]> cached = getPixelBytes(level, chunkPos);
         if (cached.isPresent()) {
             byte[] pixels = cached.get();
-            if (pixels.length == 256) {  // Valid full chunk
+            if (pixels.length == 256) {
                 return new PixelResult(pixels, 1, 0);
             }
         }
