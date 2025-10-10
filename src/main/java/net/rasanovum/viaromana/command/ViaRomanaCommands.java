@@ -32,7 +32,12 @@ public class ViaRomanaCommands {
                                 .executes(ViaRomanaCommands::clearCache)))
                 .then(Commands.literal("maps")
                         .then(Commands.literal("clear")
-                                .executes(ViaRomanaCommands::clearMaps))
+                                .then(Commands.literal("all")
+                                    .executes(ViaRomanaCommands::clearMaps))
+                                .then(Commands.literal("biomePixels")
+                                        .executes(ViaRomanaCommands::clearBiomePixels))
+                                .then(Commands.literal("chunkPixels")
+                                        .executes(ViaRomanaCommands::clearChunkPixels)))
                         .then(Commands.literal("regenerate")
                                 .executes(ViaRomanaCommands::regenerateMaps))
                         .then(Commands.literal("delete")
@@ -87,18 +92,50 @@ public class ViaRomanaCommands {
      */
     private static int clearMaps(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         CommandSourceStack source = context.getSource();
-        
-        // Clear chunk image data
+
         source.sendSuccess(() -> Component.literal("Clearing level chunk data..."), false);
         LevelDataManager.clearAllPixelBytes(source.getLevel());
         LevelDataManager.clearAllCornerBytes(source.getLevel());
-        
-        // Clear map caches and disk data
+
         ServerMapCache.clear();
         ServerMapCache.deleteAllMapsFromDisk();
         if (source.getLevel().isClientSide()) MapRenderer.clearCache();
         
         source.sendSuccess(() -> Component.literal("Cleared Via Romana maps and chunk images"), true);
+        return 1;
+    }
+
+    /**
+     * Clears map caches (server, client) and chunk image data
+     */
+    private static int clearBiomePixels(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        CommandSourceStack source = context.getSource();
+
+        source.sendSuccess(() -> Component.literal("Clearing level biome pixel data..."), false);
+        LevelDataManager.clearAllCornerBytes(source.getLevel());
+
+        ServerMapCache.clear();
+        ServerMapCache.deleteAllMapsFromDisk();
+        if (source.getLevel().isClientSide()) MapRenderer.clearCache();
+
+        source.sendSuccess(() -> Component.literal("Cleared Via Romana maps and biome images"), true);
+        return 1;
+    }
+
+    /**
+     * Clears map caches (server, client) and chunk image data
+     */
+    private static int clearChunkPixels(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        CommandSourceStack source = context.getSource();
+
+        source.sendSuccess(() -> Component.literal("Clearing level chunk pixel data..."), false);
+        LevelDataManager.clearAllPixelBytes(source.getLevel());
+
+        ServerMapCache.clear();
+        ServerMapCache.deleteAllMapsFromDisk();
+        if (source.getLevel().isClientSide()) MapRenderer.clearCache();
+
+        source.sendSuccess(() -> Component.literal("Cleared Via Romana maps and biome images"), true);
         return 1;
     }
 
