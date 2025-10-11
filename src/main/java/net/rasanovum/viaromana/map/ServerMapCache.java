@@ -156,6 +156,8 @@ public final class ServerMapCache {
         PathGraph graph = PathGraph.getInstance(level);
         if (graph == null) return;
 
+        LevelDataManager.clearPixelBytes(level, pos);
+
         graph.findNetworksForChunk(pos).forEach(network -> {
             UUID networkId = network.id();
             dirtyNetworks.computeIfAbsent(networkId, k -> ConcurrentHashMap.newKeySet()).add(pos);
