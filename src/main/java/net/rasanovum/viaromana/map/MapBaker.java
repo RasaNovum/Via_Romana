@@ -56,17 +56,10 @@ public class MapBaker {
         Set<ChunkPos> bakeChunks = fowCache.allowedChunks();
         ChunkPos bakeMinChunk = fowCache.minChunk();
         ChunkPos bakeMaxChunk = fowCache.maxChunk();
-        BlockPos desiredMinBlock, desiredMaxBlock;
+        BlockPos desiredMinBlock = fowCache.minBlock();
+        BlockPos desiredMaxBlock = fowCache.maxBlock();
 
         ViaRomana.LOGGER.info("Chunks Allowed: {}", bakeChunks.size());
-
-        if (isPseudo) {
-            desiredMinBlock = new BlockPos(bakeMinChunk.x * 16, fowCache.minBlock().getY(), bakeMinChunk.z * 16);
-            desiredMaxBlock = new BlockPos(bakeMaxChunk.x * 16 + 15, fowCache.maxBlock().getY(), bakeMaxChunk.z * 16 + 15);
-        } else {
-            desiredMinBlock = fowCache.minBlock();
-            desiredMaxBlock = fowCache.maxBlock();
-        }
 
         Set<ChunkPos> mapChunks = new HashSet<>();
         for (int cx = bakeMinChunk.x; cx <= bakeMaxChunk.x; cx++) {
@@ -79,7 +72,6 @@ public class MapBaker {
         int fullChunkHeight = (bakeMaxChunk.z - bakeMinChunk.z + 1) * 16;
         int scaleFactor = MapPixelAssembler.calculateScaleFactor(fullChunkWidth, fullChunkHeight);
 
-        // Render chunk region to pixel arrays
         long renderStartTime = System.nanoTime();
         int fullPixelWidth = fullChunkWidth / scaleFactor;
         int fullPixelHeight = fullChunkHeight / scaleFactor;
@@ -96,9 +88,7 @@ public class MapBaker {
                 networkId, totalBakeTime / 1_000_000.0, renderTime / 1_000_000.0,
                 fullPixelWidth, fullPixelHeight, scaleFactor, chunksWithData);
             
-            return MapInfo.fromServer(networkId, new byte[0], new byte[0], 0, 0, scaleFactor, 
-                desiredMinBlock.getX(), desiredMinBlock.getZ(), desiredMaxBlock.getX(), desiredMaxBlock.getZ(), 
-                new ArrayList<>(bakeChunks), new ArrayList<>());
+            return MapInfo.fromServer(networkId, new byte[0], new byte[0], 0, 0, 1, 0, 0, 0, 0, new ArrayList<>(bakeChunks), new ArrayList<>());
         }
 
         int desiredMinX = desiredMinBlock.getX();

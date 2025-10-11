@@ -32,25 +32,26 @@ public class MapPixelAssembler {
      * Processes raw chunk pixels directly into separate biome and chunk pixel arrays.
      * Biome pixels are generated for all chunks, chunk pixels only for renderable chunks.
      */
-    public static int processChunkPixels(byte[] biomePixels, byte[] chunkPixels, ServerLevel level, Set<ChunkPos> allChunks, Set<ChunkPos> renderedChunks, int scaleFactor, int pixelWidth, int pixelHeight, ChunkPos minChunk, boolean skipBiome) {
+    public static int processChunkPixels(byte[] biomePixels, byte[] chunkPixels, ServerLevel level, Set<ChunkPos> allChunks, Set<ChunkPos> renderedChunks, int scaleFactor, int pixelWidth, int pixelHeight, ChunkPos minChunk, boolean isPseudo) {
         AtomicInteger chunksWithData = new AtomicInteger(0);
         AtomicInteger chunksFromCache = new AtomicInteger(0);
         AtomicInteger chunksRendered = new AtomicInteger(0);
         AtomicInteger chunksFromBiomeCache = new AtomicInteger(0);
         AtomicInteger chunksRenderedBiome = new AtomicInteger(0);
+        Set<ChunkPos> targetChunkSet = !isPseudo ? allChunks : renderedChunks;
         int scaledChunkSize = 16 / scaleFactor;
+        int totalChunks = allChunks.size();
 
         var chunkSource = level.getChunkSource();
         var randomState = chunkSource.randomState();
         var biomeSource = chunkSource.getGenerator().getBiomeSource();
         var climateSampler = randomState.sampler();
 
-        int totalChunks = allChunks.size();
-        ViaRomana.LOGGER.info("Starting parallel bake for {} total chunks, {} renderable (skipBiome: {})", totalChunks, renderedChunks.size(), skipBiome);
+        ViaRomana.LOGGER.info("Starting parallel bake for {} total chunks, {} renderable (isPseudo: {})", totalChunks, renderedChunks.size(), isPseudo);
 
-        allChunks.parallelStream().forEach(chunkToProcess -> {
+        targetChunkSet.parallelStream().forEach(chunkToProcess -> {
             byte[] biomeChunkPixels = null;
-            if (!skipBiome) {
+            if (!isPseudo) {
                 var biomeResult = ChunkPixelRenderer.getOrRenderBiomePixels(level, chunkToProcess, biomeSource, climateSampler);
                 biomeChunkPixels = biomeResult.pixels();
 
@@ -72,6 +73,8 @@ public class MapPixelAssembler {
                 }
             }
 
+            if (isPseudo) return;
+
             int baseX = (chunkToProcess.x - minChunk.x) * scaledChunkSize;
             int baseZ = (chunkToProcess.z - minChunk.z) * scaledChunkSize;
             if (baseX < 0 || baseZ < 0 || baseX + scaledChunkSize > pixelWidth || baseZ + scaledChunkSize > pixelHeight) {
@@ -79,7 +82,7 @@ public class MapPixelAssembler {
                 return;
             }
 
-            if (!skipBiome) {
+            if (true) {
                 byte[] scaledBiomePixels = (scaleFactor > 1) ? ChunkPixelRenderer.scalePixels(biomeChunkPixels, scaleFactor) : biomeChunkPixels;
                 copyChunkToFull(scaledBiomePixels, chunkToProcess, minChunk, scaledChunkSize, pixelWidth, biomePixels);
             }

@@ -679,22 +679,6 @@ public final class PathGraph {
         
         Set<ChunkPos> allowedChunks = ServerMapUtils.calculateFogOfWarChunks(nodeLongs, minChunk, maxChunk, isPseudo);
         
-        if (isPseudo && !allowedChunks.isEmpty()) {
-            int chunkMinX = Integer.MAX_VALUE, chunkMinZ = Integer.MAX_VALUE;
-            int chunkMaxX = Integer.MIN_VALUE, chunkMaxZ = Integer.MIN_VALUE;
-            for (ChunkPos chunk : allowedChunks) {
-                chunkMinX = Math.min(chunkMinX, chunk.x);
-                chunkMinZ = Math.min(chunkMinZ, chunk.z);
-                chunkMaxX = Math.max(chunkMaxX, chunk.x);
-                chunkMaxZ = Math.max(chunkMaxZ, chunk.z);
-            }
-            minChunk = new ChunkPos(chunkMinX, chunkMinZ);
-            maxChunk = new ChunkPos(chunkMaxX, chunkMaxZ);
-            
-            paddedMin = new BlockPos(chunkMinX * 16, minY, chunkMinZ * 16);
-            paddedMax = new BlockPos(chunkMaxX * 16 + 15, maxY, chunkMaxZ * 16 + 15);
-        }
-        
         return new FoWCache(minChunk, maxChunk, paddedMin, paddedMax, allowedChunks);
     }
 
