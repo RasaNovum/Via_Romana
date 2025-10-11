@@ -36,47 +36,32 @@ public class ChunkPixelRenderer {
         LevelChunk chunk = level.getChunk(pos.x, pos.z);
 
         int minY = chunk.getMinBuildHeight();
-        byte[] pixels = new byte[256]; // 16x16 flat array
+        byte[] pixels = new byte[256];
 
         int chunkMinX = pos.getMinBlockX();
         int chunkMinZ = pos.getMinBlockZ();
 
-        // Pre-calculate heights for brightness calculation
-        int[] heights = new int[256];
+        int[] surfaceHeights = new int[256];
+        int[] floorHeights = new int[256];
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
                 int idx = x + z * 16;
-                int surfaceY = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
-                heights[idx] = surfaceY;
+                surfaceHeights[idx] = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
+                floorHeights[idx] = chunk.getHeight(Heightmap.Types.OCEAN_FLOOR, x, z);
             }
         }
 
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
                 int idx = x + z * 16;
-                int surfaceY = heights[idx];
+                int surfaceY = surfaceHeights[idx];
 
                 if (surfaceY <= minY) {
                     pixels[idx] = 0;
                     continue;
                 }
 
-                BlockPos posBlock = new BlockPos(chunkMinX + x, surfaceY, chunkMinZ + z);
-                BlockState state = chunk.getBlockState(posBlock);
-
-                // Calculate water depth
-                int waterDepth = 0;
-                if (state.is(Blocks.WATER)) {
-                    waterDepth = 1;
-                    for (int wy = surfaceY - 1; wy >= minY && waterDepth < 8; wy--) {
-                        BlockPos checkPos = new BlockPos(chunkMinX + x, wy, chunkMinZ + z);
-                        if (chunk.getBlockState(checkPos).getFluidState().is(FluidTags.WATER)) {
-                            waterDepth++;
-                        } else {
-                            break;
-                        }
-                    }
-                }
+                int waterDepth = surfaceY - floorHeights[idx];
 
                 MapColor mapColor;
                 MapColor.Brightness brightness;
@@ -85,12 +70,15 @@ public class ChunkPixelRenderer {
                     mapColor = MapColor.WATER;
                     brightness = calculateWaterBrightness(idx, waterDepth);
                 } else {
+                    BlockPos posBlock = new BlockPos(chunkMinX + x, surfaceY, chunkMinZ + z);
+                    BlockState state = chunk.getBlockState(posBlock);
                     mapColor = state.getMapColor(level, posBlock);
+
                     if (mapColor == MapColor.NONE) {
                         pixels[idx] = 0;
                         continue;
                     }
-                    brightness = calculateTerrainBrightness(heights, idx);
+                    brightness = calculateTerrainBrightness(surfaceHeights, idx);
                 }
 
                 pixels[idx] = mapColor.getPackedId(brightness);
@@ -140,12 +128,12 @@ public class ChunkPixelRenderer {
      * Calculates the brightness of the terrain.
      */
     private static MapColor.Brightness calculateTerrainBrightness(int[] heights, int idx) {
-        int x = idx >> 4;
-        int z = idx & 15;
+        int z_row = idx >> 4;
+        int x_col = idx & 15;
         int currentHeight = heights[idx];
-        int westHeight = (x > 0) ? heights[idx - 16] : currentHeight;
+        int westHeight = (x_col > 0) ? heights[idx - 1] : currentHeight;
 
-        double shade = (currentHeight - westHeight) * 4.0 / 2.0 + ((((z + x) & 1) - 0.5) * 0.4);
+        double shade = (currentHeight - westHeight) * 4.0 / 2.0 + ((((x_col + z_row) & 1) - 0.5) * 0.4);
 
         if (shade > 0.6) return MapColor.Brightness.HIGH;
         if (shade < -0.6) return MapColor.Brightness.LOW;
