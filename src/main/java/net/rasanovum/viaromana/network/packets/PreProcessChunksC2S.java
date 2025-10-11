@@ -16,6 +16,8 @@ import net.rasanovum.viaromana.util.VersionUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ExecutorService;
 
 //? if >=1.21 {
 import net.minecraft.network.codec.StreamCodec;
@@ -83,28 +85,36 @@ public record PreProcessChunksC2S(List<NodeData> tempNodes) implements CustomPac
         if (Side.SERVER.equals(ctx.side())) {
             ServerLevel level = ctx.sender().serverLevel();
             List<NodeData> tempNodes = ctx.message().tempNodes();
+            UUID playerUUID = ctx.sender().getUUID();
             
             if (tempNodes.isEmpty() || tempNodes.size() < 2) return;
-            
-            Set<Long> nodePosLongs = tempNodes.stream()
-                .map(node -> node.pos().asLong())
-                .collect(java.util.stream.Collectors.toSet());
-            
-            FoWCache fowData = PathGraph.calculateFoWData(nodePosLongs);
-            if (fowData == null) return;
 
-            ViaRomana.LOGGER.info("Received request to pre-process {} chunks for {} temporary nodes from player {}", fowData.allowedChunks().size(), tempNodes.size(), ctx.sender().getName().getString());
+            UUID pseudoNetworkId = ServerMapCache.getPseudoNetworkId(playerUUID);
+            
+            ViaRomana.LOGGER.info("Creating/updating pseudonetwork {} for player {} with {} temp nodes", 
+                pseudoNetworkId, ctx.sender().getName().getString(), tempNodes.size());
 
-            java.util.concurrent.ExecutorService executor = ServerMapCache.getMapBakingExecutor();
+            PathGraph graph = PathGraph.getInstance(level);
+            if (graph == null) {
+                ViaRomana.LOGGER.warn("PathGraph is null, cannot create pseudonetwork");
+                return;
+            }
+
+            graph.createOrUpdatePseudoNetwork(pseudoNetworkId, tempNodes);
+
+            ServerMapCache.markAsPseudoNetwork(pseudoNetworkId);
+
+            ExecutorService executor = ServerMapCache.getMapBakingExecutor();
             if (executor != null && !executor.isShutdown()) {
-                MapBaker.bakeAsync(fowData, level, executor)
+                MapBaker.bakeAsync(pseudoNetworkId, level, executor)
                     .thenAccept(mapInfo -> {
                         if (mapInfo != null) {
-                            ViaRomana.LOGGER.info("Completed async chunk pre-processing: {}x{} pixels", mapInfo.pixelWidth(), mapInfo.pixelHeight());
+                            ViaRomana.LOGGER.info("Completed async chunk pre-processing for pseudonetwork {}: {}x{} pixels",
+                                pseudoNetworkId, mapInfo.pixelWidth(), mapInfo.pixelHeight());
                         }
                     })
                     .exceptionally(ex -> {
-                        ViaRomana.LOGGER.error("Error during async chunk pre-processing", ex);
+                        ViaRomana.LOGGER.error("Error during async chunk pre-processing for pseudonetwork {}", pseudoNetworkId, ex);
                         return null;
                     });
             } else {

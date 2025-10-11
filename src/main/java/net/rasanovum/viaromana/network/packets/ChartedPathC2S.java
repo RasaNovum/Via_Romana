@@ -17,6 +17,7 @@ import net.minecraft.advancements.AdvancementHolder;
 *///?}
 
 import net.rasanovum.viaromana.ViaRomana;
+import net.rasanovum.viaromana.map.ServerMapCache;
 import net.rasanovum.viaromana.path.Node.NodeData;
 import net.rasanovum.viaromana.path.PathGraph;
 import net.rasanovum.viaromana.storage.path.PathDataManager;
@@ -25,6 +26,7 @@ import net.rasanovum.viaromana.util.VersionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Packet sent from client to server when a player finishes charting a path.
@@ -91,6 +93,7 @@ public record ChartedPathC2S(List<NodeData> chartedNodes) implements CustomPacke
         if (Side.SERVER.equals(ctx.side())) {
             ServerLevel level = ctx.sender().serverLevel();
             PathGraph graph = PathGraph.getInstance(level);
+            UUID playerUUID = ctx.sender().getUUID();
 
             List<NodeData> chartingNodes = ctx.message().chartedNodes();
 
@@ -102,12 +105,14 @@ public record ChartedPathC2S(List<NodeData> chartedNodes) implements CustomPacke
             try {
                 graph.createConnectedPath(chartingNodes);
                 PathDataManager.markDirty(level);
-
                 PathSyncUtils.syncPathGraphToAllPlayers(level);
-
                 awardAdvancementIfNeeded(ctx.sender());
 
-                ViaRomana.LOGGER.debug("Created charted path with {} nodes for player {}", chartingNodes.size(), ctx.sender().getName().getString());
+                UUID pseudoNetworkId = ServerMapCache.getPseudoNetworkId(playerUUID);
+                ServerMapCache.invalidatePseudoNetwork(pseudoNetworkId);
+
+                ViaRomana.LOGGER.debug("Created charted path with {} nodes for player {}, cleaned up pseudonetwork {}", 
+                    chartingNodes.size(), ctx.sender().getName().getString(), pseudoNetworkId);
             } catch (Exception e) {
                 ViaRomana.LOGGER.error("Failed to create charted path for player {}: {}", ctx.sender().getName().getString(), e.getMessage());
             }

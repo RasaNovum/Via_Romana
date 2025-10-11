@@ -296,7 +296,57 @@ public final class PathGraph {
             previousNode = currentNode;
         }
     }
-    
+
+    /**
+     * Creates or updates a pseudonetwork for temporary charting paths.
+     */
+    public void createOrUpdatePseudoNetwork(UUID pseudoNetworkId, List<Node.NodeData> tempNodes) {
+        if (tempNodes == null || tempNodes.size() < 2) return;
+
+        NetworkCache existing = networkCacheById.remove(pseudoNetworkId);
+        if (existing != null) {
+            for (long pos : existing.nodePositions) {
+                nodeToNetworkId.remove(pos);
+            }
+            fowCacheById.remove(pseudoNetworkId);
+        }
+
+        Set<Long> nodePositions = tempNodes.stream()
+            .map(nodeData -> nodeData.pos().asLong())
+            .collect(Collectors.toSet());
+
+        List<BlockPos> posList = tempNodes.stream()
+            .map(Node.NodeData::pos)
+            .collect(Collectors.toList());
+
+        int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE;
+        int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE, maxZ = Integer.MIN_VALUE;
+        for (BlockPos pos : posList) {
+            minX = Math.min(minX, pos.getX());
+            minY = Math.min(minY, pos.getY());
+            minZ = Math.min(minZ, pos.getZ());
+            maxX = Math.max(maxX, pos.getX());
+            maxY = Math.max(maxY, pos.getY());
+            maxZ = Math.max(maxZ, pos.getZ());
+        }
+        BoundingBox bounds = new BoundingBox(minX, minY, minZ, maxX, maxY, maxZ);
+
+        NetworkCache pseudoCache = new NetworkCache(
+            pseudoNetworkId,
+            nodePositions,
+            bounds,
+            List.of()
+        );
+
+        networkCacheById.put(pseudoNetworkId, pseudoCache);
+
+        for (long pos : nodePositions) {
+            nodeToNetworkId.put(pos, pseudoNetworkId);
+        }
+
+        ViaRomana.LOGGER.debug("Created/updated pseudonetwork {} with {} nodes", pseudoNetworkId, tempNodes.size());
+    }
+
     //endregion
 
     // region Node Removal
@@ -305,22 +355,19 @@ public final class PathGraph {
         removeNode(node.getBlockPos());
     }
     
-    public boolean removeNode(BlockPos pos) {
+    public void removeNode(BlockPos pos) {
         long packedPos = pos.asLong();
         int idx = posToIndex.getOrDefault(packedPos, -1);
-        if (idx == -1) return false;
+        if (idx == -1) return;
 
         Node removedNode = nodes.get(idx);
 
-        // Invalidate the network this node belongs to BEFORE modifying connections.
         invalidateNetworksContaining(removedNode);
 
-        // Disconnect from neighbors
         for (long neighborPos : removedNode.getConnectedNodes()) {
             getNodeAt(BlockPos.of(neighborPos)).ifPresent(neighbor -> neighbor.removeConnection(packedPos));
         }
 
-        // Efficiently remove from the list by swapping with the last element
         int lastIdx = nodes.size() - 1;
         Node lastNode = nodes.get(lastIdx);
         nodes.set(idx, lastNode);
@@ -329,13 +376,10 @@ public final class PathGraph {
         posToIndex.remove(packedPos);
         removedNode.getSignPos().ifPresent(signPos -> signPosToIndex.remove(signPos.longValue()));
 
-        // If we moved a node, update its index in the map
         if (idx < lastIdx) {
             posToIndex.put(lastNode.getPos(), idx);
             lastNode.getSignPos().ifPresent(signPos -> signPosToIndex.put(signPos.longValue(), idx));
         }
-
-        return true;
     }
 
     public Optional<NetworkCache> removeBranch(Node startNode) {
@@ -362,7 +406,7 @@ public final class PathGraph {
     }
     
     /**
-     * A simplified removal method for use when connections are already handled.
+     * A removal method for use when connections are already handled.
      */
     private void removeNodeWithoutNeighborUpdates(Node node) {
         long packedPos = node.getPos();

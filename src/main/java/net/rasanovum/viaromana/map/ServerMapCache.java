@@ -43,6 +43,7 @@ public final class ServerMapCache {
     private static final Map<UUID, MapInfo> cache = new ConcurrentHashMap<>();
     private static final Map<UUID, Set<ChunkPos>> dirtyNetworks = new ConcurrentHashMap<>();
     private static final Set<UUID> modifiedForSaving = ConcurrentHashMap.newKeySet();
+    private static final Set<UUID> pseudoNetworkIds = ConcurrentHashMap.newKeySet();
 
     private static ScheduledExecutorService scheduler;
     private static ExecutorService mapBakingExecutor;
@@ -114,6 +115,41 @@ public final class ServerMapCache {
     }
 
     /**
+     * Generates a deterministic pseudonetwork ID for a player.
+     * Each player gets one pseudonetwork ID that persists during their charting session.
+     */
+    public static UUID getPseudoNetworkId(UUID playerUUID) {
+        String pseudoKey = "pseudonet_" + playerUUID.toString();
+        return UUID.nameUUIDFromBytes(pseudoKey.getBytes());
+    }
+
+    /**
+     * Marks a network ID as a pseudonetwork (temporary charting network).
+     */
+    public static void markAsPseudoNetwork(UUID networkId) {
+        pseudoNetworkIds.add(networkId);
+        ViaRomana.LOGGER.debug("Marked network {} as pseudonetwork", networkId);
+    }
+
+    /**
+     * Invalidates and removes a pseudonetwork.
+     * Called when charting is completed or cancelled.
+     */
+    public static void invalidatePseudoNetwork(UUID networkId) {
+        if (pseudoNetworkIds.remove(networkId)) {
+            invalidate(networkId);
+            ViaRomana.LOGGER.debug("Invalidated pseudonetwork {}", networkId);
+        }
+    }
+
+    /**
+     * Checks if a given network ID is a pseudonetwork.
+     */
+    public static boolean isPseudoNetwork(UUID networkId) {
+        return pseudoNetworkIds.contains(networkId);
+    }
+
+    /**
      * Marks a chunk as dirty for all networks it belongs to.
      */
     public static void markChunkDirty(ServerLevel level, ChunkPos pos) {
@@ -166,16 +202,18 @@ public final class ServerMapCache {
                         ViaRomana.LOGGER.debug("Performing incremental update for network {}.", networkId);
                         bakeFuture = CompletableFuture.supplyAsync(() -> {
                             MapBaker worker = new MapBaker();
-                            return worker.updateMap(previousResult, new HashSet<>(chunksToUpdate), level, network);
+                            return worker.updateMap(previousResult, new HashSet<>(chunksToUpdate), level);
                         }, mapBakingExecutor);
                     } else {
                         ViaRomana.LOGGER.debug("Performing full bake for network {}.", networkId);
-                        bakeFuture = MapBaker.bakeAsync(networkId, level, graph.getNodesAsInfo(network), mapBakingExecutor);
+                        bakeFuture = MapBaker.bakeAsync(networkId, level, mapBakingExecutor);
                     }
                     
                     return bakeFuture.thenApply(newResult -> {
                         cache.put(networkId, newResult);
-                        modifiedForSaving.add(networkId);
+                        if (!isPseudoNetwork(networkId)) {
+                            modifiedForSaving.add(networkId);
+                        }
                         ViaRomana.LOGGER.debug("Map update completed for network {}.", networkId);
                         return newResult;
                     }).exceptionally(ex -> {
@@ -313,6 +351,7 @@ public final class ServerMapCache {
         cache.clear();
         dirtyNetworks.clear();
         modifiedForSaving.clear();
+        pseudoNetworkIds.clear();
     }
 
     public static void saveAllToDisk(boolean forceSave) {
@@ -321,6 +360,8 @@ public final class ServerMapCache {
         }
 
         Set<UUID> networksToSave = forceSave ? new HashSet<>(cache.keySet()) : new HashSet<>(modifiedForSaving);
+        networksToSave.removeAll(pseudoNetworkIds);
+        
         if (networksToSave.isEmpty()) return;
 
         long startTime = System.nanoTime();
@@ -376,8 +417,7 @@ public final class ServerMapCache {
             long saveTime = System.nanoTime() - startTime;
             if (savedCount > 0) {
                 ViaRomana.LOGGER.info("[PERF] Saved {} maps to disk: {}ms, total={}KB, avg={}KB/map", 
-                    savedCount, saveTime / 1_000_000.0, totalBytes / 1024.0, 
-                    savedCount > 0 ? (totalBytes / savedCount) / 1024.0 : 0);
+                    savedCount, saveTime / 1_000_000.0, totalBytes / 1024.0, (totalBytes / savedCount) / 1024.0);
             }
             modifiedForSaving.removeAll(networksToSave);
 
