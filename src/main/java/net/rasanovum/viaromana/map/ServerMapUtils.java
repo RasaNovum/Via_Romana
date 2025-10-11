@@ -20,7 +20,6 @@ public final class ServerMapUtils {
     public static int calculateUniformPadding(int contentWidth, int contentHeight) {
         ViaRomana.LOGGER.info("Calculating uniform padding for content bounds: {}x{}", contentWidth, contentHeight);
         int maxDim = Math.max(contentWidth, contentHeight);
-        ViaRomana.LOGGER.info("Max dimension: {}", maxDim);
         return Math.max(MAP_BOUNDS_MIN_PADDING, (int) (maxDim * MAP_BOUNDS_PADDING_PERCENTAGE));
     }
 

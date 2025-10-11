@@ -15,10 +15,10 @@ import net.rasanovum.viaromana.core.DimensionHandler;
 import net.rasanovum.viaromana.init.*;
 import net.rasanovum.viaromana.map.ServerMapCache;
 import net.rasanovum.viaromana.network.PacketRegistration;
-import net.rasanovum.viaromana.network.ViaRomanaModVariables;
 import net.rasanovum.viaromana.storage.player.PlayerData;
 import net.rasanovum.viaromana.tags.ServerResourcesGenerator;
 import net.rasanovum.viaromana.teleport.ServerTeleportHandler;
+import net.rasanovum.viaromana.util.PathSyncUtils;
 import net.rasanovum.viaromana.util.VersionUtils;
 
 import org.apache.logging.log4j.LogManager;
@@ -54,12 +54,11 @@ public class ViaRomana implements ModInitializer {
 
     private void registerServerLifecycleEvents() {
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-            ViaRomanaModVariables.playerLoggedIn(handler.player);
             PlayerData.resetVariables(handler.player);
+            PathSyncUtils.syncPathGraphToPlayer(handler.player);
         });
 
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
-            ViaRomanaModVariables.playerLoggedOut(handler.player);
         });
         
         ServerTickEvents.END_SERVER_TICK.register(server -> {
@@ -79,8 +78,6 @@ public class ViaRomana implements ModInitializer {
         });
 
         ServerPlayerEvents.COPY_FROM.register((oldPlayer, newPlayer, alive) -> {
-            boolean keepInventory = oldPlayer.level().getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY);
-            ViaRomanaModVariables.playerRespawned(oldPlayer, newPlayer, keepInventory || !alive);
         });
 
         // ServerLifecycleEvents.START_DATA_PACK_RELOAD.register((server, resourceManager) -> { });

@@ -8,7 +8,6 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 //?}
 import net.rasanovum.viaromana.ViaRomana;
-import net.rasanovum.viaromana.network.ViaRomanaModVariables.PlayerVariablesSyncMessage;
 import net.rasanovum.viaromana.network.packets.*;
 
 import java.util.function.BiConsumer;
@@ -42,8 +41,7 @@ public class PacketRegistration {
     
     public void init() {
         ViaRomana.LOGGER.info("Registering network packets");
-        
-        registerPacket(PlayerVariablesSyncMessage.TYPE, PlayerVariablesSyncMessage.class, PlayerVariablesSyncMessage::encode, PlayerVariablesSyncMessage::decode, PlayerVariablesSyncMessage.STREAM_CODEC, PlayerVariablesSyncMessage::handle);
+
         registerPacket(PathGraphSyncPacket.TYPE, PathGraphSyncPacket.class, PathGraphSyncPacket::encode, PathGraphSyncPacket::decode, PathGraphSyncPacket.STREAM_CODEC, PathGraphSyncPacket::handle);
         registerPacket(PreProcessChunksC2S.TYPE, PreProcessChunksC2S.class, PreProcessChunksC2S::encode, PreProcessChunksC2S::decode, PreProcessChunksC2S.STREAM_CODEC, PreProcessChunksC2S::handle);
         registerPacket(OpenChartingScreenS2C.TYPE, OpenChartingScreenS2C.class, OpenChartingScreenS2C::encode, OpenChartingScreenS2C::decode, OpenChartingScreenS2C.STREAM_CODEC, OpenChartingScreenS2C::handle);

@@ -52,7 +52,7 @@ public class PathSyncUtils {
             PathGraphSyncPacket packet = new PathGraphSyncPacket(graph, level.dimension());
             Dispatcher.sendToClient(packet, player);
             
-            ViaRomana.LOGGER.debug("Synced PathGraph with {} nodes to player {}", graph.size(), player.getName().getString());
+            ViaRomana.LOGGER.info("Synced PathGraph with {} nodes to player {}", graph.size(), player.getName().getString());
                 
         } catch (Exception e) {
             ViaRomana.LOGGER.error("Failed to sync PathGraph to player " + player.getName().getString(), e);

@@ -116,5 +116,7 @@ public class PlayerTrackedData extends SyncedPlayerTrackedData {
         if (changed) {
             sync();
         }
+
+        ViaRomana.LOGGER.info("Resetting Variables");
     }
 }
