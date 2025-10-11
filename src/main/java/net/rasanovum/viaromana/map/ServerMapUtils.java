@@ -24,7 +24,7 @@ public final class ServerMapUtils {
         return Math.max(MAP_BOUNDS_MIN_PADDING, (int) (maxDim * MAP_BOUNDS_PADDING_PERCENTAGE));
     }
 
-    public static Set<ChunkPos> calculateFogOfWarChunks(Set<Long> nodeLongs, ChunkPos minChunk, ChunkPos maxChunk) {
+    public static Set<ChunkPos> calculateFogOfWarChunks(Set<Long> nodeLongs, ChunkPos minChunk, ChunkPos maxChunk, boolean isPseudo) {
         Set<ChunkPos> allowedChunks = new HashSet<>();
         if (nodeLongs == null || nodeLongs.isEmpty()) {
             ViaRomana.LOGGER.warn("No nodes provided for Fog of War calculation, returning empty set");
@@ -39,7 +39,7 @@ public final class ServerMapUtils {
                     if (dx * dx + dz * dz > radiusSq) continue;
                     int tx = (BlockPos.getX(nodeLong) >> 4) + dx;
                     int tz = (BlockPos.getZ(nodeLong) >> 4) + dz;
-                    if (tx >= minChunk.x && tx <= maxChunk.x && tz >= minChunk.z && tz <= maxChunk.z) {
+                    if (isPseudo || (tx >= minChunk.x && tx <= maxChunk.x && tz >= minChunk.z && tz <= maxChunk.z)) {
                         allowedChunks.add(new ChunkPos(tx, tz));
                     }
                 }

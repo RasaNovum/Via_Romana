@@ -52,11 +52,21 @@ public class MapBaker {
         PathGraph.FoWCache fowCache = graph.getOrComputeFoWCache(network);
         if (fowCache == null) throw new IllegalStateException("FoW cache is null");
 
+        boolean isPseudo = ServerMapCache.isPseudoNetwork(networkId);
         Set<ChunkPos> bakeChunks = fowCache.allowedChunks();
-        BlockPos desiredMinBlock = fowCache.minBlock();
-        BlockPos desiredMaxBlock = fowCache.maxBlock();
         ChunkPos bakeMinChunk = fowCache.minChunk();
         ChunkPos bakeMaxChunk = fowCache.maxChunk();
+        BlockPos desiredMinBlock, desiredMaxBlock;
+
+        ViaRomana.LOGGER.info("Chunks Allowed: {}", bakeChunks.size());
+
+        if (isPseudo) {
+            desiredMinBlock = new BlockPos(bakeMinChunk.x * 16, fowCache.minBlock().getY(), bakeMinChunk.z * 16);
+            desiredMaxBlock = new BlockPos(bakeMaxChunk.x * 16 + 15, fowCache.maxBlock().getY(), bakeMaxChunk.z * 16 + 15);
+        } else {
+            desiredMinBlock = fowCache.minBlock();
+            desiredMaxBlock = fowCache.maxBlock();
+        }
 
         Set<ChunkPos> mapChunks = new HashSet<>();
         for (int cx = bakeMinChunk.x; cx <= bakeMaxChunk.x; cx++) {
@@ -75,14 +85,22 @@ public class MapBaker {
         int fullPixelHeight = fullChunkHeight / scaleFactor;
         byte[] biomePixels = new byte[fullPixelWidth * fullPixelHeight];
         byte[] chunkPixels = new byte[fullPixelWidth * fullPixelHeight];
-        int chunksWithData = MapPixelAssembler.processChunkPixels(biomePixels, chunkPixels, level, mapChunks, bakeChunks, scaleFactor, fullPixelWidth, fullPixelHeight, bakeMinChunk);
+        
+        int chunksWithData = MapPixelAssembler.processChunkPixels(biomePixels, chunkPixels, level, mapChunks, bakeChunks, scaleFactor, fullPixelWidth, fullPixelHeight, bakeMinChunk, isPseudo);
         long renderTime = System.nanoTime() - renderStartTime;
 
-        if (ServerMapCache.isPseudoNetwork(networkId)) {
-            ViaRomana.LOGGER.info("Map Bake: Network {} is a pseudonetwork, exiting early", networkId);
-            return MapInfo.fromServer(networkId, new byte[0], new byte[0], 0, 0, scaleFactor, 0, 0, 0, 0, new ArrayList<>(), new ArrayList<>());
+        if (isPseudo) {
+            long totalBakeTime = System.nanoTime() - bakeStartTime;
+            ViaRomana.LOGGER.info("[PERF] Pseudonetwork {} pre-processing completed: total={}ms, render={}ms, " +
+                "dimensions={}x{} (full FoW), scale={}, chunks={}",
+                networkId, totalBakeTime / 1_000_000.0, renderTime / 1_000_000.0,
+                fullPixelWidth, fullPixelHeight, scaleFactor, chunksWithData);
+            
+            return MapInfo.fromServer(networkId, new byte[0], new byte[0], 0, 0, scaleFactor, 
+                desiredMinBlock.getX(), desiredMinBlock.getZ(), desiredMaxBlock.getX(), desiredMaxBlock.getZ(), 
+                new ArrayList<>(bakeChunks), new ArrayList<>());
         }
-        
+
         int desiredMinX = desiredMinBlock.getX();
         int desiredMinZ = desiredMinBlock.getZ();
         int desiredMaxX = desiredMaxBlock.getX();

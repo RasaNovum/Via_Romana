@@ -637,16 +637,18 @@ public final class PathGraph {
      * @return The FoWCache object containing the calculated data, or null if the network has no nodes.
      */
     public FoWCache getOrComputeFoWCache(NetworkCache network) {
-        return fowCacheById.computeIfAbsent(network.id(), id -> calculateFoWData(network.nodePositions()));
+        boolean isPseudo = ServerMapCache.isPseudoNetwork(network.id());
+        return fowCacheById.computeIfAbsent(network.id(), id -> calculateFoWData(network.nodePositions(), isPseudo));
     }
 
     /**
      * Calculates the Fog-of-War data for a set of node positions, determining the bounding box and allowed chunks.
      * 
      * @param nodeLongs A set of node positions represented as packed long values.
+     * @param isPseudo Whether this is a pseudonetwork (skips bounds filtering for full FoW coverage).
      * @return A FoWCache object containing the calculated data, or null if input is empty.
      */
-    public static FoWCache calculateFoWData(Set<Long> nodeLongs) {
+    public static FoWCache calculateFoWData(Set<Long> nodeLongs, boolean isPseudo) {
         if (nodeLongs.isEmpty()) return null;
         
         int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE;
@@ -675,7 +677,23 @@ public final class PathGraph {
         ChunkPos minChunk = new ChunkPos(paddedMin);
         ChunkPos maxChunk = new ChunkPos(paddedMax);
         
-        Set<ChunkPos> allowedChunks = ServerMapUtils.calculateFogOfWarChunks(nodeLongs, minChunk, maxChunk);
+        Set<ChunkPos> allowedChunks = ServerMapUtils.calculateFogOfWarChunks(nodeLongs, minChunk, maxChunk, isPseudo);
+        
+        if (isPseudo && !allowedChunks.isEmpty()) {
+            int chunkMinX = Integer.MAX_VALUE, chunkMinZ = Integer.MAX_VALUE;
+            int chunkMaxX = Integer.MIN_VALUE, chunkMaxZ = Integer.MIN_VALUE;
+            for (ChunkPos chunk : allowedChunks) {
+                chunkMinX = Math.min(chunkMinX, chunk.x);
+                chunkMinZ = Math.min(chunkMinZ, chunk.z);
+                chunkMaxX = Math.max(chunkMaxX, chunk.x);
+                chunkMaxZ = Math.max(chunkMaxZ, chunk.z);
+            }
+            minChunk = new ChunkPos(chunkMinX, chunkMinZ);
+            maxChunk = new ChunkPos(chunkMaxX, chunkMaxZ);
+            
+            paddedMin = new BlockPos(chunkMinX * 16, minY, chunkMinZ * 16);
+            paddedMax = new BlockPos(chunkMaxX * 16 + 15, maxY, chunkMaxZ * 16 + 15);
+        }
         
         return new FoWCache(minChunk, maxChunk, paddedMin, paddedMax, allowedChunks);
     }

@@ -32,7 +32,7 @@ public class MapPixelAssembler {
      * Processes raw chunk pixels directly into separate biome and chunk pixel arrays.
      * Biome pixels are generated for all chunks, chunk pixels only for renderable chunks.
      */
-    public static int processChunkPixels(byte[] biomePixels, byte[] chunkPixels, ServerLevel level, Set<ChunkPos> allChunks, Set<ChunkPos> renderedChunks, int scaleFactor, int pixelWidth, int pixelHeight, ChunkPos minChunk) {
+    public static int processChunkPixels(byte[] biomePixels, byte[] chunkPixels, ServerLevel level, Set<ChunkPos> allChunks, Set<ChunkPos> renderedChunks, int scaleFactor, int pixelWidth, int pixelHeight, ChunkPos minChunk, boolean skipBiome) {
         AtomicInteger chunksWithData = new AtomicInteger(0);
         AtomicInteger chunksFromCache = new AtomicInteger(0);
         AtomicInteger chunksRendered = new AtomicInteger(0);
@@ -46,18 +46,21 @@ public class MapPixelAssembler {
         var climateSampler = randomState.sampler();
 
         int totalChunks = allChunks.size();
-        ViaRomana.LOGGER.info("Starting parallel bake for {} total chunks, {} renderable", totalChunks, renderedChunks.size());
+        ViaRomana.LOGGER.info("Starting parallel bake for {} total chunks, {} renderable (skipBiome: {})", totalChunks, renderedChunks.size(), skipBiome);
 
         allChunks.parallelStream().forEach(chunkToProcess -> {
-            var biomeResult = ChunkPixelRenderer.getOrRenderBiomePixels(level, chunkToProcess, biomeSource, climateSampler);
-            byte[] biomeChunkPixels = biomeResult.pixels();
+            byte[] biomeChunkPixels = null;
+            if (!skipBiome) {
+                var biomeResult = ChunkPixelRenderer.getOrRenderBiomePixels(level, chunkToProcess, biomeSource, climateSampler);
+                biomeChunkPixels = biomeResult.pixels();
 
-            if (biomeChunkPixels == null || biomeChunkPixels.length != 256) {
-                ViaRomana.LOGGER.warn("Failed to generate biome pixels for chunk {}", chunkToProcess);
-                return;
+                if (biomeChunkPixels == null || biomeChunkPixels.length != 256) {
+                    ViaRomana.LOGGER.warn("Failed to generate biome pixels for chunk {}", chunkToProcess);
+                    return;
+                }
+                chunksFromBiomeCache.addAndGet(biomeResult.cacheIncrement());
+                chunksRenderedBiome.addAndGet(biomeResult.renderIncrement());
             }
-            chunksFromBiomeCache.addAndGet(biomeResult.cacheIncrement());
-            chunksRenderedBiome.addAndGet(biomeResult.renderIncrement());
 
             byte[] chunkPixelData = null;
             if (renderedChunks.contains(chunkToProcess)) {
@@ -76,8 +79,10 @@ public class MapPixelAssembler {
                 return;
             }
 
-            byte[] scaledBiomePixels = (scaleFactor > 1) ? ChunkPixelRenderer.scalePixels(biomeChunkPixels, scaleFactor) : biomeChunkPixels;
-            copyChunkToFull(scaledBiomePixels, chunkToProcess, minChunk, scaledChunkSize, pixelWidth, biomePixels);
+            if (!skipBiome) {
+                byte[] scaledBiomePixels = (scaleFactor > 1) ? ChunkPixelRenderer.scalePixels(biomeChunkPixels, scaleFactor) : biomeChunkPixels;
+                copyChunkToFull(scaledBiomePixels, chunkToProcess, minChunk, scaledChunkSize, pixelWidth, biomePixels);
+            }
 
             if (chunkPixelData != null) {
                 byte[] scaledChunkPixels = (scaleFactor > 1) ? ChunkPixelRenderer.scalePixels(chunkPixelData, scaleFactor) : chunkPixelData;
