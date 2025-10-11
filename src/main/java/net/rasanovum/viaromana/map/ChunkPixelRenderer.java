@@ -161,17 +161,20 @@ public class ChunkPixelRenderer {
      * @param biomeChunk     The position of the chunk to process.
      * @param biomeSource    The world's BiomeSource, from {@code level.getChunkSource().getGenerator().getBiomeSource()}.
      * @param climateSampler The world's Climate.Sampler, from {@code level.getChunkSource().randomState().sampler()}.
-     * @return A 256-byte array of pixel data.
+     * @return A BiomePixelResult containing the pixel data and cache/render status.
      */
-    public static byte[] getOrRenderBiomePixels(ServerLevel level, ChunkPos biomeChunk, BiomeSource biomeSource, Climate.Sampler climateSampler) {
+    public static MapPixelAssembler.BiomePixelResult getOrRenderBiomePixels(ServerLevel level, ChunkPos biomeChunk, BiomeSource biomeSource, Climate.Sampler climateSampler) {
         Optional<byte[]> cachedCorners = LevelDataManager.getCornerBytes(level, biomeChunk);
         int[] cornerPackedIds = new int[4];
+        int cacheIncrement = 0;
+        int renderIncrement = 0;
 
         if (cachedCorners.isPresent()) {
             byte[] corners = cachedCorners.get();
             for (int i = 0; i < 4; i++) {
                 cornerPackedIds[i] = corners[i] & 0xFF;
             }
+            cacheIncrement = 1;
         } else {
             int[][] corners = {{0, 0}, {3, 0}, {0, 3}, {3, 3}};
             Holder<Biome>[] cornerBiomes = new Holder[4];
@@ -198,6 +201,7 @@ public class ChunkPixelRenderer {
             }
 
             LevelDataManager.setCornerBytes(level, biomeChunk, cornerBytes);
+            renderIncrement = 1;
         }
 
         byte[] pixels = new byte[256];
@@ -209,7 +213,7 @@ public class ChunkPixelRenderer {
             pixels[i] = (byte) cornerPackedIds[cornerIndex];
         }
 
-        return pixels;
+        return new MapPixelAssembler.BiomePixelResult(pixels, cacheIncrement, renderIncrement);
     }
 
     /**
