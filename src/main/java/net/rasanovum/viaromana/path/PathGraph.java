@@ -286,14 +286,41 @@ public final class PathGraph {
     public void createConnectedPath(List<Node.NodeData> pathData) {
         if (pathData == null || pathData.size() < 2) return;
 
-        Node previousNode = null;
+        // Create all nodes and collect them
+        List<Node> pathNodes = new ArrayList<>();
         for (Node.NodeData currentData : pathData) {
             Node currentNode = nodes.get(getOrCreateNode(currentData.pos(), currentData.quality(), currentData.clearance()));
-            if (previousNode != null) {
-                invalidateNetworksContaining(previousNode, currentNode);
-                previousNode.connect(currentNode);
+            pathNodes.add(currentNode);
+        }
+
+        // Collect unique networks affected by new
+        Set<UUID> networksToInvalidate = new HashSet<>();
+        for (Node node : pathNodes) {
+            UUID networkId = nodeToNetworkId.get(node.getPos());
+            if (networkId != null) {
+                networksToInvalidate.add(networkId);
             }
-            previousNode = currentNode;
+        }
+
+        // Invalidate all affected networks once
+        for (UUID networkId : networksToInvalidate) {
+            NetworkCache cache = networkCacheById.remove(networkId);
+            if (cache != null) {
+                fowCacheById.remove(networkId);
+                for (Long pos : cache.nodePositions()) {
+                    nodeToNetworkId.remove(pos.longValue());
+                }
+                try {
+                    ServerMapCache.invalidate(networkId);
+                } catch (Exception e) {
+                    ViaRomana.LOGGER.warn("Failed to invalidate ServerMapCache for network {}: {}", networkId, e.getMessage());
+                }
+            }
+        }
+
+        // Connect the nodes
+        for (int i = 1; i < pathNodes.size(); i++) {
+            pathNodes.get(i - 1).connect(pathNodes.get(i));
         }
     }
 
