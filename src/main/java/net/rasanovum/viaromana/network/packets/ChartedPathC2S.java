@@ -111,7 +111,7 @@ public record ChartedPathC2S(List<NodeData> chartedNodes) implements CustomPacke
                 UUID pseudoNetworkId = ServerMapCache.getPseudoNetworkId(playerUUID);
                 ServerMapCache.invalidatePseudoNetwork(pseudoNetworkId);
 
-                ViaRomana.LOGGER.debug("Created charted path with {} nodes for player {}, cleaned up pseudonetwork {}", 
+                ViaRomana.LOGGER.info("Created charted path with {} nodes for player {}, cleaned up pseudonetwork {}",
                     chartingNodes.size(), ctx.sender().getName().getString(), pseudoNetworkId);
             } catch (Exception e) {
                 ViaRomana.LOGGER.error("Failed to create charted path for player {}: {}", ctx.sender().getName().getString(), e.getMessage());

@@ -4,7 +4,7 @@ import commonnetwork.networking.data.PacketContext;
 import commonnetwork.networking.data.Side;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.map.MapBaker;
@@ -12,6 +12,8 @@ import net.rasanovum.viaromana.map.ServerMapCache;
 import net.rasanovum.viaromana.path.Node.NodeData;
 import net.rasanovum.viaromana.path.PathGraph;
 import net.rasanovum.viaromana.path.PathGraph.FoWCache;
+//? if >=1.21
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.rasanovum.viaromana.util.VersionUtils;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,12 +32,12 @@ import net.minecraft.network.codec.StreamCodec;
  * for the server to render chunk data.
  */
 //? if <1.21 {
-/*public record ChartedPathC2S(List<NodeData> tempNodes) {
+/*public record PreProcessChunksC2S(List<NodeData> tempNodes) {
 *///?} else {
 public record PreProcessChunksC2S(List<NodeData> tempNodes) implements CustomPacketPayload {
 //?}
     //? if <1.21 {
-    /*public static final ResourceLocation TYPE = VersionUtils.getLocation("via_romana:charted_path_c2s");
+    /*public static final ResourceLocation TYPE = VersionUtils.getLocation("via_romana:pre_process_chunks_c2s");
     public static final Object STREAM_CODEC = null;
     *///?} else {
     public static final Type<PreProcessChunksC2S> TYPE = new Type<>(VersionUtils.getLocation("via_romana:pre_process_chunks_c2s"));
