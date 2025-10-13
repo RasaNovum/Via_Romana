@@ -15,7 +15,6 @@ import net.rasanovum.viaromana.client.data.ClientPathData;
 import net.rasanovum.viaromana.map.ServerMapCache;
 import net.rasanovum.viaromana.map.ServerMapUtils;
 import net.rasanovum.viaromana.network.packets.DestinationResponseS2C;
-import net.rasanovum.viaromana.surveyor.ViaRomanaLandmark;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,9 +25,12 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+//? if fabric {
 import folk.sisby.surveyor.WorldSummary;
 import folk.sisby.surveyor.landmark.Landmark;
 import folk.sisby.surveyor.landmark.WorldLandmarks;
+import net.rasanovum.viaromana.surveyor.ViaRomanaLandmark;
+//?}
 
 public final class PathGraph {
     private final ObjectArrayList<Node> nodes = new ObjectArrayList<>();
@@ -223,6 +225,7 @@ public final class PathGraph {
     }
     
     public void updateAllNetworkColors(ServerLevel level) {
+        //? if fabric {
         WorldLandmarks worldLandmarks;
         try {
             worldLandmarks = WorldSummary.of(level).landmarks();
@@ -252,6 +255,7 @@ public final class PathGraph {
             }
             processedNetworks.add(cache.id());
         }
+        //?}
     }
 
     //endregion

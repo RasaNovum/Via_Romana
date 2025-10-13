@@ -48,10 +48,15 @@ dependencies {
 
         modImplementation("folk.sisby:surveyor:${property("deps.surveyor")}")
         include("folk.sisby:surveyor:${property("deps.surveyor")}")
+
+        include("mysticdrew:common-networking-common:${property("deps.commonnetworking")}")
+        include("maven.modrinth:data-anchor:${property("deps.data-anchor")}")
+        include("maven.modrinth:midnightlib:${property("deps.midnightlib")}")
+        include("curse.maven:selene-499980:${property("deps.moonlightlib")}")
     }
 
     if (property("deps.loader") == "neoforge") {
-        modImplementation("net.neoforged:neoforge:${property("deps.neoforge_version")}")
+        implementation("net.neoforged:neoforge:${property("deps.neoforge_version")}")
         modImplementation("org.sinytra.forgified-fabric-api:forgified-fabric-api:${property("deps.fabric_api")}")
     }
 
@@ -63,11 +68,6 @@ dependencies {
     modImplementation("maven.modrinth:data-anchor:${property("deps.data-anchor")}")
     modImplementation("maven.modrinth:midnightlib:${property("deps.midnightlib")}")
     modImplementation("curse.maven:selene-499980:${property("deps.moonlightlib")}")
-
-    include("mysticdrew:common-networking-common:${property("deps.commonnetworking")}")
-    include("maven.modrinth:data-anchor:${property("deps.data-anchor")}")
-    include("maven.modrinth:midnightlib:${property("deps.midnightlib")}")
-    include("curse.maven:selene-499980:${property("deps.moonlightlib")}")
 
     modCompileOnly("maven.modrinth:supplementaries:${property("deps.supplementaries")}")
 
@@ -96,13 +96,12 @@ loom {
 
 tasks.processResources {
     inputs.property("minecraft", stonecutter.current.version)
-    inputs.property("loader", project.property("deps.fabric_loader"))
-    inputs.property("api", project.property("deps.fabric_api"))
+    val loader = project.property("deps.loader").toString()
 
-    filesMatching("fabric.mod.json") { expand(mapOf(
+    val commonProps = mapOf(
         "mc" to stonecutter.current.version,
         "modId" to rootProject.property("slug"),
-        "version" to "${rootProject.property("slug")}+${rootProject.property("baseVersion")}+${stonecutter.current.version}",
+        "version" to version,
         "modName" to rootProject.property("modName"),
         "modDescription" to rootProject.property("modDescription"),
         "authors" to rootProject.property("authors"),
@@ -110,10 +109,27 @@ tasks.processResources {
         "homepage" to rootProject.property("homepage"),
         "issues" to rootProject.property("issues"),
         "sources" to rootProject.property("sources"),
-        "license" to rootProject.property("license"),
-        "fl" to project.property("deps.fabric_loader"),
-        "fapi" to project.property("deps.fabric_api")
-    )) }
+        "license" to rootProject.property("license")
+    )
+
+    if (loader == "fabric") {
+        inputs.property("loader", project.property("deps.fabric_loader"))
+        inputs.property("api", project.property("deps.fabric_api"))
+        val fabricProps = commonProps + mapOf(
+            "fl" to project.property("deps.fabric_loader"),
+            "fapi" to project.property("deps.fabric_api")
+        )
+        filesMatching("fabric.mod.json") { expand(fabricProps) }
+        exclude("META-INF/mods.toml")
+    }
+
+    if (loader == "neoforge") {
+        val neoforgeProps = commonProps + mapOf(
+            "loaderVersion" to project.property("deps.neoforge_version")
+        )
+        filesMatching("META-INF/mods.toml") { expand(neoforgeProps) }
+        exclude("fabric.mod.json")
+    }
 }
 
 // tasks.remapJar {

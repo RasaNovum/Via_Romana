@@ -57,9 +57,6 @@ public class ViaRomana implements ModInitializer {
             PlayerData.resetVariables(handler.player);
             PathSyncUtils.syncPathGraphToPlayer(handler.player);
         });
-
-        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
-        });
         
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             for (var level : server.getAllLevels()) {
@@ -76,11 +73,6 @@ public class ViaRomana implements ModInitializer {
             ServerMapCache.saveAllToDisk(true);
             ServerMapCache.clear();
         });
-
-        ServerPlayerEvents.COPY_FROM.register((oldPlayer, newPlayer, alive) -> {
-        });
-
-        // ServerLifecycleEvents.START_DATA_PACK_RELOAD.register((server, resourceManager) -> { });
 
         ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> {
             ServerMapCache.shutdown();

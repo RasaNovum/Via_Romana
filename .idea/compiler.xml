@@ -61,8 +61,6 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="17">
-      <module name="via-romana.1.21.1-neoforge" target="21" />
-      <module name="via-romana.1.21.1-neoforge.main" target="21" />
       <module name="via-romana.1.21.1-neoforge.test" target="21" />
     </bytecodeTargetLevel>
   </component>
