@@ -39,8 +39,7 @@ public class ViaRomana {
         new PacketRegistration().init();
 
 //        BlockInit.load();
-        EffectInit.load();
-        ItemInit.load();
+//        ItemInit.load();
         DataInit.load();
 
         ServerResourcesGenerator generator = new ServerResourcesGenerator(DYNAMIC_PACK);

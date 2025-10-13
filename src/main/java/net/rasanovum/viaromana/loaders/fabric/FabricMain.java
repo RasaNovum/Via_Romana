@@ -10,11 +10,13 @@ import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.server.level.ServerPlayer;
 import net.rasanovum.viaromana.ViaRomana;
+import net.rasanovum.viaromana.init.EffectInit;
 
 public class FabricMain implements ModInitializer {
     @Override
     public void onInitialize() {
         ViaRomana.initialize();
+        EffectInit.load();
         registerServerLifecycleEvents();
     }
 

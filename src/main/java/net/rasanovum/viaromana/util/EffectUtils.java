@@ -39,7 +39,7 @@ public class EffectUtils {
         return BuiltInRegistries.MOB_EFFECT.get(new ResourceLocation(ViaRomana.MODID, effectName));
     }
      *///?} else {
-    private static Holder<MobEffect> getEffect(String effectName) {
+    public static Holder<MobEffect> getEffect(String effectName) {
         return BuiltInRegistries.MOB_EFFECT.getHolder(VersionUtils.getLocation(ViaRomana.MODID, effectName)).orElse(null);
     }
     //?}
