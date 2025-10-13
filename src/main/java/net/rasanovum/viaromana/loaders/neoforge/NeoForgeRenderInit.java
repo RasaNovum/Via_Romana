@@ -28,7 +28,7 @@ public class NeoForgeRenderInit {
 	}
 
 	public static void onRenderLevelStage(RenderLevelStageEvent event) {
-		if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_LEVEL) {
+		if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) {
 			Minecraft mc = Minecraft.getInstance();
 			if (mc.player != null && mc.level != null) {
 				float tickDelta = mc.getTimer().getGameTimeDeltaTicks();

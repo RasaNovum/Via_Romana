@@ -134,9 +134,7 @@ public class NodeRenderer {
 
         MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
         poseStack.pushPose();
-        //? if fabric {
         poseStack.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z);
-        //?}
 
         VertexConsumer beamConsumer = bufferSource.getBuffer(getRenderType());
         float vOffset = animationTime * ANIMATION_SPEED_SEC;
