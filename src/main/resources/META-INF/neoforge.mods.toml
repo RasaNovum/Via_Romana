@@ -8,12 +8,12 @@ modId = "${modId}"
 version = "${version}"
 displayName = "${modName}"
 description = '''${modDescription}'''
-authors = "${members}"
+authors = "${authors}"
 displayURL = "${homepage}"
 logoFile = "assets/${modId}/icon.png"
 
-[properties]
-"connector:placeholder" = true
+[[mixins]]
+config = "via_romana.mixins.json"
 
 [[dependencies.${ modId }]]
 modId = "neoforge"

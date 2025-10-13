@@ -18,7 +18,7 @@ public abstract class PreventFatigueRemovalMixin {
     @Unique
     private MobEffectInstance viaRomana$storedFatigueEffect = null;
     
-    @Inject(method = "removeEffect", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "removeEffect", at = @At("HEAD"), cancellable = true, remap = false)
     //? if <1.21 {
     /*private void viaRomana$preventNonCommandRemoval(MobEffect effect, CallbackInfoReturnable<Boolean> cir) {
         if (effect == EffectInit.TRAVELLERS_FATIGUE) {
@@ -42,7 +42,7 @@ public abstract class PreventFatigueRemovalMixin {
         }
     }
     
-    @Inject(method = "removeAllEffects", at = @At("HEAD"))
+    @Inject(method = "removeAllEffects", at = @At("HEAD"), remap = false)
     private void viaRomana$storeFatigueEffect(CallbackInfoReturnable<Boolean> cir) {
         LivingEntity self = (LivingEntity) (Object) this;
         //? if <1.21 {
@@ -75,7 +75,7 @@ public abstract class PreventFatigueRemovalMixin {
         }
     }
     
-    @Inject(method = "removeAllEffects", at = @At("RETURN"))
+    @Inject(method = "removeAllEffects", at = @At("RETURN"), remap = false)
     private void viaRomana$restoreTravellerFatigue(CallbackInfoReturnable<Boolean> cir) {
         LivingEntity self = (LivingEntity) (Object) this;
         //? if <1.21 {

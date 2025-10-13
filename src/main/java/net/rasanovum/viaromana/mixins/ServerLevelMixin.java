@@ -22,7 +22,7 @@ public abstract class ServerLevelMixin {
      */
     @Inject(
         method = "onBlockStateChange(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/block/state/BlockState;)V",
-        at = @At("HEAD")
+        at = @At("HEAD"), remap = false
     )
     private void onBlockStateChange(BlockPos pos, BlockState oldState, BlockState newState, CallbackInfo ci) {
         ServerLevel world = (ServerLevel) (Object) this;

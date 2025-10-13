@@ -5,6 +5,7 @@ pluginManagement {
         maven("https://maven.kikugie.dev/releases")
         maven("https://maven.fabricmc.net/")
         maven("https://maven.neoforged.net/releases/")
+        maven("https://maven.sinytra.org/releases")
     }
 }
 

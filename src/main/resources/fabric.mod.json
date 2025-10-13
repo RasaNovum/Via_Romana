@@ -21,7 +21,7 @@
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"net.rasanovum.viaromana.ViaRomana"
+			"net.rasanovum.viaromana.EntrypointFabric"
 		],
 		"client": [
 			"net.rasanovum.viaromana.init.ClientInit"

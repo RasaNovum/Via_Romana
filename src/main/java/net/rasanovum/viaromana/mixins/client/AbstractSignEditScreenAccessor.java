@@ -8,6 +8,6 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(AbstractSignEditScreen.class)
 public interface AbstractSignEditScreenAccessor {
-    @Accessor("sign")
+    @Accessor(value = "sign", remap = false)
     SignBlockEntity getSign();
 }

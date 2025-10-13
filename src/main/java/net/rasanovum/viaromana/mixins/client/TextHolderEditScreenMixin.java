@@ -24,17 +24,18 @@ public abstract class TextHolderEditScreenMixin extends Screen {
         super(title);
     }
 
-    @Inject(method = "init()V", at = @At("TAIL"))
+    @Inject(method = "init()V", at = @At("TAIL"), remap = false)
     private void addLinkButton(CallbackInfo ci) {
-        if ((Object) this instanceof SignPostScreen) {            
+        if ((Object) this instanceof SignPostScreen) {
             Button linkButton = SignEditHelper.createLinkButton((SignPostScreen) (Object) this);
             if (linkButton != null) this.addRenderableWidget(linkButton);
         }
     }
 
     // Fixed in Supplementaries 3.1.38
+    //? if fabric {
     // Match vanilla abstract sign positioning
-    @ModifyArgs(method = "init", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/Button$Builder;bounds(IIII)Lnet/minecraft/client/gui/components/Button$Builder;"))
+    @ModifyArgs(method = "init", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/Button$Builder;bounds(IIII)Lnet/minecraft/client/gui/components/Button$Builder;", remap = false))
     private void adjustDoneButtonPosition(Args args) {
         try {
             Version fixVersion = Version.parse("1.20-3.1.38");
@@ -51,6 +52,7 @@ public abstract class TextHolderEditScreenMixin extends Screen {
             e.printStackTrace();
         }
     }
+    //?}
 
     // Disables pausing when editing signpost
     // public boolean isPauseScreen() {

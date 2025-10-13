@@ -18,8 +18,12 @@ neoForge {
     }
 
     runs {
-        register("client")
-        register("server")
+        register("client") {
+            client()
+        }
+        register("server") {
+            server()
+        }
         register("data") {
             data()
         }
@@ -42,6 +46,7 @@ repositories {
     maven("https://modmaven.k-4u.nl/")
     maven("https://jm.gserv.me/repository/maven-public/")
     maven("https://cursemaven.com")
+    maven("https://maven.sinytra.org/releases")
     mavenCentral()
 }
 
@@ -54,7 +59,7 @@ dependencies {
     implementation("curse.maven:selene-499980:${property("deps.moonlightlib")}")
     implementation("com.google.code.gson:gson:2.10.1")
 
-    runtimeOnly("maven.modrinth:supplementaries:${property("deps.supplementaries")}")
+    implementation("maven.modrinth:supplementaries:${property("deps.supplementaries")}")
 
     annotationProcessor("net.fabricmc:sponge-mixin:0.12.5+mixin.0.8.5")
 }
@@ -72,8 +77,8 @@ tasks.named<ProcessResources>("processResources") {
         "homepage" to project.property("mod.homepage"),
         "issues" to project.property("mod.issues"),
         "sources" to project.property("mod.sources"),
-        "neoForgeVersion" to project.property("deps.neoforge_version"),
-        "fabricApiVersion" to project.property("deps.fabric_api")
+        "neoforge" to project.property("deps.neoforge_version"),
+        "forgeFapi" to project.property("deps.fabric_api")
     )
 
     inputs.properties(props)
@@ -91,6 +96,11 @@ tasks.withType<JavaCompile>().configureEach {
     options.encoding = "UTF-8"
     val javaVersion = if (stonecutter.eval(stonecutter.current.version, ">=1.20.5")) 21 else 17
     options.release.set(javaVersion)
+
+    options.compilerArgs.addAll(listOf(
+        "-AoutRefMapFile=${project.buildDir}/resources/main/${project.property("mod.id")}.refmap.json",
+        "-AdefaultObfuscationEnv=searge"
+    ))
 }
 
 java {

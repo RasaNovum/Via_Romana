@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(BlockLightEngine.class)
 public class BlockLightEngineMixin {
 
-    @Inject(method = "getEmission", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "getEmission", at = @At("HEAD"), cancellable = true, remap = false)
     private void via_romana_getDynamicLightEmission(long worldPos, BlockState blockState, CallbackInfoReturnable<Integer> cir) {
         if (Minecraft.getInstance().level == null) return;
 

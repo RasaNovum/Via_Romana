@@ -18,7 +18,7 @@ public abstract class WarpBlockScreenMixin extends Screen {
         super(title);
     }
 
-    @Inject(method = "init", at = @At("TAIL"))
+    @Inject(method = "init", at = @At("TAIL"), remap = false)
     private void onInit(CallbackInfo ci) {
         Button linkButton = SignEditHelper.createLinkButton(this);
         if (linkButton != null) {
