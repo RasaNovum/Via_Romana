@@ -19,6 +19,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+//? if fabric
+@net.fabricmc.api.Environment(net.fabricmc.api.EnvType.CLIENT)
+//? if neoforge
+/*@net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)*/
 public class LinkSignScreen extends Screen {
     // region Constants
     private static final int BACKGROUND_WIDTH = 256;

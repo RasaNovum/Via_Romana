@@ -5,10 +5,8 @@
       <configuration>
         <autoDetectTypes>
           <platformType>ARCHITECTURY</platformType>
-          <platformType>FABRIC</platformType>
           <platformType>MIXIN</platformType>
           <platformType>NEOFORGE</platformType>
-          <platformType>MCP</platformType>
         </autoDetectTypes>
         <projectReimportVersion>1</projectReimportVersion>
       </configuration>

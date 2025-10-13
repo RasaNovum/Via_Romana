@@ -1,6 +1,5 @@
 package net.rasanovum.viaromana.init;
 
-import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
@@ -17,7 +16,8 @@ import net.rasanovum.viaromana.util.VersionUtils;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraft.core.Holder;
 import net.minecraft.world.item.CreativeModeTab.TabVisibility;
-*///?}
+*///?} else if fabric
+import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 
 public class ItemInit {
     //? if fabric {

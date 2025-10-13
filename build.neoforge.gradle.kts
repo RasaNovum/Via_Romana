@@ -51,7 +51,7 @@ repositories {
 }
 
 dependencies {
-    implementation("org.sinytra.forgified-fabric-api:forgified-fabric-api:${property("deps.fabric_api")}")
+//    implementation("org.sinytra.forgified-fabric-api:forgified-fabric-api:${property("deps.fabric_api")}")
 
     implementation("mysticdrew:common-networking-common:${property("deps.commonnetworking")}")
     implementation("maven.modrinth:data-anchor:${property("deps.data-anchor")}")

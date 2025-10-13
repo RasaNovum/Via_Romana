@@ -1,7 +1,5 @@
 package net.rasanovum.viaromana.client;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -10,12 +8,13 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.rasanovum.viaromana.annotations.ClientOnly;
 import net.rasanovum.viaromana.util.VersionUtils;
 
 /**
  * Client-side manager for teleport fade effects.
  */
-@Environment(EnvType.CLIENT)
+@ClientOnly
 public class FadeManager {
     private static int fadeUpTicks = 0;
     private static int holdTicks = 0;

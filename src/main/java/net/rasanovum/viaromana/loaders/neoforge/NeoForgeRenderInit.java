@@ -1,39 +1,42 @@
 package net.rasanovum.viaromana.loaders.neoforge;
-
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
-import net.minecraft.client.Minecraft;
+//? if neoforge {
+/*import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.event.RenderGuiEvent;
+import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.neoforged.neoforge.common.NeoForge;
 import net.rasanovum.viaromana.client.render.FadeRenderer;
 import net.rasanovum.viaromana.client.render.InvalidBlockRenderer;
 import net.rasanovum.viaromana.client.render.NodeRenderer;
 import net.rasanovum.viaromana.client.render.VignetteRenderer;
 
-@Environment(EnvType.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class NeoForgeRenderInit {
 	public static void load() {
-		HudRenderCallback.EVENT.register((matrices, tickDeltaTrack) -> {
-			//? if <1.21 {
-			/*float tickDelta = tickDeltaTrack;
-			*///?} else {
-			float tickDelta = tickDeltaTrack.getGameTimeDeltaTicks();
-			//?}
-			VignetteRenderer.renderVignette(matrices);
-			FadeRenderer.render(matrices, tickDelta);
-		});
+		NeoForge.EVENT_BUS.addListener(NeoForgeRenderInit::onRenderGui);
+		NeoForge.EVENT_BUS.addListener(NeoForgeRenderInit::onRenderLevelStage);
+	}
+
+	public static void onRenderGui(RenderGuiEvent.Post event) {
+		GuiGraphics matrices = event.getGuiGraphics();
+		float tickDelta = event.getPartialTick().getGameTimeDeltaTicks();
 		
-		WorldRenderEvents.LAST.register((context) -> {
+		VignetteRenderer.renderVignette(matrices);
+		FadeRenderer.render(matrices, tickDelta);
+	}
+
+	public static void onRenderLevelStage(RenderLevelStageEvent event) {
+		if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_LEVEL) {
 			Minecraft mc = Minecraft.getInstance();
 			if (mc.player != null && mc.level != null) {
-				//? if <1.21 {
-				/*float tickDelta = context.tickDelta();
-				*///?} else {
 				float tickDelta = mc.getTimer().getGameTimeDeltaTicks();
-				//?}
-				NodeRenderer.renderNodeBeams(context.matrixStack(), mc.level, mc.player, tickDelta);
-				InvalidBlockRenderer.renderInfrastructureBlocks(context.matrixStack(), mc.level, mc.player, tickDelta);
+				
+				NodeRenderer.renderNodeBeams(event.getPoseStack(), mc.level, mc.player, tickDelta);
+				InvalidBlockRenderer.renderInfrastructureBlocks(event.getPoseStack(), mc.level, mc.player, tickDelta);
 			}
-		});
+		}
 	}
 }
+*///?}

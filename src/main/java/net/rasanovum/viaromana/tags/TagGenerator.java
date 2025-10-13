@@ -2,7 +2,6 @@ package net.rasanovum.viaromana.tags;
 
 import java.util.List;
 
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
@@ -12,6 +11,7 @@ import net.minecraft.world.level.block.Block;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.CommonConfig;
 import net.mehvahdjukaar.moonlight.api.resources.pack.DynamicDataPack;
+import net.rasanovum.viaromana.loaders.Platform;
 import net.rasanovum.viaromana.util.VersionUtils;
 
 /**
@@ -102,7 +102,7 @@ public class TagGenerator {
         try {
             ResourceLocation tagLocation = VersionUtils.getLocation(tagString);
             String modId = tagLocation.getNamespace();
-            return "minecraft".equals(modId) || FabricLoader.getInstance().isModLoaded(modId);
+            return "minecraft".equals(modId) || Platform.INSTANCE.isModLoaded(modId);
         } catch (Exception e) {
             ViaRomana.LOGGER.warn("Invalid tag format: '{}'", tagString);
             return false;

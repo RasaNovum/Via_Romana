@@ -30,13 +30,6 @@ ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.${ modId }]]
-modId = "fabric_api"
-type = "required"
-versionRange = "[${forgeFapi},)"
-ordering = "NONE"
-side = "BOTH"
-
-[[dependencies.${ modId }]]
 modId = "midnightlib"
 type = "required"
 versionRange = "*"

@@ -32,7 +32,7 @@ public class ViaRomana {
     public static final DynamicDataPack DYNAMIC_PACK = new DynamicDataPack(VersionUtils.getLocation(MODID, "dynamic_tags"));
 
     public static void initialize() {
-        LOGGER.info("Initializing ViaRomanaMod");
+        LOGGER.info("Initializing Via Romana");
 
         MidnightConfig.init(MODID, CommonConfig.class);
 

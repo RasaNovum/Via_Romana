@@ -28,8 +28,11 @@ import org.joml.Matrix4f;
 /**
  * Renders ribbons between connected path nodes.
  */
+//? if fabric
+@net.fabricmc.api.Environment(net.fabricmc.api.EnvType.CLIENT)
+//? if neoforge
+/*@net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)*/
 public final class NodeConnectionRenderer {
-
     // General Constants
     private static final double RENDER_DISTANCE = 16.0;
     private static final double FADE_BUFFER_DISTANCE = 4.0;

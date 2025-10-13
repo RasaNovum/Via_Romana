@@ -7,13 +7,14 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.Minecraft;
-import net.fabricmc.api.Environment;
-import net.fabricmc.api.EnvType;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.platform.GlStateManager;
 
-@Environment(EnvType.CLIENT)
+//? if fabric
+@net.fabricmc.api.Environment(net.fabricmc.api.EnvType.CLIENT)
+//? if neoforge
+/*@net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)*/
 public class FadeRenderer {
     public static void render(GuiGraphics guiGraphics, float tickDelta) {
         float alpha = FadeManager.getCurrentFadeAlpha();

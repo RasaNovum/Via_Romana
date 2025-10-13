@@ -8,6 +8,10 @@ import net.rasanovum.viaromana.util.VersionUtils;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
+//? if fabric
+@net.fabricmc.api.Environment(net.fabricmc.api.EnvType.CLIENT)
+//? if neoforge
+/*@net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)*/
 public class VignetteRenderer {
     private static final ResourceLocation VIGNETTE_TEXTURE = VersionUtils.getLocation("via_romana:textures/screens/overlay_vignette.png");
 

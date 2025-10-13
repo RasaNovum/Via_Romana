@@ -1,5 +1,6 @@
 package net.rasanovum.viaromana.loaders.fabric;
 
+//? if fabric {
 import net.rasanovum.viaromana.client.render.FadeRenderer;
 import net.rasanovum.viaromana.client.render.InvalidBlockRenderer;
 import net.rasanovum.viaromana.client.render.NodeRenderer;
@@ -38,3 +39,4 @@ public class FabricRenderInit {
 		});
 	}
 }
+//?}

@@ -17,6 +17,10 @@ public class RenderUtil {
      * @param offsetY Additional Y offset to apply.
      * @return A suitable Y-coordinate.
      */
+    //? if fabric
+    @net.fabricmc.api.Environment(net.fabricmc.api.EnvType.CLIENT)
+    //? if neoforge
+    /*@net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)*/
     @SuppressWarnings("deprecation")
     public static double findSuitableYPosition(ClientLevel level, BlockPos pos, float offsetY) {
         if (level.getChunkSource().getChunk(pos.getX() >> 4, pos.getZ() >> 4, false) == null) {
