@@ -15,7 +15,7 @@ import net.rasanovum.viaromana.client.data.ClientPathData;
 import net.rasanovum.viaromana.map.ServerMapCache;
 import net.rasanovum.viaromana.map.ServerMapUtils;
 import net.rasanovum.viaromana.network.packets.DestinationResponseS2C;
-import net.rasanovum.viaromana.storage.IPathStorage;
+import net.rasanovum.viaromana.surveyor.ViaRomanaLandmark;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,12 +26,9 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-//? if fabric {
-import net.rasanovum.viaromana.surveyor.ViaRomanaLandmark;
 import folk.sisby.surveyor.WorldSummary;
 import folk.sisby.surveyor.landmark.Landmark;
 import folk.sisby.surveyor.landmark.WorldLandmarks;
-//?}
 
 public final class PathGraph {
     private final ObjectArrayList<Node> nodes = new ObjectArrayList<>();
@@ -63,6 +60,7 @@ public final class PathGraph {
             return new BlockPos(bounds.maxX, bounds.maxY, bounds.maxZ);
         }
 
+        @SuppressWarnings("deprecation")
         public List<DestinationResponseS2C.NodeNetworkInfo> getNodesAsInfo(Long2IntOpenHashMap posToIndex, ObjectArrayList<Node> allNodes) {
             return nodePositions.stream()
                     .map(pos -> {
@@ -79,14 +77,23 @@ public final class PathGraph {
         }
     }
 
-    public record FoWCache(ChunkPos minChunk, ChunkPos maxChunk, Set<ChunkPos> allowedChunks) { }
+    /**
+     * A cached snapshot of a network's Fog-of-War data, including bounding box and allowed chunks.
+     * 
+     * @param minChunk The minimum chunk coordinates covering all nodes in the network.
+     * @param maxChunk The maximum chunk coordinates covering all nodes in the network.
+     * @param minBlock The minimum block coordinates covering all nodes in the network.
+     * @param maxBlock The maximum block coordinates covering all nodes in the network.
+     * @param allowedChunks The set of chunks that contain at least one node in the network.
+     */
+    public record FoWCache(ChunkPos minChunk, ChunkPos maxChunk, BlockPos minBlock, BlockPos maxBlock, Set<ChunkPos> allowedChunks) { }
 
     public record BoundingBox(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
         public static final BoundingBox ZERO = new BoundingBox(0, 0, 0, 0, 0, 0);
     }
 
     public static PathGraph getInstance(ServerLevel level) {
-        return IPathStorage.get(level).graph();
+        return net.rasanovum.viaromana.storage.path.PathDataManager.getOrCreatePathGraph(level);
     }
 
     // region Network & Cache Management
@@ -216,7 +223,6 @@ public final class PathGraph {
     }
     
     public void updateAllNetworkColors(ServerLevel level) {
-        //? if fabric {
         WorldLandmarks worldLandmarks;
         try {
             worldLandmarks = WorldSummary.of(level).landmarks();
@@ -246,7 +252,6 @@ public final class PathGraph {
             }
             processedNetworks.add(cache.id());
         }
-        //?}
     }
 
     //endregion
@@ -281,17 +286,94 @@ public final class PathGraph {
     public void createConnectedPath(List<Node.NodeData> pathData) {
         if (pathData == null || pathData.size() < 2) return;
 
-        Node previousNode = null;
+        // Create all nodes and collect them
+        List<Node> pathNodes = new ArrayList<>();
         for (Node.NodeData currentData : pathData) {
             Node currentNode = nodes.get(getOrCreateNode(currentData.pos(), currentData.quality(), currentData.clearance()));
-            if (previousNode != null) {
-                invalidateNetworksContaining(previousNode, currentNode);
-                previousNode.connect(currentNode);
+            pathNodes.add(currentNode);
+        }
+
+        // Collect unique networks affected by new
+        Set<UUID> networksToInvalidate = new HashSet<>();
+        for (Node node : pathNodes) {
+            UUID networkId = nodeToNetworkId.get(node.getPos());
+            if (networkId != null) {
+                networksToInvalidate.add(networkId);
             }
-            previousNode = currentNode;
+        }
+
+        // Invalidate all affected networks once
+        for (UUID networkId : networksToInvalidate) {
+            NetworkCache cache = networkCacheById.remove(networkId);
+            if (cache != null) {
+                fowCacheById.remove(networkId);
+                for (Long pos : cache.nodePositions()) {
+                    nodeToNetworkId.remove(pos.longValue());
+                }
+                try {
+                    ServerMapCache.invalidate(networkId);
+                } catch (Exception e) {
+                    ViaRomana.LOGGER.warn("Failed to invalidate ServerMapCache for network {}: {}", networkId, e.getMessage());
+                }
+            }
+        }
+
+        // Connect the nodes
+        for (int i = 1; i < pathNodes.size(); i++) {
+            pathNodes.get(i - 1).connect(pathNodes.get(i));
         }
     }
-    
+
+    /**
+     * Creates or updates a pseudonetwork for temporary charting paths.
+     */
+    public void createOrUpdatePseudoNetwork(UUID pseudoNetworkId, List<Node.NodeData> tempNodes) {
+        if (tempNodes == null || tempNodes.size() < 2) return;
+
+        NetworkCache existing = networkCacheById.remove(pseudoNetworkId);
+        if (existing != null) {
+            for (long pos : existing.nodePositions) {
+                nodeToNetworkId.remove(pos);
+            }
+            fowCacheById.remove(pseudoNetworkId);
+        }
+
+        Set<Long> nodePositions = tempNodes.stream()
+            .map(nodeData -> nodeData.pos().asLong())
+            .collect(Collectors.toSet());
+
+        List<BlockPos> posList = tempNodes.stream()
+            .map(Node.NodeData::pos)
+            .collect(Collectors.toList());
+
+        int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE;
+        int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE, maxZ = Integer.MIN_VALUE;
+        for (BlockPos pos : posList) {
+            minX = Math.min(minX, pos.getX());
+            minY = Math.min(minY, pos.getY());
+            minZ = Math.min(minZ, pos.getZ());
+            maxX = Math.max(maxX, pos.getX());
+            maxY = Math.max(maxY, pos.getY());
+            maxZ = Math.max(maxZ, pos.getZ());
+        }
+        BoundingBox bounds = new BoundingBox(minX, minY, minZ, maxX, maxY, maxZ);
+
+        NetworkCache pseudoCache = new NetworkCache(
+            pseudoNetworkId,
+            nodePositions,
+            bounds,
+            List.of()
+        );
+
+        networkCacheById.put(pseudoNetworkId, pseudoCache);
+
+        for (long pos : nodePositions) {
+            nodeToNetworkId.put(pos, pseudoNetworkId);
+        }
+
+        ViaRomana.LOGGER.debug("Created/updated pseudonetwork {} with {} nodes", pseudoNetworkId, tempNodes.size());
+    }
+
     //endregion
 
     // region Node Removal
@@ -300,22 +382,19 @@ public final class PathGraph {
         removeNode(node.getBlockPos());
     }
     
-    public boolean removeNode(BlockPos pos) {
+    public void removeNode(BlockPos pos) {
         long packedPos = pos.asLong();
         int idx = posToIndex.getOrDefault(packedPos, -1);
-        if (idx == -1) return false;
+        if (idx == -1) return;
 
         Node removedNode = nodes.get(idx);
 
-        // Invalidate the network this node belongs to BEFORE modifying connections.
         invalidateNetworksContaining(removedNode);
 
-        // Disconnect from neighbors
         for (long neighborPos : removedNode.getConnectedNodes()) {
             getNodeAt(BlockPos.of(neighborPos)).ifPresent(neighbor -> neighbor.removeConnection(packedPos));
         }
 
-        // Efficiently remove from the list by swapping with the last element
         int lastIdx = nodes.size() - 1;
         Node lastNode = nodes.get(lastIdx);
         nodes.set(idx, lastNode);
@@ -324,13 +403,10 @@ public final class PathGraph {
         posToIndex.remove(packedPos);
         removedNode.getSignPos().ifPresent(signPos -> signPosToIndex.remove(signPos.longValue()));
 
-        // If we moved a node, update its index in the map
         if (idx < lastIdx) {
             posToIndex.put(lastNode.getPos(), idx);
             lastNode.getSignPos().ifPresent(signPos -> signPosToIndex.put(signPos.longValue(), idx));
         }
-
-        return true;
     }
 
     public Optional<NetworkCache> removeBranch(Node startNode) {
@@ -357,7 +433,7 @@ public final class PathGraph {
     }
     
     /**
-     * A simplified removal method for use when connections are already handled.
+     * A removal method for use when connections are already handled.
      */
     private void removeNodeWithoutNeighborUpdates(Node node) {
         long packedPos = node.getPos();
@@ -580,21 +656,57 @@ public final class PathGraph {
         return result;
     }
 
-    public FoWCache getOrComputeFoWCache(NetworkCache cache) {
-        return fowCacheById.computeIfAbsent(cache.id(), id -> {
-            int widthW = cache.bounds.maxX - cache.bounds.minX;
-            int heightW = cache.bounds.maxZ - cache.bounds.minZ;
-            int padX = Math.max(ServerMapUtils.MAP_BOUNDS_MIN_PADDING, (int) (widthW * ServerMapUtils.MAP_BOUNDS_PADDING_PERCENTAGE));
-            int padZ = Math.max(ServerMapUtils.MAP_BOUNDS_MIN_PADDING, (int) (heightW * ServerMapUtils.MAP_BOUNDS_PADDING_PERCENTAGE));
-            BlockPos paddedMin = new BlockPos(cache.bounds.minX - padX, cache.bounds.minY, cache.bounds.minZ - padZ);
-            BlockPos paddedMax = new BlockPos(cache.bounds.maxX + padX, cache.bounds.maxY, cache.bounds.maxZ + padZ);
+    /**
+     * Gets or computes the Fog-of-War cache for a given network, calculating it if not already present.
+     * This includes determining the bounding box and allowed chunks for the network's nodes.
+     * 
+     * @param network The network for which to get or compute the FoW cache.
+     * @return The FoWCache object containing the calculated data, or null if the network has no nodes.
+     */
+    public FoWCache getOrComputeFoWCache(NetworkCache network) {
+        boolean isPseudo = ServerMapCache.isPseudoNetwork(network.id());
+        return fowCacheById.computeIfAbsent(network.id(), id -> calculateFoWData(network.nodePositions(), isPseudo));
+    }
 
-            ChunkPos minChunk = new ChunkPos(paddedMin);
-            ChunkPos maxChunk = new ChunkPos(paddedMax);
+    /**
+     * Calculates the Fog-of-War data for a set of node positions, determining the bounding box and allowed chunks.
+     * 
+     * @param nodeLongs A set of node positions represented as packed long values.
+     * @param isPseudo Whether this is a pseudonetwork (skips bounds filtering for full FoW coverage).
+     * @return A FoWCache object containing the calculated data, or null if input is empty.
+     */
+    public static FoWCache calculateFoWData(Set<Long> nodeLongs, boolean isPseudo) {
+        if (nodeLongs.isEmpty()) return null;
+        
+        int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE;
+        int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE, maxZ = Integer.MIN_VALUE;
+        
+        for (Long nodeLong : nodeLongs) {
+            int x = BlockPos.getX(nodeLong);
+            int y = BlockPos.getY(nodeLong);
+            int z = BlockPos.getZ(nodeLong);
 
-            Set<ChunkPos> allowed = ServerMapUtils.calculateFogOfWarChunks(cache.getNodesAsInfo(this.posToIndex, this.nodes), minChunk, maxChunk);
-            return new FoWCache(minChunk, maxChunk, allowed);
-        });
+            minX = Math.min(minX, x);
+            minY = Math.min(minY, y);
+            minZ = Math.min(minZ, z);
+            maxX = Math.max(maxX, x);
+            maxY = Math.max(maxY, y);
+            maxZ = Math.max(maxZ, z);
+        }
+        
+        int cacheWidth = maxX - minX;
+        int cacheHeight = maxZ - minZ;
+        int padding = ServerMapUtils.calculateUniformPadding(cacheWidth, cacheHeight);
+        
+        BlockPos paddedMin = new BlockPos(minX - padding, minY, minZ - padding);
+        BlockPos paddedMax = new BlockPos(maxX + padding, maxY, maxZ + padding);
+        
+        ChunkPos minChunk = new ChunkPos(paddedMin);
+        ChunkPos maxChunk = new ChunkPos(paddedMax);
+        
+        Set<ChunkPos> allowedChunks = ServerMapUtils.calculateFogOfWarChunks(nodeLongs, minChunk, maxChunk, isPseudo);
+        
+        return new FoWCache(minChunk, maxChunk, paddedMin, paddedMax, allowedChunks);
     }
 
     public List<Node> queryNearby(BlockPos center, double radius) {

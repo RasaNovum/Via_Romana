@@ -1,9 +1,10 @@
 package net.rasanovum.viaromana.command;
 
 import net.rasanovum.viaromana.path.PathGraph;
-import net.rasanovum.viaromana.storage.IPathStorage;
+import net.rasanovum.viaromana.storage.level.LevelDataManager;
+import net.rasanovum.viaromana.storage.path.PathDataManager;
+import net.rasanovum.viaromana.storage.player.PlayerData;
 import net.rasanovum.viaromana.util.PathSyncUtils;
-import net.rasanovum.viaromana.variables.VariableAccess;
 import net.rasanovum.viaromana.client.data.ClientPathData;
 import net.rasanovum.viaromana.client.gui.MapRenderer;
 import net.rasanovum.viaromana.map.ServerMapCache;
@@ -19,35 +20,43 @@ import net.minecraft.world.entity.player.Player;
 
 
 public class ViaRomanaCommands {
-    
+
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("viaromana")
-            .requires(source -> source.hasPermission(2))
-            .then(Commands.literal("nodes")
-                .then(Commands.literal("clear")
-                    .executes(ViaRomanaCommands::clearAllNodes)))
-            .then(Commands.literal("cache")
-                .then(Commands.literal("clear")
-                    .executes(ViaRomanaCommands::clearCache)))
-            .then(Commands.literal("maps")
-                .then(Commands.literal("clear")
-                    .executes(ViaRomanaCommands::clearMaps))
-                .then(Commands.literal("regenerate")
-                    .executes(ViaRomanaCommands::regenerateMaps))
-                .then(Commands.literal("save")
-                    .executes(ViaRomanaCommands::saveMaps))));
+                .requires(source -> source.hasPermission(2))
+                .then(Commands.literal("nodes")
+                        .then(Commands.literal("clear")
+                                .executes(ViaRomanaCommands::clearAllNodes)))
+                .then(Commands.literal("client")
+                        .then(Commands.literal("clear")
+                                .executes(ViaRomanaCommands::clearCache)))
+                .then(Commands.literal("maps")
+                        .then(Commands.literal("clear")
+                                .then(Commands.literal("all")
+                                    .executes(ViaRomanaCommands::clearMaps))
+                                .then(Commands.literal("biomePixels")
+                                        .executes(ViaRomanaCommands::clearBiomePixels))
+                                .then(Commands.literal("chunkPixels")
+                                        .executes(ViaRomanaCommands::clearChunkPixels)))
+                        .then(Commands.literal("regenerate")
+                                .executes(ViaRomanaCommands::regenerateMaps))
+                        .then(Commands.literal("delete")
+                                .executes(ViaRomanaCommands::deleteMaps))
+                        .then(Commands.literal("save")
+                                .executes(ViaRomanaCommands::saveMaps))));
     }
-    
+
+    /**
+    * Removes all nodes from Client & Server Path Graphs
+     */
     private static int clearAllNodes(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         CommandSourceStack source = context.getSource();
 
         for (Player player : source.getLevel().players()) {
-            VariableAccess.playerVariables.setChartingPath(player, false);
-            VariableAccess.playerVariables.syncAndSave(player);
+            PlayerData.setChartingPath(player, false);
         }
 
-        IPathStorage storage = IPathStorage.get(source.getLevel());
-        PathGraph graph = storage.graph();
+        PathGraph graph = PathGraph.getInstance(source.getLevel());
         
         int nodeCount = graph.size();
         
@@ -56,53 +65,114 @@ public class ViaRomanaCommands {
         ClientPathData.getInstance().clearData();
         PathSyncUtils.syncPathGraphToAllPlayers(source.getLevel());
 
-        storage.setDirty();
+        PathDataManager.markDirty(source.getLevel());
         
         source.sendSuccess(() -> Component.literal("Cleared " + nodeCount + " nodes"), true);
         return nodeCount;
     }
 
+    /**
+    * Clears Client Path Graph data
+     */
     private static int clearCache(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         CommandSourceStack source = context.getSource();
 
-        if (source.getLevel().isClientSide()) {
-            ClientPathData.getInstance().clearData();
-            MapRenderer.clearCache();
-        }
+        if (source.getLevel().isClientSide()) ClientPathData.getInstance().clearData();
         
         PathSyncUtils.syncPathGraphToPlayer(source.getPlayerOrException());
-        ServerMapCache.clear();
 
-        // VariableAccess.playerVariables.setReceivedTutorial(source.getPlayerOrException(), false);
+        // PlayerData.setReceivedTutorial(source.getPlayerOrException(), false);
 
         source.sendSuccess(() -> Component.literal("Cleared all Via Romana caches"), true);
         return 1;
     }
 
     /**
-     * Clears only the map caches (server and client map renderers)
+     * Clears map caches (server, client) and chunk image data
      */
     private static int clearMaps(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         CommandSourceStack source = context.getSource();
+
+        source.sendSuccess(() -> Component.literal("Clearing level chunk data..."), false);
+        LevelDataManager.clearAllPixelBytes(source.getLevel());
+        LevelDataManager.clearAllCornerBytes(source.getLevel());
+
         ServerMapCache.clear();
         ServerMapCache.deleteAllMapsFromDisk();
         if (source.getLevel().isClientSide()) MapRenderer.clearCache();
-        source.sendSuccess(() -> Component.literal("Cleared Via Romana map cache"), true);
+        
+        source.sendSuccess(() -> Component.literal("Cleared Via Romana maps and chunk images"), true);
         return 1;
     }
 
     /**
-     * Immediately processes any queued/dirty networks to regenerate their maps
+     * Clears map caches (server, client) and chunk image data
+     */
+    private static int clearBiomePixels(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        CommandSourceStack source = context.getSource();
+
+        source.sendSuccess(() -> Component.literal("Clearing level biome pixel data..."), false);
+        LevelDataManager.clearAllCornerBytes(source.getLevel());
+
+        ServerMapCache.clear();
+        ServerMapCache.deleteAllMapsFromDisk();
+        if (source.getLevel().isClientSide()) MapRenderer.clearCache();
+
+        source.sendSuccess(() -> Component.literal("Cleared Via Romana maps and biome images"), true);
+        return 1;
+    }
+
+    /**
+     * Clears map caches (server, client) and chunk image data
+     */
+    private static int clearChunkPixels(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        CommandSourceStack source = context.getSource();
+
+        source.sendSuccess(() -> Component.literal("Clearing level chunk pixel data..."), false);
+        LevelDataManager.clearAllPixelBytes(source.getLevel());
+
+        ServerMapCache.clear();
+        ServerMapCache.deleteAllMapsFromDisk();
+        if (source.getLevel().isClientSide()) MapRenderer.clearCache();
+
+        source.sendSuccess(() -> Component.literal("Cleared Via Romana maps and biome images"), true);
+        return 1;
+    }
+
+    /**
+     * Immediately regenerates chunk pixel data and processes dirty networks
      */
     private static int regenerateMaps(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         CommandSourceStack source = context.getSource();
+        
+        // Regenerate chunk image data
+        source.sendSuccess(() -> Component.literal("Regenerating chunk image data..."), false);
+        ServerMapCache.regenerateAllChunkPixelData();
+        
+        // Process dirty networks to regenerate maps
         ServerMapCache.processAllDirtyNetworks();
-        source.sendSuccess(() -> Component.literal("Triggered regeneration for dirty Via Romana maps"), true);
+        
+        source.sendSuccess(() -> Component.literal("Regenerated Via Romana maps"), true);
         return 1;
     }
 
     /**
-     * Saves all in-memory maps to disk
+     * Clears map caches (server, client) excluding chunk image data
+     */
+    private static int deleteMaps(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        CommandSourceStack source = context.getSource();
+
+        // Clear map caches and disk data
+        ServerMapCache.clear();
+        ServerMapCache.deleteAllMapsFromDisk();
+        if (source.getLevel().isClientSide()) MapRenderer.clearCache();
+
+        source.sendSuccess(() -> Component.literal("Cleared Via Romana maps"), true);
+        return 1;
+    }
+
+    /**
+     * Saves all cached maps to disk
      */
     private static int saveMaps(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         CommandSourceStack source = context.getSource();

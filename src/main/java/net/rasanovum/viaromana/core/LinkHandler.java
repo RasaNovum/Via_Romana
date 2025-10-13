@@ -1,12 +1,12 @@
 package net.rasanovum.viaromana.core;
 
-import net.rasanovum.viaromana.storage.IPathStorage;
+import net.rasanovum.viaromana.path.PathGraph;
+import net.rasanovum.viaromana.storage.path.PathDataManager;
 import net.rasanovum.viaromana.surveyor.ViaRomanaLandmarkManager;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.util.PathSyncUtils;
 import net.rasanovum.viaromana.util.VersionUtils;
 import net.rasanovum.viaromana.path.Node;
-import net.rasanovum.viaromana.path.PathGraph;
 import net.rasanovum.viaromana.client.data.ClientPathData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.BlockPos;
@@ -33,17 +33,16 @@ public class LinkHandler {
 
     /**
      * Gets the appropriate PathGraph for the given level.
-     * On client side, uses ClientPathData. On server side, uses IPathStorage.
+     * On client side, uses ClientPathData. On server side, uses PathDataManager.
      */
     private static PathGraph getPathGraph(LevelAccessor level) {
         if (level instanceof Level levelInstance) {
             if (levelInstance.isClientSide()) {
                 ClientPathData clientData = ClientPathData.getInstance();
-                return clientData.hasValidData() ? clientData.getGraph() : null;
+                return clientData.hasValidData() ? clientData.getGraph(levelInstance.dimension()) : null;
             } else {
                 if (levelInstance instanceof ServerLevel serverLevel) {
-                    IPathStorage storage = IPathStorage.get(serverLevel);
-                    return storage.graph();
+                    return PathGraph.getInstance(serverLevel);
                 }
             }
         }
@@ -65,8 +64,8 @@ public class LinkHandler {
             return false;
         }
 
-        IPathStorage storage = IPathStorage.get(level);
-        Optional<Node> nodeOpt = storage.graph().getNodeAt(linkData.nodePos());
+        PathGraph graph = PathGraph.getInstance(level);
+        Optional<Node> nodeOpt = graph.getNodeAt(linkData.nodePos());
 
         if (nodeOpt.isEmpty()) {
             ViaRomana.LOGGER.warn("linkSignToNode: Node not found at {}", linkData.nodePos());
@@ -75,11 +74,11 @@ public class LinkHandler {
 
         Node node = nodeOpt.get();
 
-        storage.graph().linkSignToNode(linkData.nodePos(), linkData.signPos(), linkData.linkType(), linkData.owner());
+        graph.linkSignToNode(linkData.nodePos(), linkData.signPos(), linkData.linkType(), linkData.owner());
         node.setDestinationName(linkData.destinationName());
         node.setDestinationIcon(linkData.icon());
 
-        storage.setDirty();
+        PathDataManager.markDirty(level);
         PathSyncUtils.syncPathGraphToAllPlayers(level);
 
         ViaRomanaLandmarkManager.addDestinationLandmark(level, node);
@@ -92,13 +91,13 @@ public class LinkHandler {
     public static void unlinkSignFromNode(ServerLevel level, BlockPos signPos) {
         if (!isSignBlock(level, signPos)) return;
         
-        IPathStorage storage = IPathStorage.get(level);
+        PathGraph graph = PathGraph.getInstance(level);
         
-        Optional<Node> nodeOpt = storage.graph().getNodeBySignPos(signPos);
+        Optional<Node> nodeOpt = graph.getNodeBySignPos(signPos);
         if (nodeOpt.isPresent()) {
             Node node = nodeOpt.get();
-            storage.graph().removeSignLink(signPos);
-            storage.setDirty();
+            graph.removeSignLink(signPos);
+            PathDataManager.markDirty(level);
             
             PathSyncUtils.syncPathGraphToAllPlayers(level);
             ViaRomanaLandmarkManager.removeDestinationLandmark(level, node);
@@ -111,13 +110,13 @@ public class LinkHandler {
      * Handles sign destruction - removes link from node
      */
     public static void handleSignDestruction(ServerLevel level, BlockPos signPos) {
-        IPathStorage storage = IPathStorage.get(level);
+        PathGraph graph = PathGraph.getInstance(level);
         Optional<Node> node = getLinkedNode(level, signPos);
         if (node.isPresent()) {
             Node linkedNode = node.get();
             if (linkedNode.getSignPos().isPresent() && linkedNode.getSignPos().get() == signPos.asLong()) {
-                storage.graph().removeSignLink(signPos);
-                storage.setDirty();
+                graph.removeSignLink(signPos);
+                PathDataManager.markDirty(level);
                 
                 PathSyncUtils.syncPathGraphToAllPlayers(level);
                 ViaRomanaLandmarkManager.removeDestinationLandmark(level, linkedNode);

@@ -1,7 +1,7 @@
 package net.rasanovum.viaromana.util;
 
 // import net.minecraft.world.level.block.state.BlockState;
-// import net.rasanovum.viaromana.storage.ICustomDataHolder;
+// import net.rasanovum.viaromana.storage.path.legacy.ICustomDataHolder;
 // import net.minecraft.world.level.block.entity.BlockEntity;
 // import net.minecraft.world.level.LevelAccessor;
 // import net.minecraft.server.level.ServerLevel;

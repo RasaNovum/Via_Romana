@@ -2,7 +2,6 @@ package net.rasanovum.viaromana.util;
 
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.rasanovum.viaromana.storage.IPathStorage;
 import net.rasanovum.viaromana.network.packets.PathGraphSyncPacket;
 import net.rasanovum.viaromana.path.PathGraph;
 import net.rasanovum.viaromana.ViaRomana;
@@ -19,9 +18,7 @@ public class PathSyncUtils {
      */
     public static void syncPathGraphToAllPlayers(ServerLevel level) {
         try {
-            IPathStorage storage = IPathStorage.get(level);
-            if (storage == null) return;
-            PathGraph graph = storage.graph();
+            PathGraph graph = PathGraph.getInstance(level);
 
             if (CommonConfig.enable_surveyor_landmark && CommonConfig.enable_surveyor_landmark_coloring) {
                 try {
@@ -31,7 +28,7 @@ public class PathSyncUtils {
                 }
             }
 
-            PathGraphSyncPacket packet = new PathGraphSyncPacket(graph);
+            PathGraphSyncPacket packet = new PathGraphSyncPacket(graph, level.dimension());
 
             for (ServerPlayer player : level.getPlayers(player -> true)) {
                 Dispatcher.sendToClient(packet, player);
@@ -50,13 +47,12 @@ public class PathSyncUtils {
     public static void syncPathGraphToPlayer(ServerPlayer player) {
         try {
             ServerLevel level = player.serverLevel();
-            IPathStorage storage = IPathStorage.get(level);
-            if (storage == null) return;
-            
-            PathGraphSyncPacket packet = new PathGraphSyncPacket(storage.graph());
+            PathGraph graph = PathGraph.getInstance(level);
+
+            PathGraphSyncPacket packet = new PathGraphSyncPacket(graph, level.dimension());
             Dispatcher.sendToClient(packet, player);
             
-            ViaRomana.LOGGER.debug("Synced PathGraph with {} nodes to player {}", storage.graph().size(), player.getName().getString());
+            ViaRomana.LOGGER.info("Synced PathGraph with {} nodes to player {}", graph.size(), player.getName().getString());
                 
         } catch (Exception e) {
             ViaRomana.LOGGER.error("Failed to sync PathGraph to player " + player.getName().getString(), e);

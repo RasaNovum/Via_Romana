@@ -1,14 +1,13 @@
 package net.rasanovum.viaromana.network.packets;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.BlockPos;
 //? if >=1.21 {
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 //?}
 import net.rasanovum.viaromana.path.PathGraph;
-import net.rasanovum.viaromana.storage.IPathStorage;
 import net.rasanovum.viaromana.util.VersionUtils;
 import commonnetwork.networking.data.PacketContext;
 import commonnetwork.networking.data.Side;
@@ -55,8 +54,8 @@ public record SignValidationRequestC2S(BlockPos nodePos) implements CustomPacket
             net.minecraft.server.level.ServerLevel level = ctx.sender().serverLevel();
             BlockPos nodePos = ctx.message().nodePos();
             
-            IPathStorage storage = IPathStorage.get(level);
-            boolean isValid = storage.graph().getNodeAt(nodePos).isPresent();
+            PathGraph graph = PathGraph.getInstance(level);
+            boolean isValid = graph.getNodeAt(nodePos).isPresent();
             
             SignValidationResponseS2C response = new SignValidationResponseS2C(nodePos, isValid);
             Dispatcher.sendToClient(response, ctx.sender());

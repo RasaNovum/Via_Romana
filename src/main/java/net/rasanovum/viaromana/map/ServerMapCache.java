@@ -1,19 +1,16 @@
 package net.rasanovum.viaromana.map;
 
-import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.LevelResource;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.path.PathGraph;
-import net.rasanovum.viaromana.surveyor.SurveyorUtil;
+import net.rasanovum.viaromana.storage.level.LevelDataManager;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,6 +27,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -41,14 +39,14 @@ import java.util.stream.Collectors;
  * saving and lazy-loading map data to/from disk.
  */
 public final class ServerMapCache {
-
-    private static final String MAP_DIR_NAME = "via_romana/network_images";
+    private static final String MAP_DIR_NAME = "data/via_romana/network";
     private static final Map<UUID, MapInfo> cache = new ConcurrentHashMap<>();
     private static final Map<UUID, Set<ChunkPos>> dirtyNetworks = new ConcurrentHashMap<>();
-    private static final Map<ResourceKey<Level>, Set<ChunkPos>> scannedChunksByLevel = new ConcurrentHashMap<>();
     private static final Set<UUID> modifiedForSaving = ConcurrentHashMap.newKeySet();
+    private static final Set<UUID> pseudoNetworkIds = ConcurrentHashMap.newKeySet();
 
     private static ScheduledExecutorService scheduler;
+    private static ExecutorService mapBakingExecutor;
     private static MinecraftServer minecraftServer;
 
     private ServerMapCache() {}
@@ -58,6 +56,7 @@ public final class ServerMapCache {
         shutdown();
 
         scheduler = Executors.newScheduledThreadPool(2);
+        mapBakingExecutor = Executors.newFixedThreadPool(Math.max(1, Runtime.getRuntime().availableProcessors() / 4));
         ViaRomana.LOGGER.info("Starting Via Romana schedulers...");
 
         scheduler.scheduleAtFixedRate(
@@ -66,6 +65,7 @@ public final class ServerMapCache {
                 CommonConfig.map_refresh_interval,
                 TimeUnit.SECONDS
         );
+
         ViaRomana.LOGGER.debug("Scheduled map reprocessing every {} seconds.", CommonConfig.map_refresh_interval);
 
         scheduler.scheduleAtFixedRate(
@@ -74,6 +74,7 @@ public final class ServerMapCache {
                 CommonConfig.map_save_interval,
                 TimeUnit.MINUTES
         );
+
         ViaRomana.LOGGER.debug("Scheduled map saving every {} minutes.", CommonConfig.map_save_interval);
     }
 
@@ -88,17 +89,74 @@ public final class ServerMapCache {
                 scheduler.shutdownNow();
                 Thread.currentThread().interrupt();
             }
+        }
+        if (mapBakingExecutor != null && !mapBakingExecutor.isShutdown()) {
+            mapBakingExecutor.shutdown();
+            try {
+                if (!mapBakingExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                    mapBakingExecutor.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                mapBakingExecutor.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
+        }
+        if ((scheduler != null && scheduler.isShutdown()) || (mapBakingExecutor != null && mapBakingExecutor.isShutdown())) {
             ViaRomana.LOGGER.info("Via Romana schedulers shut down.");
         }
     }
 
+    /**
+     * Returns the executor service used for async map baking tasks.
+     * @return The map baking executor, or null if not initialized
+     */
+    public static ExecutorService getMapBakingExecutor() {
+        return mapBakingExecutor;
+    }
+
+    /**
+     * Generates a deterministic pseudonetwork ID for a player.
+     * Each player gets one pseudonetwork ID that persists during their charting session.
+     */
+    public static UUID getPseudoNetworkId(UUID playerUUID) {
+        String pseudoKey = "pseudonet_" + playerUUID.toString();
+        return UUID.nameUUIDFromBytes(pseudoKey.getBytes());
+    }
+
+    /**
+     * Marks a network ID as a pseudonetwork (temporary charting network).
+     */
+    public static void markAsPseudoNetwork(UUID networkId) {
+        pseudoNetworkIds.add(networkId);
+        ViaRomana.LOGGER.debug("Marked network {} as pseudonetwork", networkId);
+    }
+
+    /**
+     * Invalidates and removes a pseudonetwork.
+     * Called when charting is completed or cancelled.
+     */
+    public static void invalidatePseudoNetwork(UUID networkId) {
+        if (pseudoNetworkIds.remove(networkId)) {
+            invalidate(networkId);
+            ViaRomana.LOGGER.debug("Invalidated pseudonetwork {}", networkId);
+        }
+    }
+
+    /**
+     * Checks if a given network ID is a pseudonetwork.
+     */
+    public static boolean isPseudoNetwork(UUID networkId) {
+        return pseudoNetworkIds.contains(networkId);
+    }
+
+    /**
+     * Marks a chunk as dirty for all networks it belongs to.
+     */
     public static void markChunkDirty(ServerLevel level, ChunkPos pos) {
-        boolean isNewChunkThisCycle = scannedChunksByLevel.computeIfAbsent(level.dimension(), k -> ConcurrentHashMap.newKeySet()).add(pos);
-
-        if (!isNewChunkThisCycle) return;
-
         PathGraph graph = PathGraph.getInstance(level);
         if (graph == null) return;
+
+        LevelDataManager.clearPixelBytes(level, pos);
 
         graph.findNetworksForChunk(pos).forEach(network -> {
             UUID networkId = network.id();
@@ -107,26 +165,19 @@ public final class ServerMapCache {
     }
 
     public static void processAllDirtyNetworks() {
-        if (!scannedChunksByLevel.isEmpty()) {
-            Map<ResourceKey<Level>, Set<ChunkPos>> chunksToScan = new ConcurrentHashMap<>(scannedChunksByLevel);
-            scannedChunksByLevel.clear();
-            chunksToScan.forEach((levelKey, chunks) -> {
-                ServerLevel level = minecraftServer.getLevel(levelKey);
-                if (level != null) {
-                    minecraftServer.execute(() -> chunks.forEach(chunkPos -> SurveyorUtil.refreshChunkTerrain(level, chunkPos)));
-                }
-            });
-        }
-        
         if (dirtyNetworks.isEmpty()) {
             return;
         }
 
+        // Snapshot all dirty networks and clear the map
         Map<UUID, Set<ChunkPos>> toProcess = new ConcurrentHashMap<>(dirtyNetworks);
         dirtyNetworks.clear();
 
-        ViaRomana.LOGGER.debug("Processing {} dirty networks in scheduled update batch.", toProcess.size());
+        int totalDirtyChunks = toProcess.values().stream().mapToInt(Set::size).sum();
+        ViaRomana.LOGGER.info("[PERF] Processing {} dirty networks ({} total dirty chunks) - batched update", 
+            toProcess.size(), totalDirtyChunks);
 
+        // Process each network (full rebake is fast with raw pixels)
         toProcess.forEach((networkId, chunks) -> {
             if (chunks != null && !chunks.isEmpty()) {
                 minecraftServer.execute(() -> updateOrGenerateMapAsync(networkId, chunks));
@@ -145,25 +196,29 @@ public final class ServerMapCache {
                         return CompletableFuture.<MapInfo>completedFuture(null);
                     }
 
-                    return CompletableFuture.supplyAsync(() -> {
-                        MapBakeWorker worker = new MapBakeWorker();
-                        MapInfo previousResult = cache.get(networkId);
-                        MapInfo newResult;
+                    MapInfo previousResult = cache.get(networkId);
 
-                        if (previousResult != null && previousResult.hasImageData()) {
-                            ViaRomana.LOGGER.debug("Performing incremental update for network {}.", networkId);
-                            newResult = worker.updateMap(previousResult, new HashSet<>(chunksToUpdate), level, network);
-                        } else {
-                            ViaRomana.LOGGER.debug("Performing full bake for network {}.", networkId);
-                            if (graph != null) graph.getNodesAsInfo(network).forEach(node -> SurveyorUtil.refreshChunkTerrain(level, new ChunkPos(node.position)));
-                            newResult = worker.bake(networkId, level, network.getMin(), network.getMax(), graph.getNodesAsInfo(network));
-                        }
-
+                    CompletableFuture<MapInfo> bakeFuture;
+                    
+                    if (previousResult != null && previousResult.hasImageData()) {
+                        ViaRomana.LOGGER.debug("Performing incremental update for network {}.", networkId);
+                        bakeFuture = CompletableFuture.supplyAsync(() -> {
+                            MapBaker worker = new MapBaker();
+                            return worker.updateMap(previousResult, new HashSet<>(chunksToUpdate), level);
+                        }, mapBakingExecutor);
+                    } else {
+                        ViaRomana.LOGGER.debug("Performing full bake for network {}.", networkId);
+                        bakeFuture = MapBaker.bakeAsync(networkId, level, mapBakingExecutor);
+                    }
+                    
+                    return bakeFuture.thenApply(newResult -> {
                         cache.put(networkId, newResult);
-                        modifiedForSaving.add(networkId);
+                        if (!isPseudoNetwork(networkId)) {
+                            modifiedForSaving.add(networkId);
+                        }
                         ViaRomana.LOGGER.debug("Map update completed for network {}.", networkId);
                         return newResult;
-                    }, minecraftServer).exceptionally(ex -> {
+                    }).exceptionally(ex -> {
                         ViaRomana.LOGGER.error("Failed during map update for network {}", networkId, ex);
                         return null;
                     });
@@ -186,9 +241,7 @@ public final class ServerMapCache {
 
     public static Optional<MapInfo> getMapData(UUID networkId) {
         MapInfo result = cache.get(networkId);
-        if (result != null) {
-            return Optional.of(result);
-        }
+        if (result != null) return Optional.of(result);
         return loadFromDisk(networkId);
     }
 
@@ -201,8 +254,6 @@ public final class ServerMapCache {
                     if (graph != null) {
                         PathGraph.NetworkCache network = graph.getNetworkCache(networkId);
                         if (network != null) {
-                            graph.getNodesAsInfo(network).forEach(node -> SurveyorUtil.refreshChunkTerrain(level, new ChunkPos(node.position)));
-                            
                             Set<ChunkPos> allChunks = graph.getNodesAsInfo(network).stream()
                                     .map(node -> new ChunkPos(node.position))
                                     .collect(Collectors.toSet());
@@ -215,32 +266,62 @@ public final class ServerMapCache {
     }
 
     private static Optional<MapInfo> loadFromDisk(UUID networkId) {
+        long startTime = System.nanoTime();
         try {
             Path mapDir = getMapDirectory();
             String base = "network-" + networkId;
-            Path pngPath = mapDir.resolve(base + ".png");
             Path metaPath = mapDir.resolve(base + ".nbt");
-            byte[] png;
+            Path biomePixelsPath = mapDir.resolve(base + "-biome.pixels");
+            Path chunkPixelsPath = mapDir.resolve(base + "-chunk.pixels");
+            
             CompoundTag tag;
+            byte[] biomePixels = null;
+            byte[] chunkPixels = null;
 
-            try (InputStream pngStream = Files.newInputStream(pngPath);
-                InputStream metaStream = Files.newInputStream(metaPath)) {
-                png = pngStream.readAllBytes();
+            try (InputStream metaStream = Files.newInputStream(metaPath)) {
                 //? if <1.21 {
                 /*tag = NbtIo.readCompressed(metaStream);
-                *///?} else {
+                 *///?} else {
                 tag = NbtIo.readCompressed(metaStream, new NbtAccounter(Long.MAX_VALUE, Integer.MAX_VALUE));
                 //?}
             } catch (NoSuchFileException e) {
                 return Optional.empty();
             }
 
-            BlockPos min = BlockPos.of(tag.getLong("min"));
-            BlockPos max = BlockPos.of(tag.getLong("max"));
-            int scale = tag.getInt("scale");
+            int scaleFactor = tag.getInt("scale");
+            int pixelWidth = tag.getInt("pixelWidth");
+            int pixelHeight = tag.getInt("pixelHeight");
+            int worldMinX = tag.getInt("worldMinX");
+            int worldMinZ = tag.getInt("worldMinZ");
+            int worldMaxX = tag.getInt("worldMaxX");
+            int worldMaxZ = tag.getInt("worldMaxZ");
 
-            MapInfo info = MapInfo.fromServerCache(networkId, min, max, List.of(), png, scale, List.of());
+            if (Files.exists(biomePixelsPath)) {
+                try (InputStream pixelsStream = Files.newInputStream(biomePixelsPath)) {
+                    biomePixels = pixelsStream.readAllBytes();
+                } catch (IOException e) {
+                    ViaRomana.LOGGER.error("Failed to load biome pixels for {}", networkId, e);
+                    return Optional.empty();
+                }
+            } else {
+                ViaRomana.LOGGER.warn("No biome pixel data found for network {}", networkId);
+                return Optional.empty();
+            }
+
+            if (Files.exists(chunkPixelsPath)) {
+                try (InputStream pixelsStream = Files.newInputStream(chunkPixelsPath)) {
+                    chunkPixels = pixelsStream.readAllBytes();
+                } catch (IOException e) {
+                    ViaRomana.LOGGER.warn("Failed to load chunk pixels for {} (optional)", networkId, e);
+                }
+            }
+
+            MapInfo info = MapInfo.fromServer(networkId, biomePixels, chunkPixels, pixelWidth, pixelHeight, scaleFactor,
+                worldMinX, worldMinZ, worldMaxX, worldMaxZ, List.of(), List.of());
             cache.put(networkId, info);
+            long loadTime = System.nanoTime() - startTime;
+            ViaRomana.LOGGER.info("[PERF] Loaded map {} from disk: {}ms, biomeSize={}KB, chunkSize={}KB", 
+                networkId, loadTime / 1_000_000.0, biomePixels.length / 1024.0, chunkPixels != null ? chunkPixels.length / 1024.0 : 0);
             return Optional.of(info);
 
         } catch (IOException e) {
@@ -259,7 +340,8 @@ public final class ServerMapCache {
             String base = "network-" + networkId;
             boolean pngDeleted = Files.deleteIfExists(mapDir.resolve(base + ".png"));
             boolean nbtDeleted = Files.deleteIfExists(mapDir.resolve(base + ".nbt"));
-            if (pngDeleted || nbtDeleted) {
+            boolean pixelsDeleted = Files.deleteIfExists(mapDir.resolve(base + ".pixels"));
+            if (pngDeleted || nbtDeleted || pixelsDeleted) {
                 ViaRomana.LOGGER.debug("Deleted map files from disk for network {}", networkId);
             }
         } catch (IOException e) {
@@ -271,7 +353,7 @@ public final class ServerMapCache {
         cache.clear();
         dirtyNetworks.clear();
         modifiedForSaving.clear();
-        scannedChunksByLevel.clear();
+        pseudoNetworkIds.clear();
     }
 
     public static void saveAllToDisk(boolean forceSave) {
@@ -280,47 +362,64 @@ public final class ServerMapCache {
         }
 
         Set<UUID> networksToSave = forceSave ? new HashSet<>(cache.keySet()) : new HashSet<>(modifiedForSaving);
+        networksToSave.removeAll(pseudoNetworkIds);
+        
         if (networksToSave.isEmpty()) return;
 
+        long startTime = System.nanoTime();
         ViaRomana.LOGGER.debug("Saving {} maps to disk...", networksToSave.size());
 
         try {
             Path mapDir = getMapDirectory();
             Files.createDirectories(mapDir);
             int savedCount = 0;
+            long totalBytes = 0;
 
             for (UUID id : networksToSave) {
                 MapInfo info = cache.get(id);
 
-                if (info == null || !info.hasImageData()) {
+                if (info == null || info.biomePixels() == null || info.pixelWidth() == 0 || info.pixelHeight() == 0) {
                     invalidate(id);
                     continue;
                 }
 
                 String base = "network-" + id;
-                Path pngPath = mapDir.resolve(base + ".png");
                 Path nbtPath = mapDir.resolve(base + ".nbt");
+                Path biomePixelsPath = mapDir.resolve(base + "-biome.pixels");
+                Path chunkPixelsPath = mapDir.resolve(base + "-chunk.pixels");
 
                 CompoundTag tag = new CompoundTag();
-                tag.putLong("min", info.minBounds().asLong());
-                tag.putLong("max", info.maxBounds().asLong());
-                tag.putInt("scale", info.bakeScaleFactor());
+                tag.putInt("scale", info.scaleFactor());
+                tag.putInt("pixelWidth", info.pixelWidth());
+                tag.putInt("pixelHeight", info.pixelHeight());
+                tag.putInt("worldMinX", info.worldMinX());
+                tag.putInt("worldMinZ", info.worldMinZ());
+                tag.putInt("worldMaxX", info.worldMaxX());
+                tag.putInt("worldMaxZ", info.worldMaxZ());
                 if (info.createdAtMs() != null) {
                     tag.putLong("createdAt", info.createdAtMs());
                 }
 
-                try (OutputStream pngOut = Files.newOutputStream(pngPath);
-                     OutputStream nbtOut = Files.newOutputStream(nbtPath)) {
-                    pngOut.write(info.pngData());
+                try (OutputStream nbtOut = Files.newOutputStream(nbtPath);
+                     OutputStream biomePixelsOut = Files.newOutputStream(biomePixelsPath);
+                     OutputStream chunkPixelsOut = Files.newOutputStream(chunkPixelsPath)) {
                     NbtIo.writeCompressed(tag, nbtOut);
+                    biomePixelsOut.write(info.biomePixels());
+                    if (info.chunkPixels() != null) {
+                        chunkPixelsOut.write(info.chunkPixels());
+                    }
+                    
                     savedCount++;
+                    totalBytes += info.biomePixels().length + (info.chunkPixels() != null ? info.chunkPixels().length : 0);
                 } catch (IOException e) {
                     ViaRomana.LOGGER.error("Failed to write map files for network {}", id, e);
                 }
             }
 
+            long saveTime = System.nanoTime() - startTime;
             if (savedCount > 0) {
-                ViaRomana.LOGGER.debug("Saved {} modified maps to disk.", savedCount);
+                ViaRomana.LOGGER.info("[PERF] Saved {} maps to disk: {}ms, total={}KB, avg={}KB/map", 
+                    savedCount, saveTime / 1_000_000.0, totalBytes / 1024.0, (totalBytes / savedCount) / 1024.0);
             }
             modifiedForSaving.removeAll(networksToSave);
 
@@ -336,8 +435,8 @@ public final class ServerMapCache {
             if (Files.exists(mapDir)) {
                 try (var stream = Files.walk(mapDir)) {
                     stream.sorted(java.util.Comparator.reverseOrder())
-                          .map(Path::toFile)
-                          .forEach(java.io.File::delete);
+                            .map(Path::toFile)
+                            .forEach(java.io.File::delete);
                 }
                 ViaRomana.LOGGER.debug("Deleted all map files from disk.");
             }
@@ -346,10 +445,44 @@ public final class ServerMapCache {
         }
     }
 
+    /**
+     * Regenerates chunk pixel data for all dirty networks.
+     */
+    public static void regenerateAllChunkPixelData() {
+        long startTime = System.nanoTime();
+        int totalChunks = 0;
+        
+        for (ServerLevel level : minecraftServer.getAllLevels()) {
+            PathGraph graph = PathGraph.getInstance(level);
+            if (graph == null) continue;
+
+            Set<ChunkPos> allChunks = new HashSet<>();
+            for (Map.Entry<UUID, Set<ChunkPos>> entry : dirtyNetworks.entrySet()) {
+                UUID networkId = entry.getKey();
+                PathGraph.NetworkCache network = graph.getNetworkCache(networkId);
+                if (network != null) {
+                    PathGraph.FoWCache fowCache = graph.getOrComputeFoWCache(network);
+                    if (fowCache != null) {
+                        allChunks.addAll(fowCache.allowedChunks());
+                    }
+                }
+            }
+            
+            if (!allChunks.isEmpty()) {
+                LevelDataManager.regeneratePixelBytesForChunks(level, allChunks);
+                totalChunks += allChunks.size();
+            }
+        }
+        
+        long totalTime = System.nanoTime() - startTime;
+        ViaRomana.LOGGER.info("[PERF] Regenerated all chunk pixel data: {} chunks in {}ms", 
+            totalChunks, totalTime / 1_000_000.0);
+    }
+
     private static Path getMapDirectory() {
         return minecraftServer.getWorldPath(LevelResource.ROOT).resolve(MAP_DIR_NAME);
     }
-    
+
     private static void runSafe(Runnable task, String errorMessage) {
         try {
             task.run();

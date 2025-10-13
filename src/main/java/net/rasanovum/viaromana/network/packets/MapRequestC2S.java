@@ -35,14 +35,10 @@ public record MapRequestC2S(MapInfo mapInfo) implements CustomPacketPayload {
 
     public static final StreamCodec<FriendlyByteBuf, MapRequestC2S> STREAM_CODEC = new StreamCodec<>() {
         @Override
-        public MapRequestC2S decode(FriendlyByteBuf buffer) {
-            return new MapRequestC2S(MapInfo.readFromBuffer(buffer));
-        }
+        public void encode(FriendlyByteBuf buffer, MapRequestC2S packet) { packet.mapInfo.writeToBuffer(buffer); }
 
         @Override
-        public void encode(FriendlyByteBuf buffer, MapRequestC2S packet) {
-            packet.mapInfo.writeToBuffer(buffer);
-        }
+        public MapRequestC2S decode(FriendlyByteBuf buffer) { return new MapRequestC2S(MapInfo.readFromBuffer(buffer)); }
     };
     //?}
 
@@ -67,10 +63,7 @@ public record MapRequestC2S(MapInfo mapInfo) implements CustomPacketPayload {
 
     // Getters
     public UUID getNetworkId() { return mapInfo.networkId(); }
-    public BlockPos getMinBounds() { return mapInfo.minBounds(); }
-    public BlockPos getMaxBounds() { return mapInfo.maxBounds(); }
     public List<NodeNetworkInfo> getNetworkNodes() { return mapInfo.networkNodes(); }
-
     public MapInfo getMapInfo() { return mapInfo; }
 
     public static void handle(PacketContext<MapRequestC2S> ctx) {

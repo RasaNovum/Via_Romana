@@ -7,6 +7,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -21,8 +22,9 @@ import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.items.ChartingMap;
 import net.rasanovum.viaromana.path.Node;
 import net.rasanovum.viaromana.path.PathGraph;
+import net.rasanovum.viaromana.storage.player.PlayerData;
 import net.rasanovum.viaromana.util.VersionUtils;
-import net.rasanovum.viaromana.variables.VariableAccess;
+
 import org.joml.Matrix4f;
 
 import java.util.*;
@@ -100,7 +102,7 @@ public class NodeRenderer {
 
         updateAnimationTimer();
         
-        boolean shouldRender = VariableAccess.playerVariables.isChartingPath(player) || player.getMainHandItem().getItem() instanceof ChartingMap || player.getOffhandItem().getItem() instanceof ChartingMap;
+        boolean shouldRender = PlayerData.isChartingPath(player) || player.getMainHandItem().getItem() instanceof ChartingMap || player.getOffhandItem().getItem() instanceof ChartingMap;
         updateGlobalAlpha(shouldRender);
 
         if (globalRenderAlpha <= 0.0f) {
@@ -113,9 +115,9 @@ public class NodeRenderer {
         Vec3 cameraPos = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
         Vec3 playerPos = player.position();
         
-        List<NodeRenderData> nodeDataList = gatherRenderData(clientLevel, playerPos);
+        List<NodeRenderData> nodeDataList = gatherRenderData(clientLevel, playerPos, level.dimension());
         
-        BlockPos selectedNodePos = findAndSetSelectedNode(player, nodeDataList);
+        BlockPos selectedNodePos = findAndSetSelectedNode(player, nodeDataList, level.dimension());
         updateAnimatedAlphas(selectedNodePos);
         currentVignetteIntensity = calculateMaxVignette(nodeDataList);
         
@@ -140,7 +142,7 @@ public class NodeRenderer {
 
         bufferSource.endBatch(getRenderType());
 
-        PathGraph graph = ClientPathData.getInstance().getGraph();
+        PathGraph graph = ClientPathData.getInstance().getGraph(level.dimension());
         if (graph != null && !graph.nodesView().isEmpty()) {
             NodeConnectionRenderer.renderConnections(poseStack, clientLevel, player, graph, animationTime, bufferSource, globalRenderAlpha);
         }
@@ -163,11 +165,11 @@ public class NodeRenderer {
     }
 
     // Gathers all visible nodes and pre-calculates their expensive data.
-    private static List<NodeRenderData> gatherRenderData(ClientLevel level, Vec3 playerPos) {
+    private static List<NodeRenderData> gatherRenderData(ClientLevel level, Vec3 playerPos, ResourceKey<Level> dimension) {
         List<NodeRenderData> dataList = new ArrayList<>();
         double searchRadius = RENDER_DISTANCE + FADE_BUFFER_DISTANCE;
 
-        if (VariableAccess.playerVariables.isChartingPath(Minecraft.getInstance().player)) {
+        if (PlayerData.isChartingPath(Minecraft.getInstance().player)) {
             ClientPathData.getInstance().getTemporaryNodes().stream()
                 .map(nodeData -> {
                     double adjY = RenderUtil.findSuitableYPosition(level, nodeData.pos(), 0.25f);
@@ -178,9 +180,9 @@ public class NodeRenderer {
                 .forEach(dataList::add);
         }
 
-        PathGraph graph = ClientPathData.getInstance().getGraph();
+        PathGraph graph = ClientPathData.getInstance().getGraph(dimension);
         if (graph != null) {
-            ClientPathData.getInstance().getNearbyNodes(BlockPos.containing(playerPos), searchRadius, false).stream()
+            ClientPathData.getInstance().getNearbyNodes(BlockPos.containing(playerPos), searchRadius, false, dimension).stream()
                 .map(node -> {
                     BlockPos pos = BlockPos.of(node.getPos());
                     double adjY = RenderUtil.findSuitableYPosition(level, pos, 0.25f);
@@ -193,7 +195,7 @@ public class NodeRenderer {
         return dataList;
     }
     
-    private static BlockPos findAndSetSelectedNode(Player player, List<NodeRenderData> nodeDataList) {
+    private static BlockPos findAndSetSelectedNode(Player player, List<NodeRenderData> nodeDataList, net.minecraft.resources.ResourceKey<net.minecraft.world.level.Level> dimension) {
         ClientPathData clientPathData = ClientPathData.getInstance();
         Node nodeOpt = clientPathData.getNearestNode(player.blockPosition(), getPulseDistance(), false).orElse(null);
         return nodeOpt != null ? nodeOpt.getBlockPos() : null;

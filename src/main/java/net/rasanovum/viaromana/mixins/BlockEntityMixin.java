@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.Mixin;
 
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.rasanovum.viaromana.storage.ICustomDataHolder;
+import net.rasanovum.viaromana.storage.path.legacy.ICustomDataHolder;
 import net.minecraft.nbt.CompoundTag;
 //? if >1.21
 import net.minecraft.core.HolderLookup;

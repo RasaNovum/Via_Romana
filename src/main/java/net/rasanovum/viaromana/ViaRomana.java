@@ -1,24 +1,24 @@
 package net.rasanovum.viaromana;
 
 import eu.midnightdust.lib.config.MidnightConfig;
-import net.mehvahdjukaar.moonlight.api.resources.pack.DynamicDataPack;
-//? if fabric
-import folk.sisby.surveyor.WorldSummary;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.mehvahdjukaar.moonlight.api.resources.pack.DynamicDataPack;
+import net.minecraft.world.level.GameRules;
 import net.rasanovum.viaromana.command.ViaRomanaCommands;
 import net.rasanovum.viaromana.core.DimensionHandler;
-import net.rasanovum.viaromana.core.ResetVariables;
 import net.rasanovum.viaromana.init.*;
 import net.rasanovum.viaromana.map.ServerMapCache;
 import net.rasanovum.viaromana.network.PacketRegistration;
-import net.rasanovum.viaromana.network.ViaRomanaModVariables;
-import net.rasanovum.viaromana.surveyor.ViaRomanaLandmarkManager;
+import net.rasanovum.viaromana.storage.player.PlayerData;
 import net.rasanovum.viaromana.tags.ServerResourcesGenerator;
+import net.rasanovum.viaromana.teleport.ServerTeleportHandler;
+import net.rasanovum.viaromana.util.PathSyncUtils;
 import net.rasanovum.viaromana.util.VersionUtils;
 
 import org.apache.logging.log4j.LogManager;
@@ -36,8 +36,6 @@ public class ViaRomana implements ModInitializer {
         LOGGER.info("Initializing ViaRomanaMod");
 
         MidnightConfig.init(MODID, CommonConfig.class);
-        //? if fabric
-        WorldSummary.enableTerrain();
 
         new PacketRegistration().init();
 
@@ -46,24 +44,27 @@ public class ViaRomana implements ModInitializer {
         ItemInit.load();
         // SoundInit.load();
         TriggerInit.load();
-
-        ViaRomanaLandmarkManager.initialize();
+        DataInit.load();
 
         ServerResourcesGenerator generator = new ServerResourcesGenerator(DYNAMIC_PACK);
         generator.register();
 
         registerServerLifecycleEvents();
-
     }
 
     private void registerServerLifecycleEvents() {
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-            ViaRomanaModVariables.playerLoggedIn(handler.player);
-            ResetVariables.execute(handler.player.level(), handler.player);
+            PlayerData.resetVariables(handler.player);
+            PathSyncUtils.syncPathGraphToPlayer(handler.player);
         });
 
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
-            ViaRomanaModVariables.playerLoggedOut(handler.player);
+        });
+        
+        ServerTickEvents.END_SERVER_TICK.register(server -> {
+            for (var level : server.getAllLevels()) {
+                ServerTeleportHandler.tick(level);
+            }
         });
         
         ServerLifecycleEvents.SERVER_STARTING.register(server -> {
@@ -77,8 +78,6 @@ public class ViaRomana implements ModInitializer {
         });
 
         ServerPlayerEvents.COPY_FROM.register((oldPlayer, newPlayer, alive) -> {
-            boolean keepInventory = oldPlayer.level().getGameRules().getBoolean(net.minecraft.world.level.GameRules.RULE_KEEPINVENTORY);
-            ViaRomanaModVariables.playerRespawned(oldPlayer, newPlayer, keepInventory || !alive);
         });
 
         // ServerLifecycleEvents.START_DATA_PACK_RELOAD.register((server, resourceManager) -> { });
@@ -91,6 +90,7 @@ public class ViaRomana implements ModInitializer {
 
         ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register((player, origin, destination) -> {
             DimensionHandler.preventHopping(destination, player);
+            DimensionHandler.syncPathDataOnDimensionChange(destination, player);
         });
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> ViaRomanaCommands.register(dispatcher));

@@ -1,25 +1,25 @@
 package net.rasanovum.viaromana.util;
 
 import net.rasanovum.viaromana.CommonConfig;
-import net.rasanovum.viaromana.variables.VariableAccess;
+import net.rasanovum.viaromana.storage.player.PlayerData;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.tags.TagKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.core.BlockPos;
 
 public class PathUtils {
     
     public static float calculateNodeDistance(Entity entity) {
-        if (entity == null) return 0;
+        if (!(entity instanceof Player player)) return 0;
 
-        BlockPos lastNodePos = VariableAccess.playerVariables.getLastNodePos(entity);
+        BlockPos lastNodePos = PlayerData.getLastNodePos(player);
         
-        double dx = entity.getX() - lastNodePos.getX();
-        double dy = entity.getY() - lastNodePos.getY();
-        double dz = entity.getZ() - lastNodePos.getZ();
+        double dx = player.getX() - lastNodePos.getX();
+        double dy = player.getY() - lastNodePos.getY();
+        double dz = player.getZ() - lastNodePos.getZ();
         return (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
     }
 
@@ -28,9 +28,7 @@ public class PathUtils {
 
         BlockState blockState = world.getBlockState(targetBlock);
 
-        if (blockState.is(TagKey.create(Registries.BLOCK, VersionUtils.getLocation("via_romana:path_block")))) return true;
-
-        return false;
+        return blockState.is(TagKey.create(Registries.BLOCK, VersionUtils.getLocation("via_romana:path_block"))); //TODO Look into caching/hashing path_block list for performance, idk if it would make a difference
     }
 
     public static float calculateInfrastructureQuality(LevelAccessor world, Entity entity) {

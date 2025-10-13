@@ -10,78 +10,92 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 /**
- * Record for map data that can represent both requests (with null image data)
- * and responses (with populated image data).
+ * Map data record with direct world-to-pixel coordinate mapping.
  */
 public record MapInfo(
     UUID networkId,
-    BlockPos minBounds,
-    BlockPos maxBounds,
-    List<NodeNetworkInfo> networkNodes,
-    byte[] pngData, // null for requests, populated for responses
-    int bakeScaleFactor,
-    Long createdAtMs, // null for requests, populated with System.currentTimeMillis() for responses
-    List<ChunkPos> allowedChunks // optional persisted fog-of-war chunk list
+    byte[] biomePixels,                 // biome pixel array (base layer)
+    byte[] chunkPixels,                 // chunk pixel array (overlay layer, 16x16 per chunk at 1x scale, scaled down if scaleFactor > 1)
+    int pixelWidth,
+    int pixelHeight,
+    int scaleFactor,
+    int worldMinX,                      // world X coordinate of the top-left pixel
+    int worldMinZ,                      // world Z coordinate of the top-left pixel
+    int worldMaxX,                      // world X coordinate of the bottom-right pixel
+    int worldMaxZ,                      // world Z coordinate of the bottom-right pixel
+    Long createdAtMs,
+    List<ChunkPos> allowedChunks,       // fog-of-war chunk list (server-side only)
+    List<NodeNetworkInfo> networkNodes  // network nodes for spline rendering
 ) {
-    
+
     /**
-     * Creates a map request (no image data).
+     * Creates a map request.
      */
     public static MapInfo request(UUID networkId, BlockPos minBounds, BlockPos maxBounds, List<NodeNetworkInfo> networkNodes) {
-        return new MapInfo(networkId, minBounds, maxBounds, 
-                          networkNodes != null ? new ArrayList<>(networkNodes) : new ArrayList<>(), 
-                          null, 1, null, null);
+        return new MapInfo(networkId, null, null, 0, 0, 1,
+                          minBounds.getX(), minBounds.getZ(), maxBounds.getX(), maxBounds.getZ(),
+                          null, null,
+                          networkNodes != null ? new ArrayList<>(networkNodes) : new ArrayList<>());
     }
-    
+
     /**
-     * Creates a map response (with image data).
+     * Creates a map from server (with full pixel data and world coordinates).
      */
-    public static MapInfo response(UUID networkId, BlockPos minBounds, BlockPos maxBounds, 
-                                 List<NodeNetworkInfo> networkNodes, byte[] pngData, int bakeScaleFactor) {
-        return new MapInfo(networkId, minBounds, maxBounds, 
-                          networkNodes != null ? new ArrayList<>(networkNodes) : new ArrayList<>(), 
-                          pngData != null ? pngData.clone() : null, bakeScaleFactor, System.currentTimeMillis(), null);
+    public static MapInfo fromServer(UUID networkId, byte[] biomePixels, byte[] chunkPixels, int pixelWidth, int pixelHeight, int scaleFactor,
+                                     int worldMinX, int worldMinZ, int worldMaxX, int worldMaxZ,
+                                     List<ChunkPos> allowedChunks, List<NodeNetworkInfo> networkNodes) {
+        return new MapInfo(networkId,
+                          biomePixels != null ? biomePixels.clone() : null,
+                          chunkPixels != null ? chunkPixels.clone() : null, pixelWidth, pixelHeight, scaleFactor,
+                          worldMinX, worldMinZ, worldMaxX, worldMaxZ,
+                          System.currentTimeMillis(),
+                          allowedChunks != null ? new ArrayList<>(allowedChunks) : null,
+                          networkNodes != null ? new ArrayList<>(networkNodes) : new ArrayList<>());
     }
-    
-    /**
-     * Creates a map response from server cache data.
-     */
-    public static MapInfo fromServerCache(UUID networkId, BlockPos minBounds, BlockPos maxBounds, 
-                                        List<NodeNetworkInfo> networkNodes, byte[] pngData, int bakeScaleFactor, List<ChunkPos> allowedChunks) {
-        return new MapInfo(networkId, minBounds, maxBounds, 
-                          networkNodes != null ? new ArrayList<>(networkNodes) : new ArrayList<>(), 
-                          pngData != null ? pngData.clone() : null, bakeScaleFactor, System.currentTimeMillis(), allowedChunks != null ? new ArrayList<>(allowedChunks) : null);
-    }
-    
+
     // Helper methods
     public boolean hasImageData() {
-        return pngData != null;
+        return (biomePixels != null || chunkPixels != null) && pixelWidth > 0 && pixelHeight > 0;
     }
-    
+
     public boolean isRequest() {
-        return pngData == null;
+        return biomePixels == null && chunkPixels == null;
     }
-    
+
     public boolean isResponse() {
-        return pngData != null;
+        return (biomePixels != null || chunkPixels != null) && pixelWidth > 0 && pixelHeight > 0;
     }
-    
+
     public int getWorldWidth() {
-        return maxBounds.getX() - minBounds.getX() + 1;
+        return worldMaxX - worldMinX + 1;
     }
-    
+
     public int getWorldHeight() {
-        return maxBounds.getZ() - minBounds.getZ() + 1;
+        return worldMaxZ - worldMinZ + 1;
     }
-    
+
+    /**
+     * Get the ChunkPos corresponding to worldMinX/Z.
+     */
+    public ChunkPos getMinChunk() {
+        return new ChunkPos(worldMinX >> 4, worldMinZ >> 4);
+    }
+
+    /**
+     * Get the ChunkPos corresponding to worldMaxX/Z.
+     */
+    public ChunkPos getMaxChunk() {
+        return new ChunkPos(worldMaxX >> 4, worldMaxZ >> 4);
+    }
+
     public boolean hasTimestamp() {
         return createdAtMs != null;
     }
-    
+
     public long getAgeMs() {
         return createdAtMs != null ? System.currentTimeMillis() - createdAtMs : 0L;
     }
-    
+
     public String getFormattedAge() {
         if (createdAtMs == null) return "no timestamp";
         long ageMs = getAgeMs();
@@ -89,13 +103,11 @@ public record MapInfo(
         if (ageMs < 60000) return (ageMs / 1000) + "s ago";
         return (ageMs / 60000) + "m ago";
     }
-    
+
     // Network serialization
     public void writeToBuffer(FriendlyByteBuf buffer) {
         buffer.writeUUID(networkId);
-        buffer.writeBlockPos(minBounds);
-        buffer.writeBlockPos(maxBounds);
-        
+
         // Write network nodes
         buffer.writeInt(networkNodes.size());
         for (NodeNetworkInfo node : networkNodes) {
@@ -106,36 +118,42 @@ public record MapInfo(
                 buffer.writeBlockPos(connection);
             }
         }
-        
-        // Write image data (if present)
-        if (pngData != null) {
+
+        // Write raw pixel data and world coordinates
+        if (hasImageData()) {
             buffer.writeBoolean(true);
-            buffer.writeInt(pngData.length);
-            buffer.writeBytes(pngData);
-            buffer.writeInt(bakeScaleFactor);
+            // Write biome pixels
+            if (biomePixels != null) {
+                buffer.writeBoolean(true);
+                buffer.writeInt(biomePixels.length);
+                buffer.writeBytes(biomePixels);
+            } else {
+                buffer.writeBoolean(false);
+            }
+            // Write chunk pixels
+            if (chunkPixels != null) {
+                buffer.writeBoolean(true);
+                buffer.writeInt(chunkPixels.length);
+                buffer.writeBytes(chunkPixels);
+            } else {
+                buffer.writeBoolean(false);
+            }
+            buffer.writeInt(pixelWidth);
+            buffer.writeInt(pixelHeight);
+            buffer.writeInt(scaleFactor);
+            buffer.writeInt(worldMinX);
+            buffer.writeInt(worldMinZ);
+            buffer.writeInt(worldMaxX);
+            buffer.writeInt(worldMaxZ);
             buffer.writeLong(createdAtMs != null ? createdAtMs : 0L);
         } else {
             buffer.writeBoolean(false);
         }
-
-        // Write optional allowed chunks list
-        if (allowedChunks != null) {
-            buffer.writeBoolean(true);
-            buffer.writeInt(allowedChunks.size());
-            for (ChunkPos cp : allowedChunks) {
-                buffer.writeInt(cp.x);
-                buffer.writeInt(cp.z);
-            }
-        } else {
-            buffer.writeBoolean(false);
-        }
     }
-    
+
     public static MapInfo readFromBuffer(FriendlyByteBuf buffer) {
         UUID networkId = buffer.readUUID();
-        BlockPos minBounds = buffer.readBlockPos();
-        BlockPos maxBounds = buffer.readBlockPos();
-        
+
         // Read network nodes
         int nodeCount = buffer.readInt();
         List<NodeNetworkInfo> networkNodes = new ArrayList<>(nodeCount);
@@ -149,42 +167,54 @@ public record MapInfo(
             }
             networkNodes.add(new NodeNetworkInfo(nodePos, clearance, connections));
         }
-        
-        // Read image data (if present)
-        boolean hasImageData = buffer.readBoolean();
-        byte[] pngData = null;
-        int bakeScaleFactor = 1;
+
+        // Read raw pixel data and world coordinates
+        boolean hasPixelData = buffer.readBoolean();
+        byte[] biomePixels = null;
+        byte[] chunkPixels = null;
+        int pixelWidth = 0;
+        int pixelHeight = 0;
+        int scaleFactor = 1;
+        int worldMinX = 0;
+        int worldMinZ = 0;
+        int worldMaxX = 0;
+        int worldMaxZ = 0;
         Long createdAtMs = null;
-        
-        if (hasImageData) {
-            int length = buffer.readInt();
-            pngData = new byte[length];
-            buffer.readBytes(pngData);
-            bakeScaleFactor = buffer.readInt();
+
+        if (hasPixelData) {
+            // Read biome pixels
+            boolean hasBiomePixels = buffer.readBoolean();
+            if (hasBiomePixels) {
+                int biomeLength = buffer.readInt();
+                biomePixels = new byte[biomeLength];
+                buffer.readBytes(biomePixels);
+            }
+            // Read chunk pixels
+            boolean hasChunkPixels = buffer.readBoolean();
+            if (hasChunkPixels) {
+                int chunkLength = buffer.readInt();
+                chunkPixels = new byte[chunkLength];
+                buffer.readBytes(chunkPixels);
+            }
+            pixelWidth = buffer.readInt();
+            pixelHeight = buffer.readInt();
+            scaleFactor = buffer.readInt();
+            worldMinX = buffer.readInt();
+            worldMinZ = buffer.readInt();
+            worldMaxX = buffer.readInt();
+            worldMaxZ = buffer.readInt();
             long ts = buffer.readLong();
             createdAtMs = ts == 0L ? null : ts;
         }
 
-        // Read optional allowed chunks
-        List<ChunkPos> allowed = null;
-        boolean hasChunks = buffer.readBoolean();
-        if (hasChunks) {
-            int size = buffer.readInt();
-            allowed = new ArrayList<>(size);
-            for (int i = 0; i < size; i++) {
-                int x = buffer.readInt();
-                int z = buffer.readInt();
-                allowed.add(new ChunkPos(x, z));
-            }
-        }
-        
-        return new MapInfo(networkId, minBounds, maxBounds, networkNodes, pngData, bakeScaleFactor, createdAtMs, allowed);
+        return new MapInfo(networkId, biomePixels, chunkPixels, pixelWidth, pixelHeight, scaleFactor, worldMinX, worldMinZ, worldMaxX, worldMaxZ, createdAtMs, null, networkNodes);
     }
-    
+
     // Ensure defensive copying of mutable fields
     public MapInfo {
         networkNodes = networkNodes != null ? new ArrayList<>(networkNodes) : new ArrayList<>();
-        pngData = pngData != null ? pngData.clone() : null;
         allowedChunks = allowedChunks != null ? new ArrayList<>(allowedChunks) : null;
+        biomePixels = biomePixels != null ? biomePixels.clone() : null;
+        chunkPixels = chunkPixels != null ? chunkPixels.clone() : null;
     }
 }

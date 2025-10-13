@@ -1,10 +1,8 @@
 package net.rasanovum.viaromana.client.core;
 
-import net.rasanovum.viaromana.variables.VariableAccess;
+import net.rasanovum.viaromana.storage.player.PlayerData;
 import net.rasanovum.viaromana.client.HudMessageManager;
-// import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.core.DimensionHandler;
-import net.rasanovum.viaromana.core.ResetVariables;
 import net.rasanovum.viaromana.util.PathUtils;
 
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -20,20 +18,9 @@ public class PathRecord {
 		float infrastructureQuality = PathUtils.calculateInfrastructureQuality(world, player);
 		float clearance = PathUtils.calculateClearance(world, player);
 
-		// double qualityThreshold = CommonConfig.path_quality_threshold;
-
-		// if (infrastructureQuality < qualityThreshold) {
-		// 	cancel(world, player, false);
-		// 	HudMessageManager.queueMessage("message.via_romana.low_quality_message");
-		// 	return;
-		// }
-
-		// HudMessageManager.queueMessage("message.via_romana.start_charting");
-
 		ChartingHandler.initializeChartingNodes(player);
 		ChartingHandler.addChartingNode(world, player, playerPos, infrastructureQuality, clearance);
-		VariableAccess.playerVariables.setChartingPath(player, true);
-		VariableAccess.playerVariables.syncAndSave(player);
+		PlayerData.setChartingPath(player, true);
 	}
 	
 	public static void end(ClientLevel world, LocalPlayer player, BlockPos playerPos) {
@@ -42,7 +29,7 @@ public class PathRecord {
 		ChartingHandler.finishPath(player);
 
 		ChartingHandler.initializeChartingNodes(player);
-		ResetVariables.execute(world, player);
+		PlayerData.resetVariables(player);
 	}
 
 	public static void cancel(ClientLevel world, LocalPlayer player, boolean showMessage) {
@@ -51,6 +38,6 @@ public class PathRecord {
 		if (showMessage) HudMessageManager.queueMessage("message.via_romana.cancel_charting");
 		
 		ChartingHandler.initializeChartingNodes(player);
-		ResetVariables.execute(world, player);
+		PlayerData.resetVariables(player);
 	}
 }

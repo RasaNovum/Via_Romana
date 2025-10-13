@@ -9,11 +9,15 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.ViaRomana;
+import net.rasanovum.viaromana.client.FadeManager;
+import net.rasanovum.viaromana.client.HudMessageManager;
 import net.rasanovum.viaromana.client.MapClient;
 import net.rasanovum.viaromana.network.packets.DestinationResponseS2C;
 import net.rasanovum.viaromana.network.packets.SignValidationRequestC2S;
 import net.rasanovum.viaromana.network.packets.TeleportRequestC2S;
+import net.rasanovum.viaromana.storage.player.PlayerData;
 import net.rasanovum.viaromana.teleport.TeleportHelper;
+import net.rasanovum.viaromana.util.EffectUtils;
 import net.rasanovum.viaromana.util.VersionUtils;
 
 import java.awt.Point;
@@ -79,16 +83,9 @@ public class TeleportMapScreen extends Screen {
 
         calculateBounds();
 
-        int widthW = this.maxBounds.getX() - this.minBounds.getX();
-        int heightW = this.maxBounds.getZ() - this.minBounds.getZ();
-        int paddingX = Math.max(16, (int) (widthW * 0.1f));
-        int paddingZ = Math.max(16, (int) (heightW * 0.1f));
-        BlockPos paddedMin = this.minBounds.offset(-paddingX, 0, -paddingZ);
-        BlockPos paddedMax = this.maxBounds.offset(paddingX, 0, paddingZ);
+        this.mapRenderer = new MapRenderer(this.minBounds, this.maxBounds);
 
-        this.mapRenderer = new MapRenderer(paddedMin, paddedMax, networkNodes);
-
-        requestMapAsync(paddedMin, paddedMax);
+        requestMapAsync(this.minBounds, this.maxBounds);
     }
     
     /**
@@ -98,6 +95,7 @@ public class TeleportMapScreen extends Screen {
         MapClient.requestMap(networkId, paddedMin, paddedMax, networkNodes)
             .thenAccept(mapInfo -> {
                 if (mapInfo != null) {
+                    assert this.minecraft != null;
                     this.minecraft.execute(() -> {
                         if (this.mapTexture != null) {
                             this.mapTexture.close();
@@ -140,7 +138,7 @@ public class TeleportMapScreen extends Screen {
         //? if >1.21
         this.renderBlurredBackground(partialTicks);
         
-        this.mapRenderer.render(guiGraphics, this.width, this.height, this.minecraft.player);
+        this.mapRenderer.render(guiGraphics, this.width, this.height);
 
         renderNetwork(guiGraphics, partialTicks);
 
@@ -368,7 +366,7 @@ public class TeleportMapScreen extends Screen {
     //region Input & Interaction
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (button == 0) {
+        if (button == 0) { // Left Click
             Set<BlockPos> revealedNodes = new HashSet<>(animatedNodes);
             nodesToAnimate.forEach(node -> revealedNodes.add(node.position));
             getDestinationAtPosition(revealedNodes, (int) mouseX, (int) mouseY).ifPresent(this::selectDestination);
@@ -379,8 +377,28 @@ public class TeleportMapScreen extends Screen {
 
     public void selectDestination(TeleportHelper.TeleportDestination destination) {
         if (minecraft == null || minecraft.player == null) return;
-        TeleportRequestC2S packet = new TeleportRequestC2S(this.signPos, destination.position);
 
+        if (PlayerData.isChartingPath(minecraft.player)) {
+            HudMessageManager.queueMessage("message.via_romana.cannot_warp_when_recording");
+            this.onClose();
+            return;
+        }
+
+        if (EffectUtils.hasEffect(minecraft.player, "travellers_fatigue")) {
+            HudMessageManager.queueMessage("message.via_romana.has_fatigue");
+            this.onClose();
+            return;
+        }
+
+        if (FadeManager.isActive()) {
+            HudMessageManager.queueMessage("message.via_romana.cannot_warp_when_warping");
+            this.onClose();
+            return;
+        }
+
+        //TODO: Display text over map without closing screen
+
+        TeleportRequestC2S packet = new TeleportRequestC2S(this.signPos, destination.position);
         commonnetwork.api.Dispatcher.sendToServer(packet);
         this.onClose();
     }
@@ -413,12 +431,8 @@ public class TeleportMapScreen extends Screen {
         IntSummaryStatistics xStats = networkNodeMap.keySet().stream().mapToInt(BlockPos::getX).summaryStatistics();
         IntSummaryStatistics zStats = networkNodeMap.keySet().stream().mapToInt(BlockPos::getZ).summaryStatistics();
 
-        int width = xStats.getMax() - xStats.getMin();
-        int height = zStats.getMax() - zStats.getMin();
-        int padding = Math.max(16, (int) (Math.max(width, height) * 0.1f));
-
-        this.minBounds = new BlockPos(xStats.getMin() - padding, 0, zStats.getMin() - padding);
-        this.maxBounds = new BlockPos(xStats.getMax() + padding, 0, zStats.getMax() + padding);
+        this.minBounds = new BlockPos(xStats.getMin(), 0, zStats.getMin());
+        this.maxBounds = new BlockPos(xStats.getMax(), 0, zStats.getMax());
     }
 
     private Optional<Point> worldToScreen(BlockPos worldPos) {

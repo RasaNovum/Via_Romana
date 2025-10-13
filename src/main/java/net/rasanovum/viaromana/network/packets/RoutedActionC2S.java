@@ -1,14 +1,16 @@
 package net.rasanovum.viaromana.network.packets;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
 //? if >=1.21 {
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 //?}
 import net.rasanovum.viaromana.CommonConfig;
+import net.rasanovum.viaromana.path.PathGraph;
+import net.rasanovum.viaromana.storage.path.PathDataManager;
 import net.rasanovum.viaromana.util.VersionUtils;
+import net.minecraft.resources.ResourceLocation;
 
 /**
  * C2S action packet for path operations.
@@ -53,8 +55,7 @@ public record RoutedActionC2S(Operation op) implements CustomPacketPayload {
             ctx.sender().server.execute(() -> {
                 net.minecraft.server.level.ServerPlayer player = ctx.sender();
                 net.minecraft.server.level.ServerLevel level = player.serverLevel();
-                var storage = net.rasanovum.viaromana.storage.IPathStorage.get(level);
-                var graph = storage.graph();
+                PathGraph graph = PathGraph.getInstance(level);
 
                 java.util.Optional<net.rasanovum.viaromana.path.Node> nearestOpt = graph.getNearestNode(player.blockPosition(), CommonConfig.node_utility_distance, node -> true);
 
@@ -74,7 +75,7 @@ public record RoutedActionC2S(Operation op) implements CustomPacketPayload {
                     }
                 }
 
-                storage.setDirty();
+                PathDataManager.markDirty(level);
                 net.rasanovum.viaromana.util.PathSyncUtils.syncPathGraphToAllPlayers(level);
             });
         }

@@ -60,11 +60,14 @@ dependencies {
     annotationProcessor("net.fabricmc:sponge-mixin:0.12.5+mixin.0.8.5")
 
     modImplementation("mysticdrew:common-networking-common:${property("deps.commonnetworking")}")
+    modImplementation("maven.modrinth:data-anchor:${property("deps.data-anchor")}")
     modImplementation("maven.modrinth:midnightlib:${property("deps.midnightlib")}")
     modImplementation("curse.maven:selene-499980:${property("deps.moonlightlib")}")
 
-    include("maven.modrinth:midnightlib:${property("deps.midnightlib")}")
     include("mysticdrew:common-networking-common:${property("deps.commonnetworking")}")
+    include("maven.modrinth:data-anchor:${property("deps.data-anchor")}")
+    include("maven.modrinth:midnightlib:${property("deps.midnightlib")}")
+    include("curse.maven:selene-499980:${property("deps.moonlightlib")}")
 
     modCompileOnly("maven.modrinth:supplementaries:${property("deps.supplementaries")}")
 

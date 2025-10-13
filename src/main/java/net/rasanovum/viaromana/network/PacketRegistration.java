@@ -8,7 +8,6 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 //?}
 import net.rasanovum.viaromana.ViaRomana;
-import net.rasanovum.viaromana.network.ViaRomanaModVariables.PlayerVariablesSyncMessage;
 import net.rasanovum.viaromana.network.packets.*;
 
 import java.util.function.BiConsumer;
@@ -42,9 +41,9 @@ public class PacketRegistration {
     
     public void init() {
         ViaRomana.LOGGER.info("Registering network packets");
-        
-        registerPacket(PlayerVariablesSyncMessage.TYPE, PlayerVariablesSyncMessage.class, PlayerVariablesSyncMessage::encode, PlayerVariablesSyncMessage::decode, PlayerVariablesSyncMessage.STREAM_CODEC, PlayerVariablesSyncMessage::handle);
+
         registerPacket(PathGraphSyncPacket.TYPE, PathGraphSyncPacket.class, PathGraphSyncPacket::encode, PathGraphSyncPacket::decode, PathGraphSyncPacket.STREAM_CODEC, PathGraphSyncPacket::handle);
+        registerPacket(PreProcessChunksC2S.TYPE, PreProcessChunksC2S.class, PreProcessChunksC2S::encode, PreProcessChunksC2S::decode, PreProcessChunksC2S.STREAM_CODEC, PreProcessChunksC2S::handle);
         registerPacket(OpenChartingScreenS2C.TYPE, OpenChartingScreenS2C.class, OpenChartingScreenS2C::encode, OpenChartingScreenS2C::decode, OpenChartingScreenS2C.STREAM_CODEC, OpenChartingScreenS2C::handle);
         registerPacket(ChartedPathC2S.TYPE, ChartedPathC2S.class, ChartedPathC2S::encode, ChartedPathC2S::decode, ChartedPathC2S.STREAM_CODEC, ChartedPathC2S::handle);
         registerPacket(MapResponseS2C.TYPE, MapResponseS2C.class, MapResponseS2C::encode, MapResponseS2C::decode, MapResponseS2C.STREAM_CODEC, MapResponseS2C::handle);
@@ -56,7 +55,9 @@ public class PacketRegistration {
         registerPacket(OpenWarpBlockScreenS2C.TYPE, OpenWarpBlockScreenS2C.class, OpenWarpBlockScreenS2C::encode, OpenWarpBlockScreenS2C::decode, OpenWarpBlockScreenS2C.STREAM_CODEC, OpenWarpBlockScreenS2C::handle);
         registerPacket(SignValidationRequestC2S.TYPE, SignValidationRequestC2S.class, SignValidationRequestC2S::encode, SignValidationRequestC2S::decode, SignValidationRequestC2S.STREAM_CODEC, SignValidationRequestC2S::handle);
         registerPacket(SignValidationResponseS2C.TYPE, SignValidationResponseS2C.class, SignValidationResponseS2C::encode, SignValidationResponseS2C::decode, SignValidationResponseS2C.STREAM_CODEC, SignValidationResponseS2C::handle);
+        registerPacket(SyncPlayerDataC2S.TYPE, SyncPlayerDataC2S.class, SyncPlayerDataC2S::encode, SyncPlayerDataC2S::decode, SyncPlayerDataC2S.STREAM_CODEC, SyncPlayerDataC2S::handle);
         registerPacket(TeleportRequestC2S.TYPE, TeleportRequestC2S.class, TeleportRequestC2S::encode, TeleportRequestC2S::decode, TeleportRequestC2S.STREAM_CODEC, TeleportRequestC2S::handle);
+        registerPacket(TeleportFadeS2C.TYPE, TeleportFadeS2C.class, TeleportFadeS2C::encode, TeleportFadeS2C::decode, TeleportFadeS2C.STREAM_CODEC, TeleportFadeS2C::handle);
         registerPacket(SignUnlinkRequestC2S.TYPE, SignUnlinkRequestC2S.class, SignUnlinkRequestC2S::encode, SignUnlinkRequestC2S::decode, SignUnlinkRequestC2S.STREAM_CODEC, SignUnlinkRequestC2S::handle);
         registerPacket(OpenLinkSignScreenS2C.TYPE, OpenLinkSignScreenS2C.class, OpenLinkSignScreenS2C::encode, OpenLinkSignScreenS2C::decode, OpenLinkSignScreenS2C.STREAM_CODEC, OpenLinkSignScreenS2C::handle);
     }

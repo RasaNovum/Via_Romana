@@ -13,7 +13,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.rasanovum.viaromana.network.packets.OpenWarpBlockScreenS2C;
 import commonnetwork.api.Dispatcher;
-import net.rasanovum.viaromana.network.ViaRomanaModVariables;
 
 /**
  * Custom warp block that opens a screen when right-clicked, made for modpack developers

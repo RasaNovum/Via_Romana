@@ -4,13 +4,11 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.DyeColor;
 import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.path.Node;
 import net.rasanovum.viaromana.path.PathGraph;
-import net.rasanovum.viaromana.storage.IPathStorage;
 import net.rasanovum.viaromana.util.VersionUtils;
 
 //? if fabric {
@@ -52,9 +50,7 @@ public record ViaRomanaLandmark(BlockPos pos, Component name, DyeColor color) im
 
         DyeColor color;
         if (CommonConfig.enable_surveyor_landmark_coloring) {
-            IPathStorage storage = IPathStorage.get(level);
-            PathGraph graph = storage.graph();
-
+            PathGraph graph = PathGraph.getInstance(level);
             color = graph.getNetworkColor(node);
         }
         else {

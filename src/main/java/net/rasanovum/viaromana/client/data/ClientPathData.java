@@ -1,5 +1,7 @@
 package net.rasanovum.viaromana.client.data;
 
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import net.rasanovum.viaromana.path.PathGraph;
 import net.rasanovum.viaromana.core.LinkHandler.LinkData;
 import net.rasanovum.viaromana.path.Node;
@@ -13,15 +15,16 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Client-side storage for path data synchronized from the server.
+ * Now supports per-dimension path graphs.
  */
 public class ClientPathData {
     private static ClientPathData INSTANCE = new ClientPathData();
     
     // Server-synced persistent data
-    private PathGraph clientGraph = new PathGraph();
+    private final Map<ResourceKey<Level>, PathGraph> graphByDimension = new HashMap<>();
     private boolean hasData = false;
     
-    // Client-side temporary nodes for charting visualization
+    // Client-side temporary nodes
     private final List<NodeData> temporaryNodes = new ArrayList<>();
     private final List<LinkData> temporaryLinks = new ArrayList<>();
     
@@ -31,24 +34,39 @@ public class ClientPathData {
 
     // region Graph Data
     
-    public void updatePathData(PathGraph serverGraph) {
-        this.clientGraph = serverGraph;
+    /**
+     * Updates path data for a specific dimension.
+     */
+    public void updatePathData(PathGraph serverGraph, ResourceKey<Level> dimension) {
+        this.graphByDimension.put(dimension, serverGraph);
         this.hasData = true;
     }
     
+    /**
+     * Gets the graph for a specific dimension.
+     */
+    public PathGraph getGraph(ResourceKey<Level> dimension) {
+        return hasData ? graphByDimension.get(dimension) : null;
+    }
+    
+    /**
+     * Gets the graph for the current dimension (backwards compatibility).
+     * @deprecated Use getGraph(ResourceKey<Level>) instead
+     */
+    @Deprecated
     public PathGraph getGraph() {
-        return hasData ? clientGraph : null;
+        return hasData && !graphByDimension.isEmpty() ? graphByDimension.values().iterator().next() : null;
     }
 
     public boolean hasValidData() {
-        return hasData && clientGraph != null && !clientGraph.nodesView().isEmpty();
+        return hasData && !graphByDimension.isEmpty();
     }
     
     /**
      * Clears both persistent and temporary client-side path data.
      */
     public void clearData() {
-        this.clientGraph = new PathGraph();
+        this.graphByDimension.clear();
         this.hasData = false;
         this.temporaryNodes.clear();
         this.temporaryLinks.clear();
@@ -155,7 +173,16 @@ public class ClientPathData {
      * Finds the nearest node to the given position, optionally including temporary nodes.
      */
     public Optional<Node> getNearestNode(BlockPos origin, double maxDistance, double maxYDistance, boolean includeTemp, Predicate<Node> graphFilter, Predicate<Node> clientFilter) {
-        PathGraph graph = getGraph();
+        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
+        if (mc.level == null) return Optional.empty();
+        return getNearestNode(origin, maxDistance, maxYDistance, includeTemp, graphFilter, clientFilter, mc.level.dimension());
+    }
+    
+    /**
+     * Finds the nearest node to the given position in a specific dimension, optionally including temporary nodes.
+     */
+    public Optional<Node> getNearestNode(BlockPos origin, double maxDistance, double maxYDistance, boolean includeTemp, Predicate<Node> graphFilter, Predicate<Node> clientFilter, ResourceKey<Level> dimension) {
+        PathGraph graph = getGraph(dimension);
         if (graph == null) return Optional.empty();
     
         Optional<Node> bestPersistent = graph.getNearestNode(origin, maxDistance, graphFilter);
@@ -185,9 +212,18 @@ public class ClientPathData {
      * Gets persistent and temporary nodes within a radius.
      */
     public List<Node> getNearbyNodes(BlockPos center, double radius, boolean includeTemp) {
+        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
+        if (mc.level == null) return new ArrayList<>();
+        return getNearbyNodes(center, radius, includeTemp, mc.level.dimension());
+    }
+    
+    /**
+     * Gets persistent and temporary nodes within a radius in a specific dimension.
+     */
+    public List<Node> getNearbyNodes(BlockPos center, double radius, boolean includeTemp, ResourceKey<Level> dimension) {
         List<Node> result = new ArrayList<>();
         
-        PathGraph graph = getGraph();
+        PathGraph graph = getGraph(dimension);
         if (graph != null) {
             result.addAll(graph.queryNearby(center, radius));
         }

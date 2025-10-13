@@ -1,23 +1,16 @@
 package net.rasanovum.viaromana.teleport;
 
-import net.rasanovum.viaromana.util.EffectUtils;
-import net.rasanovum.viaromana.util.VersionUtils;
-import net.rasanovum.viaromana.variables.VariableAccess;
-import net.rasanovum.viaromana.storage.IPathStorage;
 import net.rasanovum.viaromana.path.PathGraph;
 import net.rasanovum.viaromana.path.Node;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import java.util.Optional;
@@ -31,7 +24,7 @@ public class TeleportHelper {
         BlockPos sourcePos = source.getBlockPos();
         BlockPos destPos = dest.getBlockPos();
         
-        PathGraph graph = IPathStorage.get(level).graph();
+        PathGraph graph = PathGraph.getInstance((ServerLevel) level);
         
         Optional<Node> sourceNode = graph.getNodeBySignPos(sourcePos);
         Optional<Node> destNode = graph.getNodeBySignPos(destPos);
@@ -44,85 +37,27 @@ public class TeleportHelper {
     }
 
     /**
-     * Cycle the teleport effect
-     */
-    public static void cycle(LevelAccessor world, Entity entity) {
-        double fadeAmount = VariableAccess.playerVariables.getFadeAmount(entity);
-        boolean isIncreasing = VariableAccess.playerVariables.isFadeIncrease(entity);
-        
-        if (fadeAmount > 0 || (fadeAmount == 0 && isIncreasing)) {
-            handleFadeEffect(world, entity);
-            
-            fadeAmount = VariableAccess.playerVariables.getFadeAmount(entity);
-            if (fadeAmount >= 15) {
-                VariableAccess.playerVariables.setFadeIncrease(entity, false);
-                VariableAccess.playerVariables.syncAndSave(entity);
-            }
-            
-            if (fadeAmount == 0 && !VariableAccess.playerVariables.isFadeIncrease(entity)) {
-                VariableAccess.playerVariables.setFadeAmount(entity, 0);
-                VariableAccess.playerVariables.setFadeIncrease(entity, false);
-                VariableAccess.playerVariables.setLastNodePos(entity, BlockPos.ZERO);
-                VariableAccess.playerVariables.syncAndSave(entity);
-            }
-        }
-    }
-
-    /**
-     * Apply teleport effect
+     * Apply teleport effect (server-side particles)
      */
     public static void effect(LevelAccessor world, Entity entity) {
-        double fadeAmount = VariableAccess.playerVariables.getFadeAmount(entity);
+        if (!(entity instanceof Player player)) return;
+        if (!(world instanceof ServerLevel serverLevel)) return;
         
-        if (fadeAmount > 0) {
-            double particleRadius = 4;
-            if (world instanceof ServerLevel serverLevel) {
-                serverLevel.sendParticles(
-                    ParticleTypes.ENCHANT, 
-                    (entity.getX() + Mth.nextDouble(RandomSource.create(), -0.1, 0.1) * particleRadius), 
-                    (entity.getY() + fadeAmount * 0.15),
-                    (entity.getZ() + Mth.nextDouble(RandomSource.create(), -0.1, 0.1) * particleRadius), 
-                    32, 
-                    (Mth.nextDouble(RandomSource.create(), -0.1, 0.1) * particleRadius), 
-                    (fadeAmount * 0.02),
-                    (Mth.nextDouble(RandomSource.create(), -0.1, 0.1) * particleRadius), 
-                    0.5
-                );
-            }
-        }
-    }
-
-    private static void playFootstepSound(LevelAccessor world, BlockPos soundSource) {
-        if (!(world instanceof Level level)) return;
+        // Simple particle effect at consistent level while teleporting
+        double fadeAmount = 10; // Mid-level particle intensity
+        double particleRadius = 4;
         
-        BlockState blockState = world.getBlockState(soundSource);
-        ResourceLocation soundId = BuiltInRegistries.SOUND_EVENT.getKey(blockState.getSoundType().getStepSound());
-
-        if (soundId == null) soundId = VersionUtils.getLocation("minecraft:block.grass.step");
-
-        if (!level.isClientSide()) {
-            level.playSound(null, soundSource, BuiltInRegistries.SOUND_EVENT.get(soundId), SoundSource.BLOCKS, 0.2f, 1f);
-        } else {
-            level.playLocalSound(soundSource.getX(), soundSource.getY(), soundSource.getZ(), BuiltInRegistries.SOUND_EVENT.get(soundId), SoundSource.BLOCKS, 0.2f, 1f, false);
-        }
-    }
-    
-    private static void handleFadeEffect(LevelAccessor world, Entity entity) {
-        double fadeAmount = VariableAccess.playerVariables.getFadeAmount(entity);
-
-        if (fadeAmount >= 0 && fadeAmount <= 15) {
-            if (fadeAmount % 7 == 0) playFootstepSound(world, entity.getOnPos());
-            
-            boolean isIncreasing = VariableAccess.playerVariables.isFadeIncrease(entity);
-            double newFadeAmount = isIncreasing ? fadeAmount + 1 : fadeAmount - 1;
-            
-            newFadeAmount = Math.max(0, Math.min(15, newFadeAmount));
-            
-            VariableAccess.playerVariables.setFadeAmount(entity, newFadeAmount);
-            VariableAccess.playerVariables.syncAndSave(entity);
-
-            if (fadeAmount == 1) EffectUtils.applyEffect(entity, "travellers_fatigue", world);
-        }
+        serverLevel.sendParticles(
+            ParticleTypes.ENCHANT, 
+            (player.getX() + Mth.nextDouble(RandomSource.create(), -0.1, 0.1) * particleRadius), 
+            (player.getY() + fadeAmount * 0.15),
+            (player.getZ() + Mth.nextDouble(RandomSource.create(), -0.1, 0.1) * particleRadius), 
+            32, 
+            (Mth.nextDouble(RandomSource.create(), -0.1, 0.1) * particleRadius), 
+            (fadeAmount * 0.02),
+            (Mth.nextDouble(RandomSource.create(), -0.1, 0.1) * particleRadius), 
+            0.5
+        );
     }
     
     /**

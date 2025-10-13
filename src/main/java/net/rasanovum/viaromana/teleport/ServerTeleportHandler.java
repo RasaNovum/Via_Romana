@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -19,53 +21,87 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.core.LinkHandler;
+import net.rasanovum.viaromana.network.packets.TeleportFadeS2C;
 import net.rasanovum.viaromana.network.packets.TeleportRequestC2S;
 import net.rasanovum.viaromana.path.Node;
-import net.rasanovum.viaromana.storage.IPathStorage;
-import net.rasanovum.viaromana.variables.VariableAccess;
+import net.rasanovum.viaromana.path.PathGraph;
+import net.rasanovum.viaromana.util.EffectUtils;
+import net.rasanovum.viaromana.util.NetworkUtils;
 
 public class ServerTeleportHandler {
+    private static final Map<UUID, Node> activeTeleports = new ConcurrentHashMap<>();
+    private static final Map<UUID, Long> teleportStartTimes = new ConcurrentHashMap<>();
+    
+    // Teleport timing constants
+    private static final int FADE_UP_TICKS = 20;
+    private static final int HOLD_TICKS = 10;
+    private static final int FADE_DOWN_TICKS = 20;
+    private static final int FOOTSTEP_INTERVAL = 7;
+    
+    /**
+     * Check if a player has an active teleport in progress
+     */
+    public static boolean isTeleporting(ServerPlayer player) {
+        return activeTeleports.containsKey(player.getUUID());
+    }
+    
+    /**
+     * Called every server tick to process active teleports
+     */
+    public static void tick(ServerLevel level) {
+        long currentTime = level.getGameTime();
+        
+        activeTeleports.forEach((playerUUID, targetNode) -> {
+            Long startTime = teleportStartTimes.get(playerUUID);
+            if (startTime == null) return;
+            
+            long elapsedTicks = currentTime - startTime;
+            ServerPlayer player = level.getServer().getPlayerList().getPlayer(playerUUID);
+            
+            if (elapsedTicks == FADE_UP_TICKS) {
+                if (player != null && player.isAlive()) {
+                    executeTeleportation(player, targetNode);
+                    EffectUtils.applyEffect(player, "travellers_fatigue");
+                }
+            }
+            else if (elapsedTicks == FADE_UP_TICKS + HOLD_TICKS + FADE_DOWN_TICKS) {
+                activeTeleports.remove(playerUUID);
+                teleportStartTimes.remove(playerUUID);
+            }
+        });
+    }
 
     public static void handleTeleportRequest(TeleportRequestC2S packet, ServerPlayer player) {
         ServerLevel level = player.serverLevel();
-        IPathStorage storage = IPathStorage.get(level);
+        PathGraph graph = PathGraph.getInstance(level);
 
-        if (storage == null || !validateOriginSign(level, packet.originSignPos())) {
-            // ViaRomanaLandmarkManager.removeDestinationLandmark(level, packet.getDestinationPos());
+        if (graph == null || !validateOriginSign(level, packet.originSignPos())) {
+            // ViaRomanaLandmarkManager.removeDestinationLandmark(level, packet.originSignPos().toLongPos()); //TODO: Add back
             return;
         }
 
-        storage.graph().getNodeAt(packet.destinationPos()).ifPresent(targetNode -> {
-            VariableAccess.playerVariables.setLastNodePos(player, targetNode.getBlockPos());
-            VariableAccess.playerVariables.setFadeAmount(player, 0);
-            VariableAccess.playerVariables.setFadeIncrease(player, true);
-            VariableAccess.playerVariables.syncAndSave(player);
+        graph.getNodeAt(packet.destinationPos()).ifPresent(targetNode -> {
+            activeTeleports.put(player.getUUID(), targetNode);
+            teleportStartTimes.put(player.getUUID(), level.getGameTime());
+            
+            NetworkUtils.sendToPlayer(player, new TeleportFadeS2C(
+                FADE_UP_TICKS,
+                HOLD_TICKS,
+                FADE_DOWN_TICKS,
+                FOOTSTEP_INTERVAL
+            ));
         });
     }
 
-    public static void executeTeleportation(ServerPlayer player) {
-        BlockPos targetPos = VariableAccess.playerVariables.getLastNodePos(player);
-        if (targetPos == null || targetPos.equals(BlockPos.ZERO)) return;
-
-        ServerLevel level = player.serverLevel();
-        IPathStorage storage = IPathStorage.get(level);
-        if (storage == null) return;
-
-        storage.graph().getNodeAt(targetPos).ifPresent(targetNode -> {
-            performTeleportation(player, targetNode);
-        });
-    }
-
-    private static void performTeleportation(ServerPlayer player, Node targetNode) {
+    private static void executeTeleportation(ServerPlayer player, Node targetNode) {
+        if (!player.isAlive()) return;
+        
         ServerLevel level = player.serverLevel();
         BlockPos safePos = findSafePosition(level, BlockPos.of(targetNode.getPos()));
 
         if (safePos == null) {
             player.displayClientMessage(Component.translatable("message.via_romana.unsafe"), true);
-            VariableAccess.playerVariables.setFadeAmount(player, 0);
-            VariableAccess.playerVariables.setFadeIncrease(player, false);
-            VariableAccess.playerVariables.setLastNodePos(player, BlockPos.ZERO);
-            VariableAccess.playerVariables.syncAndSave(player);
+            activeTeleports.remove(player.getUUID());
             return;
         }
 

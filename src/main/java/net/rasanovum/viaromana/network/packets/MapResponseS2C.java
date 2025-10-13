@@ -1,6 +1,5 @@
 package net.rasanovum.viaromana.network.packets;
 
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 //? if >=1.21 {
@@ -8,12 +7,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 //?}
 import net.rasanovum.viaromana.map.MapInfo;
-import net.rasanovum.viaromana.network.packets.DestinationResponseS2C.NodeNetworkInfo;
 import net.rasanovum.viaromana.util.VersionUtils;
-
-import java.util.List;
-import java.util.ArrayList;
-import java.util.UUID;
 
 /*
  * Response from the server containing the generated map data for the requested area and network.
@@ -56,22 +50,6 @@ public record MapResponseS2C(MapInfo mapInfo) implements CustomPacketPayload {
     public static MapResponseS2C decode(FriendlyByteBuf buf) {
         return new MapResponseS2C(MapInfo.readFromBuffer(buf));
     }
-
-    public static MapResponseS2C create(UUID networkId, BlockPos minBounds, BlockPos maxBounds, byte[] pngData, int bakeScaleFactor) {
-        return new MapResponseS2C(MapInfo.response(networkId, minBounds, maxBounds, new ArrayList<>(), pngData, bakeScaleFactor));
-    }
-
-    public static MapResponseS2C create(UUID networkId, BlockPos minBounds, BlockPos maxBounds, List<NodeNetworkInfo> networkNodes, byte[] pngData, int bakeScaleFactor) {
-        return new MapResponseS2C(MapInfo.response(networkId, minBounds, maxBounds, networkNodes, pngData, bakeScaleFactor));
-    }
-
-    // Getters
-    public UUID getNetworkId() { return mapInfo.networkId(); }
-    public BlockPos getMinBounds() { return mapInfo.minBounds(); }
-    public BlockPos getMaxBounds() { return mapInfo.maxBounds(); }
-    public byte[] getPngData() { return mapInfo.pngData() != null ? mapInfo.pngData().clone() : null; }
-    public int getBakeScaleFactor() { return mapInfo.bakeScaleFactor(); }
-    public List<NodeNetworkInfo> getNetworkNodes() { return mapInfo.networkNodes(); }
 
     public MapInfo getMapInfo() { return mapInfo; }
 
