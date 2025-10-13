@@ -96,5 +96,10 @@
       <option name="name" value="maven10" />
       <option name="url" value="https://maven.neoforged.net/releases/" />
     </remote-repository>
+    <remote-repository>
+      <option name="id" value="Mojang Meta" />
+      <option name="name" value="Mojang Meta" />
+      <option name="url" value="https://maven.neoforged.net/mojang-meta/" />
+    </remote-repository>
   </component>
 </project>
