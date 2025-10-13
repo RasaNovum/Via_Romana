@@ -2,7 +2,7 @@
   "parent": "minecraft:story/root",
   "display": {
     "icon": {
-      "id": "minecraft:oak_sign"
+      "item": "minecraft:oak_sign"
     },
     "title": {
       "translate": "advancements.via_romana.a_strand_type_game.title"
