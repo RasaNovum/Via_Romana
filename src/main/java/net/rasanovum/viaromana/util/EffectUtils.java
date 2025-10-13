@@ -35,7 +35,7 @@ public class EffectUtils {
     }
 
     //? if <1.21 {
-    /*private static MobEffect getEffect(String effectName) {
+    /*public static MobEffect getEffect(String effectName) {
         return BuiltInRegistries.MOB_EFFECT.get(new ResourceLocation(ViaRomana.MODID, effectName));
     }
      *///?} else {
