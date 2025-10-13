@@ -1,10 +1,21 @@
 package net.rasanovum.viaromana;
 
+import com.mojang.brigadier.CommandDispatcher;
 import eu.midnightdust.lib.config.MidnightConfig;
 import net.mehvahdjukaar.moonlight.api.resources.pack.DynamicDataPack;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.rasanovum.viaromana.command.ViaRomanaCommands;
+import net.rasanovum.viaromana.core.DimensionHandler;
 import net.rasanovum.viaromana.init.*;
+import net.rasanovum.viaromana.map.ServerMapCache;
 import net.rasanovum.viaromana.network.PacketRegistration;
+import net.rasanovum.viaromana.storage.player.PlayerData;
 import net.rasanovum.viaromana.tags.ServerResourcesGenerator;
+import net.rasanovum.viaromana.teleport.ServerTeleportHandler;
+import net.rasanovum.viaromana.util.PathSyncUtils;
 import net.rasanovum.viaromana.util.VersionUtils;
 
 import org.apache.logging.log4j.LogManager;
@@ -33,31 +44,37 @@ public class ViaRomana {
         generator.register();
     }
 
-    public void onJoin() {
-
+    public static void onJoin(ServerPlayer player) {
+        PlayerData.resetVariables(player);
+        PathSyncUtils.syncPathGraphToPlayer(player);
     }
 
-    public void onServerTick() {
-
+    public static void onServerTick(ServerLevel level) {
+        ServerTeleportHandler.tick(level);
     }
 
-    public void onServerStart() {
-
+    public static void onServerStart(MinecraftServer server) {
+        ServerMapCache.init(server);
     }
 
-    public void onServerStop() {
-
+    public static void onServerStop() {
+        ServerMapCache.processAllDirtyNetworks();
+        ServerMapCache.saveAllToDisk(true);
+        ServerMapCache.clear();
     }
 
-    public void onDataPackReload() {
-
+    public static void onDataPackReload(MinecraftServer server) {
+        ServerMapCache.shutdown();
+        ServerMapCache.clear();
+        ServerMapCache.init(server);
     }
 
-    public void onDimensionChange() {
-
+    public static void onDimensionChange(ServerLevel level, ServerPlayer player) {
+        DimensionHandler.preventHopping(level, player);
+        DimensionHandler.syncPathDataOnDimensionChange(level, player);
     }
 
-    public void registerCommands() {
-
+    public static void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher) {
+        ViaRomanaCommands.register(dispatcher);
     }
 }

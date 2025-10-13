@@ -1,0 +1,52 @@
+package net.rasanovum.viaromana.entrypoints;
+
+//? if fabric {
+import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.rasanovum.viaromana.ViaRomana;
+
+public class FabricMain implements ModInitializer {
+
+    @Override
+    public void onInitialize() {
+        ViaRomana.initialize();
+        registerServerLifecycleEvents();
+    }
+
+    private void registerServerLifecycleEvents() {
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+            ViaRomana.onJoin(handler.player);
+        });
+        
+        ServerTickEvents.END_SERVER_TICK.register(server -> {
+            for (var level : server.getAllLevels()) {
+                ViaRomana.onServerTick(level);
+            }
+        });
+        
+        ServerLifecycleEvents.SERVER_STARTING.register(server -> {
+            ViaRomana.onServerStart(server);
+        });
+        
+        ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
+            ViaRomana.onServerStop();
+        });
+
+        ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> {
+            ViaRomana.onDataPackReload(server);
+        });
+
+        ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register((player, origin, level) -> {
+            ViaRomana.onDimensionChange(level, player);
+        });
+
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+            ViaRomana.registerCommands(dispatcher);
+        });
+    }
+}
+//?}

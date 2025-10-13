@@ -3,6 +3,7 @@ package net.rasanovum.viaromana.map;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.rasanovum.viaromana.ViaRomana;
+import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.storage.level.LevelDataManager;
 
 import java.util.Optional;
@@ -22,7 +23,7 @@ public class MapPixelAssembler {
      */
     public static int calculateScaleFactor(int width, int height) {
         int maxDim = Math.max(width, height);
-        int MAX_DIM = net.rasanovum.viaromana.CommonConfig.maximum_map_dimension;
+        int MAX_DIM = CommonConfig.maximum_map_dimension;
         if (maxDim <= MAX_DIM) return 1;
         int requiredScale = (int) Math.ceil((double) maxDim / MAX_DIM);
         return Integer.highestOneBit(requiredScale - 1) << 1;

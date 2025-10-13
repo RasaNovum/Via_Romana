@@ -1,7 +1,11 @@
 package net.rasanovum.viaromana.surveyor;
 
+//? if fabric {
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import folk.sisby.surveyor.landmark.Landmark;
+import folk.sisby.surveyor.landmark.LandmarkType;
+import folk.sisby.surveyor.landmark.SimpleLandmarkType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -11,13 +15,9 @@ import net.rasanovum.viaromana.path.Node;
 import net.rasanovum.viaromana.path.PathGraph;
 import net.rasanovum.viaromana.util.VersionUtils;
 
-//? if fabric {
-import folk.sisby.surveyor.landmark.Landmark;
-import folk.sisby.surveyor.landmark.LandmarkType;
-import folk.sisby.surveyor.landmark.SimpleLandmarkType;
+import java.util.Optional;
 //?}
 
-import java.util.Optional;
 
 //? if fabric {
 /**
@@ -27,7 +27,7 @@ public record ViaRomanaLandmark(BlockPos pos, Component name, DyeColor color) im
     public static final LandmarkType<ViaRomanaLandmark> TYPE = new SimpleLandmarkType<>(
         VersionUtils.getLocation("via_romana:destination_landmark"),
         pos -> RecordCodecBuilder.create(instance -> instance.group(
-            Codec.STRING.optionalFieldOf("name").forGetter(landmark -> 
+            Codec.STRING.optionalFieldOf("name").forGetter(landmark ->
                 Optional.ofNullable(landmark.name()).map(Component::getString)),
             Codec.STRING.optionalFieldOf("color").forGetter(landmark -> 
                 Optional.ofNullable(landmark.color()).map(DyeColor::getName))
