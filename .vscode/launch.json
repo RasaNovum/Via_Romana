@@ -1,11 +1,77 @@
 {
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "type": "java",
-            "name": "Current File",
-            "request": "launch",
-            "mainClass": "${file}"
-        }
-    ]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Current File",
+      "request": "launch",
+      "mainClass": "${file}"
+    },
+    {
+      "type": "java",
+      "request": "launch",
+      "name": "1.21.1-neoforge - Client",
+      "presentation": {
+        "group": "Mod Development - 1.21.1-neoforge",
+        "order": 0
+      },
+      "projectName": "1.21.1-neoforge",
+      "mainClass": "net.neoforged.devlaunch.Main",
+      "args": [
+        "@C:\\Users\\maxim\\Desktop\\Projects\\Software\\Minecraft\\Mod Work\\Via Romana Files\\Via_Romana\\versions\\1.21.1-neoforge\\build\\moddev\\clientRunProgramArgs.txt"
+      ],
+      "vmArgs": [
+        "@C:\\Users\\maxim\\Desktop\\Projects\\Software\\Minecraft\\Mod Work\\Via Romana Files\\Via_Romana\\versions\\1.21.1-neoforge\\build\\moddev\\clientRunVmArgs.txt",
+        "-Dfml.modFolders\u003dvia_romana%%C:\\Users\\maxim\\Desktop\\Projects\\Software\\Minecraft\\Mod Work\\Via Romana Files\\Via_Romana\\versions\\1.21.1-neoforge\\bin\\main"
+      ],
+      "cwd": "${workspaceFolder}\\versions\\1.21.1-neoforge\\run",
+      "env": {},
+      "console": "internalConsole",
+      "shortenCommandLine": "none"
+    },
+    {
+      "type": "java",
+      "request": "launch",
+      "name": "1.21.1-neoforge - Data",
+      "presentation": {
+        "group": "Mod Development - 1.21.1-neoforge",
+        "order": 1
+      },
+      "projectName": "1.21.1-neoforge",
+      "mainClass": "net.neoforged.devlaunch.Main",
+      "args": [
+        "@C:\\Users\\maxim\\Desktop\\Projects\\Software\\Minecraft\\Mod Work\\Via Romana Files\\Via_Romana\\versions\\1.21.1-neoforge\\build\\moddev\\dataRunProgramArgs.txt"
+      ],
+      "vmArgs": [
+        "@C:\\Users\\maxim\\Desktop\\Projects\\Software\\Minecraft\\Mod Work\\Via Romana Files\\Via_Romana\\versions\\1.21.1-neoforge\\build\\moddev\\dataRunVmArgs.txt",
+        "-Dfml.modFolders\u003dvia_romana%%C:\\Users\\maxim\\Desktop\\Projects\\Software\\Minecraft\\Mod Work\\Via Romana Files\\Via_Romana\\versions\\1.21.1-neoforge\\bin\\main"
+      ],
+      "cwd": "${workspaceFolder}\\versions\\1.21.1-neoforge\\run",
+      "env": {},
+      "console": "internalConsole",
+      "shortenCommandLine": "none"
+    },
+    {
+      "type": "java",
+      "request": "launch",
+      "name": "1.21.1-neoforge - Server",
+      "presentation": {
+        "group": "Mod Development - 1.21.1-neoforge",
+        "order": 2
+      },
+      "projectName": "1.21.1-neoforge",
+      "mainClass": "net.neoforged.devlaunch.Main",
+      "args": [
+        "@C:\\Users\\maxim\\Desktop\\Projects\\Software\\Minecraft\\Mod Work\\Via Romana Files\\Via_Romana\\versions\\1.21.1-neoforge\\build\\moddev\\serverRunProgramArgs.txt"
+      ],
+      "vmArgs": [
+        "@C:\\Users\\maxim\\Desktop\\Projects\\Software\\Minecraft\\Mod Work\\Via Romana Files\\Via_Romana\\versions\\1.21.1-neoforge\\build\\moddev\\serverRunVmArgs.txt",
+        "-Dfml.modFolders\u003dvia_romana%%C:\\Users\\maxim\\Desktop\\Projects\\Software\\Minecraft\\Mod Work\\Via Romana Files\\Via_Romana\\versions\\1.21.1-neoforge\\bin\\main"
+      ],
+      "cwd": "${workspaceFolder}\\versions\\1.21.1-neoforge\\run",
+      "env": {},
+      "console": "internalConsole",
+      "shortenCommandLine": "none"
+    }
+  ]
 }

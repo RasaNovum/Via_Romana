@@ -1,4 +1,4 @@
-package net.rasanovum.viaromana.entrypoints;
+package net.rasanovum.viaromana.loaders.fabric;
 
 //? if fabric {
 import net.fabricmc.api.ModInitializer;
@@ -6,11 +6,12 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.minecraft.server.level.ServerPlayer;
 import net.rasanovum.viaromana.ViaRomana;
 
 public class FabricMain implements ModInitializer {
-
     @Override
     public void onInitialize() {
         ViaRomana.initialize();
@@ -42,6 +43,13 @@ public class FabricMain implements ModInitializer {
 
         ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register((player, origin, level) -> {
             ViaRomana.onDimensionChange(level, player);
+        });
+
+        PlayerBlockBreakEvents.BEFORE.register((world, player, pos, state, blockentity) -> {
+            if (player instanceof ServerPlayer serverPlayer) {
+                return ViaRomana.onBlockBreak(world, pos, serverPlayer);
+            }
+            return false;
         });
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {

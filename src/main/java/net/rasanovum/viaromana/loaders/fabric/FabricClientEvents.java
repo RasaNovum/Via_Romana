@@ -1,5 +1,5 @@
-package net.rasanovum.viaromana.init;
-
+package net.rasanovum.viaromana.loaders.fabric;
+//? if fabric {
 import net.rasanovum.viaromana.client.HudMessageManager;
 import net.rasanovum.viaromana.client.FadeManager;
 import net.rasanovum.viaromana.client.triggers.OnClientPlayerTick;
@@ -12,10 +12,10 @@ import net.fabricmc.api.ClientModInitializer;
 import net.rasanovum.viaromana.storage.player.PlayerData;
 
 @Environment(EnvType.CLIENT)
-public class ClientInit implements ClientModInitializer {
+public class FabricClientEvents implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
-        RenderInit.load();
+        FabricRenderInit.load();
 
         new PacketRegistration().init();
 
@@ -30,3 +30,4 @@ public class ClientInit implements ClientModInitializer {
         });
     }
 }
+//?}

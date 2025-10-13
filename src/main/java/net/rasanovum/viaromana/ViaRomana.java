@@ -4,11 +4,15 @@ import com.mojang.brigadier.CommandDispatcher;
 import eu.midnightdust.lib.config.MidnightConfig;
 import net.mehvahdjukaar.moonlight.api.resources.pack.DynamicDataPack;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.LevelAccessor;
 import net.rasanovum.viaromana.command.ViaRomanaCommands;
 import net.rasanovum.viaromana.core.DimensionHandler;
+import net.rasanovum.viaromana.core.LinkHandler;
+import net.rasanovum.viaromana.core.SignInteract;
 import net.rasanovum.viaromana.init.*;
 import net.rasanovum.viaromana.map.ServerMapCache;
 import net.rasanovum.viaromana.network.PacketRegistration;
@@ -34,10 +38,9 @@ public class ViaRomana {
 
         new PacketRegistration().init();
 
-        BlockInit.load();
+//        BlockInit.load();
         EffectInit.load();
         ItemInit.load();
-        TriggerInit.load();
         DataInit.load();
 
         ServerResourcesGenerator generator = new ServerResourcesGenerator(DYNAMIC_PACK);
@@ -72,6 +75,17 @@ public class ViaRomana {
     public static void onDimensionChange(ServerLevel level, ServerPlayer player) {
         DimensionHandler.preventHopping(level, player);
         DimensionHandler.syncPathDataOnDimensionChange(level, player);
+    }
+
+    public static boolean onBlockBreak(LevelAccessor world, BlockPos pos, ServerPlayer player) {
+        if (LinkHandler.isSignBlock(world, pos) && LinkHandler.isSignLinked(world, pos)) {
+            if (!player.isShiftKeyDown()) {
+                return true;
+            }
+        }
+
+        SignInteract.broken(world, pos, player);
+        return false;
     }
 
     public static void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher) {

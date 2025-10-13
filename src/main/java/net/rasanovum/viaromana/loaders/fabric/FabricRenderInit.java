@@ -1,4 +1,4 @@
-package net.rasanovum.viaromana.init;
+package net.rasanovum.viaromana.loaders.fabric;
 
 import net.rasanovum.viaromana.client.render.FadeRenderer;
 import net.rasanovum.viaromana.client.render.InvalidBlockRenderer;
@@ -12,7 +12,7 @@ import net.fabricmc.api.EnvType;
 import net.minecraft.client.Minecraft;
 
 @Environment(EnvType.CLIENT)
-public class RenderInit {
+public class FabricRenderInit {
 	public static void load() {
 		HudRenderCallback.EVENT.register((matrices, tickDeltaTrack) -> {
 			//? if <1.21 {

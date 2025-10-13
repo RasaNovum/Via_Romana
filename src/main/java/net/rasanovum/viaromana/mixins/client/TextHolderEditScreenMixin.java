@@ -1,14 +1,16 @@
 package net.rasanovum.viaromana.mixins.client;
 
-import net.fabricmc.loader.api.FabricLoader;
-import net.fabricmc.loader.api.Version;
-import net.fabricmc.loader.api.VersionParsingException;
 import net.mehvahdjukaar.supplementaries.client.screens.SignPostScreen;
 import net.mehvahdjukaar.supplementaries.client.screens.TextHolderEditScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.rasanovum.viaromana.util.SignEditHelper;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
+//? if fabric {
+import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.api.Version;
+import net.fabricmc.loader.api.VersionParsingException;
+//?}
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

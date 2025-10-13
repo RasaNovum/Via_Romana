@@ -21,10 +21,10 @@
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"net.rasanovum.viaromana.entrypoints.FabricMain"
+			"net.rasanovum.viaromana.loaders.fabric.FabricMain"
 		],
 		"client": [
-			"net.rasanovum.viaromana.init.ClientInit"
+			"net.rasanovum.viaromana.loaders.fabric.FabricClientEvents"
 		]
 	},
 	"depends": {
