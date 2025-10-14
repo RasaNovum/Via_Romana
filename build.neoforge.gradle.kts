@@ -88,7 +88,7 @@ tasks.named<ProcessResources>("processResources") {
     }
 
     // Exclude Fabric-specific files
-    exclude("**/fabric.mod.json", "**/*.accesswidener")
+    exclude("**/fabric.mod.json", "**/*.accesswidener", "**/forge.mods.toml")
 }
 
 

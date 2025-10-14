@@ -1,0 +1,124 @@
+import org.gradle.language.jvm.tasks.ProcessResources
+
+plugins {
+    id("net.minecraftforge.gradle") version ("[6.0,6.2)")
+    id("org.parchmentmc.librarian.forgegradle") version "1.+"
+}
+
+version = "${property("mod.version")}+${property("deps.minecraft")}-forge"
+base.archivesName = property("mod.id") as String
+
+minecraft {
+    mappings("parchment", "2023.09.03-1.20.1")
+
+    runs {
+        create("client") {
+            workingDirectory(project.file("run"))
+            property("forge.logging.markers", "REGISTRIES")
+            property("forge.logging.console.level", "debug")
+            mods {
+                create(property("mod.id") as String) {
+                    source(sourceSets.main.get())
+                }
+            }
+        }
+
+        create("server") {
+            workingDirectory(project.file("run"))
+            property("forge.logging.markers", "REGISTRIES")
+            property("forge.logging.console.level", "debug")
+            mods {
+                create(property("mod.id") as String) {
+                    source(sourceSets.main.get())
+                }
+            }
+        }
+
+        create("data") {
+            workingDirectory(project.file("run"))
+            property("forge.logging.markers", "REGISTRIES")
+            property("forge.logging.console.level", "debug")
+            args("--mod", property("mod.id") as String, "--all", "--output", file("src/generated/resources/"), "--existing", file("src/main/resources/"))
+            mods {
+                create(property("mod.id") as String) {
+                    source(sourceSets.main.get())
+                }
+            }
+        }
+    }
+}
+
+repositories {
+    maven("https://maven.su5ed.dev/releases")
+    maven("https://repo.sleeping.town/")
+    maven("https://maven.terraformersmc.com/")
+    maven("https://maven.shedaniel.me/")
+    maven("https://api.modrinth.com/maven")
+    maven("https://maven.parchmentmc.org")
+    maven("https://modmaven.k-4u.nl/")
+    maven("https://jm.gserv.me/repository/maven-public/")
+    maven("https://cursemaven.com")
+    maven("https://maven.sinytra.org/releases")
+    mavenCentral()
+}
+
+dependencies {
+    minecraft("net.minecraftforge:forge:${property("deps.minecraft")}-${property("deps.forge_version")}")
+
+    implementation(fg.deobf("mysticdrew:common-networking-common:${property("deps.commonnetworking")}"))
+    implementation(fg.deobf("maven.modrinth:data-anchor:${property("deps.data-anchor")}"))
+    implementation(fg.deobf("maven.modrinth:midnightlib:${property("deps.midnightlib")}"))
+    compileOnly(fg.deobf("curse.maven:selene-499980:${property("deps.moonlightlib")}"))
+    compileOnly(fg.deobf("maven.modrinth:supplementaries:${property("deps.supplementaries")}"))
+
+    implementation("com.google.code.gson:gson:2.10.1")
+
+    annotationProcessor("org.spongepowered:mixin:0.8.5:processor")
+}
+
+tasks.named<ProcessResources>("processResources") {
+    val props = mapOf(
+        "version" to project.version,
+        "mc" to project.property("deps.minecraft"),
+        "modName" to project.property("mod.name"),
+        "modId" to project.property("mod.id"),
+        "modDescription" to project.property("mod.description"),
+        "authors" to project.property("mod.authors"),
+        "contributors" to project.property("mod.contributors"),
+        "license" to project.property("mod.license"),
+        "homepage" to project.property("mod.homepage"),
+        "issues" to project.property("mod.issues"),
+        "sources" to project.property("mod.sources"),
+        "forge" to project.property("deps.forge_version"),
+        "forgeFapi" to project.property("deps.fabric_api")
+    )
+
+    inputs.properties(props)
+
+    filesMatching("META-INF/mods.toml") {
+        expand(props)
+    }
+
+    exclude("**/fabric.mod.json", "**/*.accesswidener", "**/neoforge.mods.toml")
+}
+
+stonecutter {
+    replacements.string {
+        direction = true
+        replace("net.neoforged", "net.minecraftforge")
+    }
+}
+
+tasks.withType<JavaCompile>().configureEach {
+    options.encoding = "UTF-8"
+    val javaVersion = 17
+    options.release.set(javaVersion)
+}
+
+java {
+    withSourcesJar()
+    val javaVersion = 17
+    sourceCompatibility = JavaVersion.toVersion(javaVersion)
+    targetCompatibility = JavaVersion.toVersion(javaVersion)
+}
+

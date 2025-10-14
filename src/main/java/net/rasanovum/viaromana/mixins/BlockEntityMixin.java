@@ -30,7 +30,7 @@ public class BlockEntityMixin implements ICustomDataHolder {
 	}
 
 	//? if <1.21 {
-	/*@Inject(method = "load", at = @At("RETURN"))
+	/*@Inject(method = "load", at = @At("RETURN"), remap = false)
 	private void onLoad(CompoundTag nbt, CallbackInfo ci) {
 	*///?} else {
 	@Inject(method = "loadAdditional", at = @At("RETURN"), remap = false)

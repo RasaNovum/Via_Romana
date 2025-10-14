@@ -4,6 +4,7 @@ pluginManagement {
         gradlePluginPortal()
         maven("https://maven.kikugie.dev/releases")
         maven("https://maven.fabricmc.net/")
+        maven("https://maven.minecraftforge.net/")
         maven("https://maven.neoforged.net/releases/")
         maven("https://maven.sinytra.org/releases")
     }
@@ -22,7 +23,7 @@ stonecutter {
             .forEach { loader -> vers("$version-$loader", version).buildscript = "build.$loader.gradle.kts" }
 
         match("1.21.1", "fabric", "neoforge")
-        match("1.20.1", "fabric")
+        match("1.20.1", "fabric", "forge")
 
         vcsVersion = "1.20.1-fabric"
     }
