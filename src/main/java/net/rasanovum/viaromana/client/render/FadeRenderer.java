@@ -11,10 +11,7 @@ import net.minecraft.client.Minecraft;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.platform.GlStateManager;
 
-//? if fabric
 @net.fabricmc.api.Environment(net.fabricmc.api.EnvType.CLIENT)
-//? if neoforge
-/*@net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)*/
 public class FadeRenderer {
     public static void render(GuiGraphics guiGraphics, float tickDelta) {
         float alpha = FadeManager.getCurrentFadeAlpha();

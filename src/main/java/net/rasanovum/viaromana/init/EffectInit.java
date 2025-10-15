@@ -11,6 +11,9 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 //? if neoforge {
 /*import net.neoforged.neoforge.registries.DeferredRegister;
+*///?} else if forge {
+/*import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.RegistryObject;
 *///?}
 
 public class EffectInit {
@@ -20,13 +23,20 @@ public class EffectInit {
 	public static void load() {
 		TRAVELLERS_FATIGUE = Registry.register(BuiltInRegistries.MOB_EFFECT, VersionUtils.getLocation("via_romana:travellers_fatigue"), new TravellersFatigueEffect());
 	}
-	//?} else if neoforge {
+	//?} else if neoforge || forge {
 	/*public static final DeferredRegister<MobEffect> MOB_EFFECTS =
 			DeferredRegister.create(Registries.MOB_EFFECT, ViaRomana.MODID);
 
-	public static final Holder<MobEffect> TRAVELLERS_FATIGUE = MOB_EFFECTS.register(
+	//? if neoforge {
+	/^public static final Holder<MobEffect> TRAVELLERS_FATIGUE = MOB_EFFECTS.register(
 			"travellers_fatigue",
             TravellersFatigueEffect::new
 	);
+	^///?} else if forge {
+	/^public static final RegistryObject<TravellersFatigueEffect> TRAVELLERS_FATIGUE = MOB_EFFECTS.register(
+			"travellers_fatigue",
+			TravellersFatigueEffect::new
+	);
+	^///?}
 	*///?}
 }

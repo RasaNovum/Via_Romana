@@ -17,10 +17,7 @@ import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.IntStream;
 
-//? if fabric
 @net.fabricmc.api.Environment(net.fabricmc.api.EnvType.CLIENT)
-//? if neoforge
-/*@net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)*/
 public class MapRenderer implements AutoCloseable {
     // region Constants
     private static final int SCREEN_MARGIN = 40;

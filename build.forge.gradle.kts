@@ -2,6 +2,7 @@ import org.gradle.language.jvm.tasks.ProcessResources
 
 plugins {
     id("net.minecraftforge.gradle") version ("[6.0,6.2)")
+    id("org.spongepowered.mixin") version "0.7.+"
     id("org.parchmentmc.librarian.forgegradle") version "1.+"
 }
 
@@ -46,6 +47,11 @@ minecraft {
             }
         }
     }
+}
+
+mixin {
+    add(sourceSets.main.get(), "via_romana.refmap.json")
+    config("via_romana.mixins.json")
 }
 
 repositories {
@@ -103,9 +109,17 @@ tasks.named<ProcessResources>("processResources") {
 }
 
 stonecutter {
-    replacements.string {
-        direction = true
-        replace("net.neoforged", "net.minecraftforge")
+    val loaderClientField = "@net.minecraftforge.api.distmarker.OnlyIn(net.minecraftforge.api.distmarker.Dist.CLIENT)"
+    val stringReplacements = mapOf(
+        "@net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)" to loaderClientField,
+        "@net.fabricmc.api.Environment(net.fabricmc.api.EnvType.CLIENT)" to loaderClientField
+    )
+
+    stringReplacements.forEach { (from, to) ->
+        replacements.string {
+            direction = true
+            replace(from, to)
+        }
     }
 }
 

@@ -24,10 +24,7 @@ import java.awt.Point;
 import java.util.*;
 import java.util.stream.Collectors;
 
-//? if fabric
 @net.fabricmc.api.Environment(net.fabricmc.api.EnvType.CLIENT)
-//? if neoforge
-/*@net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)*/
 public class TeleportMapScreen extends Screen {
 
     //region Fields & Constants

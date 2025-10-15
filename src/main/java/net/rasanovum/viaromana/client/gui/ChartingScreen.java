@@ -23,10 +23,7 @@ import net.rasanovum.viaromana.util.VersionUtils;
 import java.util.List;
 import java.util.Objects;
 
-//? if fabric
 @net.fabricmc.api.Environment(net.fabricmc.api.EnvType.CLIENT)
-//? if neoforge
-/*@net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)*/
 public class ChartingScreen extends Screen {
     // region Constants
     private static final int BACKGROUND_WIDTH = 256;

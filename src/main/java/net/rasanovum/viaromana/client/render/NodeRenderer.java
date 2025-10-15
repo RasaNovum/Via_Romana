@@ -33,10 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Client-side renderer for visualizing path nodes as textured beams.
  */
-//? if fabric
 @net.fabricmc.api.Environment(net.fabricmc.api.EnvType.CLIENT)
-//? if neoforge
-/*@net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)*/
 public class NodeRenderer {
     // Constants
     private static final float BEAM_HEIGHT = 2.0f;

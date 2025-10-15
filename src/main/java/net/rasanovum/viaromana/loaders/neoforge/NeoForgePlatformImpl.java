@@ -1,11 +1,14 @@
 package net.rasanovum.viaromana.loaders.neoforge;
 
-import net.rasanovum.viaromana.loaders.Platform;
-//? if neoforge || forge
-/*import net.neoforged.fml.ModList;*/
-
+//? if neoforge {
+/*import net.neoforged.fml.ModList;
+*///?} else if forge {
+/*import net.minecraftforge.fml.ModList;
+*///?}
 //? if neoforge || forge {
-/*public class NeoForgePlatformImpl implements Platform {
+/*import net.rasanovum.viaromana.loaders.Platform;
+
+public class NeoForgePlatformImpl implements Platform {
     @Override
     public boolean isModLoaded(String modid) {
         return ModList.get().isLoaded(modid);

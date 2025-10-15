@@ -20,10 +20,7 @@ import net.rasanovum.viaromana.util.VersionUtils;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 
-//? if fabric
 @net.fabricmc.api.Environment(net.fabricmc.api.EnvType.CLIENT)
-//? if neoforge
-/*@net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)*/
 public class InvalidBlockRenderer {
     private static final ResourceLocation BARRIER_TEXTURE = VersionUtils.getLocation("minecraft:textures/item/barrier.png");
     private static final int FADE_BUFFER = 3;

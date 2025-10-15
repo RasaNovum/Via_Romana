@@ -91,6 +91,20 @@ tasks.named<ProcessResources>("processResources") {
     exclude("**/fabric.mod.json", "**/*.accesswidener", "**/forge.mods.toml")
 }
 
+stonecutter {
+    val loaderClientField = "@net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)"
+    val stringReplacements = mapOf(
+        "@net.minecraftforge.api.distmarker.OnlyIn(net.minecraftforge.api.distmarker.Dist.CLIENT)" to loaderClientField,
+        "@net.fabricmc.api.Environment(net.fabricmc.api.EnvType.CLIENT)" to loaderClientField
+    )
+
+    stringReplacements.forEach { (from, to) ->
+        replacements.string {
+            direction = true
+            replace(from, to)
+        }
+    }
+}
 
 tasks.withType<JavaCompile>().configureEach {
     options.encoding = "UTF-8"

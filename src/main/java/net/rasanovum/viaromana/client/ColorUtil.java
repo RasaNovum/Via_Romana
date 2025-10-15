@@ -1,9 +1,6 @@
 package net.rasanovum.viaromana.client;
 
-//? if fabric
 @net.fabricmc.api.Environment(net.fabricmc.api.EnvType.CLIENT)
-//? if neoforge
-/*@net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)*/
 public class ColorUtil {
     /**
      * Converts RGB float values to hexadecimal color code.

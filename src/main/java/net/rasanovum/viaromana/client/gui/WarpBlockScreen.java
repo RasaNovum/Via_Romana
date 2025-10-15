@@ -11,10 +11,7 @@ import net.rasanovum.viaromana.util.VersionUtils;
 /**
  * Screen that opens when right-clicking a warp block, made for modpack developers
  */
-//? if fabric
 @net.fabricmc.api.Environment(net.fabricmc.api.EnvType.CLIENT)
-//? if neoforge
-/*@net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)*/
 public class WarpBlockScreen extends Screen {
     private static final ResourceLocation WARP_BLOCK_TEXTURE = VersionUtils.getLocation("via_romana:textures/screens/warp_block_texture.png");
     private final BlockPos blockPos;

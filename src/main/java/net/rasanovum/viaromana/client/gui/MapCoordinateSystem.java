@@ -3,10 +3,7 @@ package net.rasanovum.viaromana.client.gui;
 import net.minecraft.core.BlockPos;
 import java.awt.Point;
 
-//? if fabric
 @net.fabricmc.api.Environment(net.fabricmc.api.EnvType.CLIENT)
-//? if neoforge
-/*@net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)*/
 public class MapCoordinateSystem {
     // World bounds
     private final int worldStartX;

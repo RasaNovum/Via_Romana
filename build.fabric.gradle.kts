@@ -81,6 +81,21 @@ tasks.named<ProcessResources>("processResources") {
     exclude("**/neoforge.mods.toml", "**/mods.toml", "META-INF/mods.toml")
 }
 
+stonecutter {
+    val loaderClientField = "@net.fabricmc.api.Environment(net.fabricmc.api.EnvType.CLIENT)"
+    val stringReplacements = mapOf(
+        "@net.minecraftforge.api.distmarker.OnlyIn(net.minecraftforge.api.distmarker.Dist.CLIENT)" to loaderClientField,
+        "@net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)" to loaderClientField
+    )
+
+    stringReplacements.forEach { (from, to) ->
+        replacements.string {
+            direction = true
+            replace(from, to)
+        }
+    }
+}
+
 tasks.withType<JavaCompile>().configureEach {
     options.encoding = "UTF-8"
     val javaVersion = if (stonecutter.eval(stonecutter.current.version, ">=1.20.5")) 21 else 17
