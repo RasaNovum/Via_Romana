@@ -25,7 +25,7 @@ public class NeoForgeMain {
     //? if neoforge
     /^public NeoForgeMain(IEventBus modEventBus) {^/
     //? if forge {
-    /^public NeoForgeMain(IEventBus modEventBus) {
+    /^public NeoForgeMain() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         ^///?}
 

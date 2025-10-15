@@ -72,9 +72,10 @@ dependencies {
     minecraft("net.minecraftforge:forge:${property("deps.minecraft")}-${property("deps.forge_version")}")
 
     implementation(fg.deobf("mysticdrew:common-networking-common:${property("deps.commonnetworking")}"))
+    implementation(fg.deobf("mysticdrew:common-networking-forge:${property("deps.commonnetworking")}"))
     implementation(fg.deobf("maven.modrinth:data-anchor:${property("deps.data-anchor")}"))
     implementation(fg.deobf("maven.modrinth:midnightlib:${property("deps.midnightlib")}"))
-    compileOnly(fg.deobf("curse.maven:selene-499980:${property("deps.moonlightlib")}"))
+    implementation(fg.deobf("curse.maven:selene-499980:${property("deps.moonlightlib")}"))
     compileOnly(fg.deobf("maven.modrinth:supplementaries:${property("deps.supplementaries")}"))
 
     implementation("com.google.code.gson:gson:2.10.1")
