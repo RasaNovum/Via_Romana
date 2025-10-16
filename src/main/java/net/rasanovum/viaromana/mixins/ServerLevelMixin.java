@@ -3,8 +3,10 @@ package net.rasanovum.viaromana.mixins;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.rasanovum.viaromana.map.ServerMapCache;
 import net.rasanovum.viaromana.path.PathGraph;
 
@@ -13,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(ServerLevel.class)
+@Mixin(Level.class)
 public abstract class ServerLevelMixin {
 
     /**
@@ -21,11 +23,13 @@ public abstract class ServerLevelMixin {
      * Only processes surface changes in chunks that are part of path networks.
      */
     @Inject(
-        method = "onBlockStateChange(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/block/state/BlockState;)V",
-        at = @At("HEAD"), remap = false
+            method = "onBlockStateChange(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/block/state/BlockState;)V",
+            at = @At("HEAD")
     )
     private void onBlockStateChange(BlockPos pos, BlockState oldState, BlockState newState, CallbackInfo ci) {
-        ServerLevel world = (ServerLevel) (Object) this;
+        Level self = (Level) (Object) this;
+        if (!(self instanceof ServerLevel world)) return;
+
         ChunkPos chunkPos = new ChunkPos(pos);
 
         LevelChunk levelChunk = world.getChunkSource().getChunkNow(chunkPos.x, chunkPos.z);
@@ -37,8 +41,8 @@ public abstract class ServerLevelMixin {
         // Only mark dirty if block is at or above the motion-blocking heightmap
         int localX = pos.getX() & 15;
         int localZ = pos.getZ() & 15;
-        int surfaceY = levelChunk.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING, localX, localZ);
-        
+        int surfaceY = levelChunk.getHeight(Heightmap.Types.MOTION_BLOCKING, localX, localZ);
+
         // Mark dirty if block is within 2 blocks of surface
         if (pos.getY() >= surfaceY - 2) {
             ServerMapCache.markChunkDirty(world, chunkPos);

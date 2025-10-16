@@ -15,11 +15,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(MultiPlayerGameMode.class)
 public abstract class ClientPlayerInteractionManagerMixin {
-    @Shadow(remap = false) @Final private Minecraft minecraft;
+    @Shadow @Final private Minecraft minecraft;
 
     private boolean signAttackCancelled = false;
 
-    @Inject(method = "startDestroyBlock", at = @At("HEAD"), cancellable = true, remap = false)
+    @Inject(method = "startDestroyBlock", at = @At("HEAD"), cancellable = true)
     private void viaRomana_onAttackBlock(BlockPos pos, Direction direction, CallbackInfoReturnable<Boolean> cir) {
         if (this.minecraft.player != null && this.minecraft.level != null) {
             boolean shouldCancel = SignInteract.clicked(this.minecraft.level, pos, this.minecraft.player);
@@ -28,14 +28,14 @@ public abstract class ClientPlayerInteractionManagerMixin {
         }
     }
 
-    @Inject(method = "continueDestroyBlock", at = @At("HEAD"), cancellable = true, remap = false)
+    @Inject(method = "continueDestroyBlock", at = @At("HEAD"), cancellable = true)
     private void viaRomana_onContinueDestroyBlock(BlockPos pos, Direction direction, CallbackInfoReturnable<Boolean> cir) {
         if (this.signAttackCancelled) {
             cir.setReturnValue(false);
         }
     }
 
-    @Inject(method = "stopDestroyBlock", at = @At("HEAD"), remap = false)
+    @Inject(method = "stopDestroyBlock", at = @At("HEAD"))
     private void viaRomana_onStopDestroyBlock(CallbackInfo ci) {
         this.signAttackCancelled = false;
     }

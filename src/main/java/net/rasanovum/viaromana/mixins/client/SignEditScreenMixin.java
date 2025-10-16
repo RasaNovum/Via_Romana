@@ -18,7 +18,7 @@ public abstract class SignEditScreenMixin extends Screen {
         super(title);
     }
 
-    @Inject(method = "init", at = @At("TAIL"), remap = false)
+    @Inject(method = "init", at = @At("TAIL"))
     private void onInit(CallbackInfo ci) {        
         Button linkButton = SignEditHelper.createLinkButton(this);
         if (linkButton != null) {

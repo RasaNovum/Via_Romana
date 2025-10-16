@@ -32,6 +32,7 @@ public class BlockInit {
         Registry.register(BuiltInRegistries.BLOCK, id, block);
         Registry.register(BuiltInRegistries.ITEM, id, new BlockItem(block, new Item.Properties()));
     }
+}
     //?} else if neoforge || forge {
 	/*public static final DeferredRegister<Block> BLOCKS =
 			DeferredRegister.create(Registries.BLOCK, ViaRomana.MODID);

@@ -45,10 +45,12 @@ dependencies {
     modImplementation("maven.modrinth:midnightlib:${property("deps.midnightlib")}")
     modImplementation("curse.maven:selene-499980:${property("deps.moonlightlib")}")
 
-    include("folk.sisby:surveyor:${property("deps.surveyor")}")
+    include("folk.sisby:surveyor:${property("deps.surveyor")}") //TODO: Remove
+    include("mysticdrew:common-networking-fabric:${property("deps.commonnetworking")}")
     include("mysticdrew:common-networking-common:${property("deps.commonnetworking")}")
     include("maven.modrinth:data-anchor:${property("deps.data-anchor")}")
     include("maven.modrinth:midnightlib:${property("deps.midnightlib")}")
+    include("curse.maven:selene-499980:${property("deps.moonlightlib")}")
 
     annotationProcessor("net.fabricmc:sponge-mixin:0.12.5+mixin.0.8.5")
     modCompileOnly("maven.modrinth:supplementaries:${property("deps.supplementaries")}")

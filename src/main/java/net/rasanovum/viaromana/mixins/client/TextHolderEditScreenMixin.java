@@ -26,7 +26,7 @@ public abstract class TextHolderEditScreenMixin extends Screen {
         super(title);
     }
 
-    @Inject(method = "init()V", at = @At("TAIL"), remap = false)
+    @Inject(method = "init()V", at = @At("TAIL"))
     private void addLinkButton(CallbackInfo ci) {
         if ((Object) this instanceof SignPostScreen) {
             Button linkButton = SignEditHelper.createLinkButton((SignPostScreen) (Object) this);
@@ -37,7 +37,7 @@ public abstract class TextHolderEditScreenMixin extends Screen {
     // Fixed in Supplementaries 3.1.38
     //? if fabric {
     // Match vanilla abstract sign positioning
-    @ModifyArgs(method = "init", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/Button$Builder;bounds(IIII)Lnet/minecraft/client/gui/components/Button$Builder;", remap = false))
+    @ModifyArgs(method = "init", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/Button$Builder;bounds(IIII)Lnet/minecraft/client/gui/components/Button$Builder;"))
     private void adjustDoneButtonPosition(Args args) {
         try {
             Version fixVersion = Version.parse("1.20-3.1.38");

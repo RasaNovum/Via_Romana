@@ -18,7 +18,7 @@ public class BlockEntityMixin implements ICustomDataHolder {
 	@Unique
 	private CompoundTag fabricData = new CompoundTag();
 
-	@Inject(method = "saveAdditional", at = @At("RETURN"), remap = false)
+	@Inject(method = "saveAdditional", at = @At("RETURN"))
 	//? if <1.21 {
 	/*private void onSaveAdditional(CompoundTag nbt, CallbackInfo ci) {
 	*///?} else {
@@ -30,10 +30,10 @@ public class BlockEntityMixin implements ICustomDataHolder {
 	}
 
 	//? if <1.21 {
-	/*@Inject(method = "load", at = @At("RETURN"), remap = false)
+	/*@Inject(method = "load", at = @At("RETURN"))
 	private void onLoad(CompoundTag nbt, CallbackInfo ci) {
 	*///?} else {
-	@Inject(method = "loadAdditional", at = @At("RETURN"), remap = false)
+	@Inject(method = "loadAdditional", at = @At("RETURN"))
 	private void onLoad(CompoundTag nbt, HolderLookup.Provider registries, CallbackInfo ci) {
 	//?}
 		if (nbt.contains("FabricData")) {
@@ -41,7 +41,7 @@ public class BlockEntityMixin implements ICustomDataHolder {
 		}
 	}
 
-	@Inject(method = "saveWithoutMetadata", at = @At("RETURN"), cancellable = true, remap = false)
+	@Inject(method = "saveWithoutMetadata", at = @At("RETURN"), cancellable = true)
 	//? if <1.21 {
 	/*private void onSaveWithoutMetadata(CallbackInfoReturnable<CompoundTag> cir) {
 	*///?} else {
