@@ -36,8 +36,6 @@ public class ViaRomana {
 
         MidnightConfig.init(MODID, CommonConfig.class);
 
-        new PacketRegistration().init();
-
         DataInit.load();
 
         ServerResourcesGenerator generator = new ServerResourcesGenerator(DYNAMIC_PACK);

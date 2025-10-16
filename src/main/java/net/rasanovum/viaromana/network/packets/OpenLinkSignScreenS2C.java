@@ -46,10 +46,4 @@ public record OpenLinkSignScreenS2C() implements CustomPacketPayload {
     public static OpenLinkSignScreenS2C decode(FriendlyByteBuf buf) {
         return new OpenLinkSignScreenS2C();
     }
-    
-    public static void handle(PacketContext<OpenLinkSignScreenS2C> ctx) {
-        if (Side.CLIENT.equals(ctx.side())) {
-            // Unused - screen opening is handled client-side via mixin
-        }
-    }
 }

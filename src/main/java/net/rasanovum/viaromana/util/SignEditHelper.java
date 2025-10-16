@@ -22,7 +22,6 @@ import net.rasanovum.viaromana.mixins.client.AbstractSignEditScreenAccessor;
 import java.util.Optional;
 
 public class SignEditHelper {
-
     public static Button createLinkButton(Screen screen) {
         Minecraft minecraft = Minecraft.getInstance();
         Entity player = minecraft.player;

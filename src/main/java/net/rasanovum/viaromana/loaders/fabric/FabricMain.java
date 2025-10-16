@@ -13,11 +13,13 @@ import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.init.EffectInit;
 import net.rasanovum.viaromana.init.BlockInit;
 import net.rasanovum.viaromana.init.ItemInit;
+import net.rasanovum.viaromana.network.PacketRegistration;
 
 public class FabricMain implements ModInitializer {
     @Override
     public void onInitialize() {
         ViaRomana.initialize();
+        new PacketRegistration().initCommon();
         EffectInit.load();
         BlockInit.load();
         ItemInit.load();

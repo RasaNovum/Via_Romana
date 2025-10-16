@@ -169,16 +169,6 @@ public record DestinationResponseS2C(
 
         return new DestinationResponseS2C(destinations, signPos, sourceNodePos, networkNodes, networkId);
     }
-
-    public static void handle(PacketContext<DestinationResponseS2C> ctx) {
-        if (Side.CLIENT.equals(ctx.side())) {
-            net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
-            mc.execute(() -> {
-                net.rasanovum.viaromana.client.gui.TeleportMapScreen screen = new net.rasanovum.viaromana.client.gui.TeleportMapScreen(ctx.message());
-                mc.setScreen(screen);
-            });
-        }
-    }
     
     public static class DestinationInfo {
         public final BlockPos position;

@@ -50,13 +50,4 @@ public record SignValidationResponseS2C(BlockPos nodePos, boolean isValid) imple
         boolean valid = buf.readBoolean();
         return new SignValidationResponseS2C(pos, valid);
     }
-
-    public static void handle(PacketContext<SignValidationResponseS2C> ctx) {
-        if (Side.CLIENT.equals(ctx.side())) {
-            net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
-            if (mc.screen instanceof net.rasanovum.viaromana.client.gui.TeleportMapScreen screen) {
-                screen.handleSignValidation(ctx.message().nodePos(), ctx.message().isValid());
-            }
-        }
-    }
 }

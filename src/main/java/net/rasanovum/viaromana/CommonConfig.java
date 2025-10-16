@@ -27,7 +27,7 @@ public class CommonConfig extends MidnightConfig {
             "forge:slabs", "forge:stairs", "forge:walls", "forge:wool", "forge:wool_carpets", "forge:planks", "forge:logs", "forge:rails", "forge:buttons", "forge:pressure_plates"
     );
     @Entry(category = CHARTING) public static List<String> path_block_strings = Lists.newArrayList(
-            "sandstone", "polished", "cobble", "brick", "smooth", "basalt", "path", "road", "concrete", "pavement", "terracotta", "tile", "wall", "fence"
+            "sandstone", "polished", "cobble", "brick", "smooth", "basalt", "path", "road", "concrete", "pavement", "glazed", "tile", "wall", "fence"
     );
     @Entry(category = CHARTING) public static List<String> block_string_blacklist = Lists.newArrayList("diagonalwalls:", "diagonalfences:", "diagonalwindows:");
     @Entry(category = CHARTING) public static List<String> invalid_dimensions = Lists.newArrayList();

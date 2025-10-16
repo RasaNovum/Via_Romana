@@ -53,10 +53,4 @@ public record OpenWarpBlockScreenS2C(BlockPos blockPos) implements CustomPacketP
     public static OpenWarpBlockScreenS2C decode(FriendlyByteBuf buf) {
         return new OpenWarpBlockScreenS2C(buf.readBlockPos());
     }
-
-    public static void handle(PacketContext<OpenWarpBlockScreenS2C> ctx) {
-        if (Side.CLIENT.equals(ctx.side())) {
-            net.minecraft.client.Minecraft.getInstance().setScreen(new WarpBlockScreen(ctx.message().blockPos()));
-        }
-    }
 }

@@ -56,15 +56,4 @@ public record TeleportFadeS2C(int fadeUpTicks, int holdTicks, int fadeDownTicks,
             buf.readInt()
         );
     }
-
-    public static void handle(PacketContext<TeleportFadeS2C> ctx) {
-        if (Side.CLIENT.equals(ctx.side())) {
-            FadeManager.startFade(
-                ctx.message().fadeUpTicks(),
-                ctx.message().holdTicks(),
-                ctx.message().fadeDownTicks(),
-                ctx.message().footstepInterval()
-            );
-        }
-    }
 }
