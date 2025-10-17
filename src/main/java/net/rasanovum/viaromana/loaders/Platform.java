@@ -8,5 +8,7 @@ public interface Platform {
 
 
     boolean isModLoaded(String modid);
+    boolean isClientSide();
+    boolean isServerSide();
     String loader();
 }
