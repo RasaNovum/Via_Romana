@@ -57,7 +57,7 @@ public class FabricMain implements ModInitializer {
             if (player instanceof ServerPlayer serverPlayer) {
                 return ViaRomana.onBlockBreak(world, pos, serverPlayer);
             }
-            return false;
+            return true;
         });
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {

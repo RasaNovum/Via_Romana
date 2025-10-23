@@ -74,13 +74,10 @@ public class ViaRomana {
 
     public static boolean onBlockBreak(LevelAccessor world, BlockPos pos, ServerPlayer player) {
         if (LinkHandler.isSignBlock(world, pos) && LinkHandler.isSignLinked(world, pos)) {
-            if (!player.isShiftKeyDown()) {
-                return true;
-            }
+            if (!player.isShiftKeyDown()) return false;
+            else SignInteract.broken(world, pos, player);
         }
-
-        SignInteract.broken(world, pos, player);
-        return false;
+        return true;
     }
 
     public static void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher) {

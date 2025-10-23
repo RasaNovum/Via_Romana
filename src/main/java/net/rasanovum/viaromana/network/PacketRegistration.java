@@ -10,6 +10,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 //?}
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.client.network.ClientPacketHandler;
+import net.rasanovum.viaromana.loaders.Platform;
 import net.rasanovum.viaromana.network.packets.*;
 
 import java.util.function.BiConsumer;
@@ -55,6 +56,8 @@ public class PacketRegistration {
         registerPacket(SyncPlayerDataC2S.TYPE, SyncPlayerDataC2S.class, SyncPlayerDataC2S::encode, SyncPlayerDataC2S::decode, SyncPlayerDataC2S.STREAM_CODEC, SyncPlayerDataC2S::handle);
         registerPacket(TeleportRequestC2S.TYPE, TeleportRequestC2S.class, TeleportRequestC2S::encode, TeleportRequestC2S::decode, TeleportRequestC2S.STREAM_CODEC, TeleportRequestC2S::handle);
         registerPacket(SignUnlinkRequestC2S.TYPE, SignUnlinkRequestC2S.class, SignUnlinkRequestC2S::encode, SignUnlinkRequestC2S::decode, SignUnlinkRequestC2S.STREAM_CODEC, SignUnlinkRequestC2S::handle);
+
+        if (Platform.INSTANCE.isClientSide()) return;
 
         registerPacket(OpenChartingScreenS2C.TYPE, OpenChartingScreenS2C.class, OpenChartingScreenS2C::encode, OpenChartingScreenS2C::decode, OpenChartingScreenS2C.STREAM_CODEC, null);
         registerPacket(OpenLinkSignScreenS2C.TYPE, OpenLinkSignScreenS2C.class, OpenLinkSignScreenS2C::encode, OpenLinkSignScreenS2C::decode, OpenLinkSignScreenS2C.STREAM_CODEC, null);
