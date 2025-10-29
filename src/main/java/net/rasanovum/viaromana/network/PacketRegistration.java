@@ -27,7 +27,9 @@ public class PacketRegistration {
         Object streamCodec,
         java.util.function.Consumer<PacketContext<T>> handler
     ) {
-        Network.registerPacket((net.minecraft.resources.ResourceLocation) type, packetClass, (buf, pkt) -> encoder.accept(pkt, buf), decoder, handler);
+        // Network.registerPacket expects BiConsumer<T, FriendlyByteBuf> (packet, buffer)
+        // but our encode methods are (buffer, packet), so we need to swap the parameters
+        Network.registerPacket((net.minecraft.resources.ResourceLocation) type, packetClass, (pkt, buf) -> encoder.accept(buf, pkt), decoder, handler);
     }
     *///?} else {
     private static <T extends CustomPacketPayload> void registerPacket(
@@ -59,13 +61,13 @@ public class PacketRegistration {
 
         if (Platform.INSTANCE.isClientSide()) return;
 
-        registerPacket(OpenChartingScreenS2C.TYPE, OpenChartingScreenS2C.class, OpenChartingScreenS2C::encode, OpenChartingScreenS2C::decode, OpenChartingScreenS2C.STREAM_CODEC, null);
-        registerPacket(OpenLinkSignScreenS2C.TYPE, OpenLinkSignScreenS2C.class, OpenLinkSignScreenS2C::encode, OpenLinkSignScreenS2C::decode, OpenLinkSignScreenS2C.STREAM_CODEC, null);
-        registerPacket(OpenWarpBlockScreenS2C.TYPE, OpenWarpBlockScreenS2C.class, OpenWarpBlockScreenS2C::encode, OpenWarpBlockScreenS2C::decode, OpenWarpBlockScreenS2C.STREAM_CODEC, null);
-        registerPacket(TeleportFadeS2C.TYPE, TeleportFadeS2C.class, TeleportFadeS2C::encode, TeleportFadeS2C::decode, TeleportFadeS2C.STREAM_CODEC, null);
-        registerPacket(SignValidationResponseS2C.TYPE, SignValidationResponseS2C.class, SignValidationResponseS2C::encode, SignValidationResponseS2C::decode, SignValidationResponseS2C.STREAM_CODEC, null);
-        registerPacket(DestinationResponseS2C.TYPE, DestinationResponseS2C.class, DestinationResponseS2C::encode, DestinationResponseS2C::decode, DestinationResponseS2C.STREAM_CODEC, null);
-        registerPacket(MapResponseS2C.TYPE, MapResponseS2C.class, MapResponseS2C::encode, MapResponseS2C::decode, MapResponseS2C.STREAM_CODEC, null);
+        registerPacket(OpenChartingScreenS2C.TYPE, OpenChartingScreenS2C.class, OpenChartingScreenS2C::encode, OpenChartingScreenS2C::decode, OpenChartingScreenS2C.STREAM_CODEC, ctx -> {});
+        registerPacket(OpenLinkSignScreenS2C.TYPE, OpenLinkSignScreenS2C.class, OpenLinkSignScreenS2C::encode, OpenLinkSignScreenS2C::decode, OpenLinkSignScreenS2C.STREAM_CODEC, ctx -> {});
+        registerPacket(OpenWarpBlockScreenS2C.TYPE, OpenWarpBlockScreenS2C.class, OpenWarpBlockScreenS2C::encode, OpenWarpBlockScreenS2C::decode, OpenWarpBlockScreenS2C.STREAM_CODEC, ctx -> {});
+        registerPacket(TeleportFadeS2C.TYPE, TeleportFadeS2C.class, TeleportFadeS2C::encode, TeleportFadeS2C::decode, TeleportFadeS2C.STREAM_CODEC, ctx -> {});
+        registerPacket(SignValidationResponseS2C.TYPE, SignValidationResponseS2C.class, SignValidationResponseS2C::encode, SignValidationResponseS2C::decode, SignValidationResponseS2C.STREAM_CODEC, ctx -> {});
+        registerPacket(DestinationResponseS2C.TYPE, DestinationResponseS2C.class, DestinationResponseS2C::encode, DestinationResponseS2C::decode, DestinationResponseS2C.STREAM_CODEC, ctx -> {});
+        registerPacket(MapResponseS2C.TYPE, MapResponseS2C.class, MapResponseS2C::encode, MapResponseS2C::decode, MapResponseS2C.STREAM_CODEC, ctx -> {});
     }
 
     public void initClient() {

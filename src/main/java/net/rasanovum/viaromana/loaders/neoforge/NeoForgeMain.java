@@ -19,6 +19,7 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.rasanovum.viaromana.init.BlockInit;
 import net.rasanovum.viaromana.init.EffectInit;
 import net.rasanovum.viaromana.init.ItemInit;
+import net.rasanovum.viaromana.network.PacketRegistration;
 
 @Mod(ViaRomana.MODID)
 public class NeoForgeMain {
@@ -30,6 +31,7 @@ public class NeoForgeMain {
         ^///?}
 
         ViaRomana.initialize();
+        new PacketRegistration().initCommon();
         EffectInit.MOB_EFFECTS.register(modEventBus);
         BlockInit.BLOCKS.register(modEventBus);
         BlockInit.ITEMS.register(modEventBus);

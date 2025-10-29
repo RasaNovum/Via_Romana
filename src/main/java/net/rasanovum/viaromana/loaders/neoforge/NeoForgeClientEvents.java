@@ -33,7 +33,7 @@ public class NeoForgeClientEvents {
     @SubscribeEvent
     public static void onClientSetup(final FMLClientSetupEvent event) {
         ViaRomana.LOGGER.info("Initializing Via Romana Client");
-        new PacketRegistration().init();
+        new PacketRegistration().initClient();
     }
 
     @SubscribeEvent

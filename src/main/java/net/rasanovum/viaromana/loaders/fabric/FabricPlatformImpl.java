@@ -1,8 +1,8 @@
 package net.rasanovum.viaromana.loaders.fabric;
 
-import net.fabricmc.api.EnvType;
-import net.rasanovum.viaromana.loaders.Platform;
 //? if fabric {
+import net.rasanovum.viaromana.loaders.Platform;
+import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
 
 public class FabricPlatformImpl implements Platform {
