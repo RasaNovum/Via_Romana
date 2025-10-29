@@ -16,6 +16,7 @@ import net.minecraftforge.common.MinecraftForge;
 //? if neoforge || forge {
 /*import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.client.render.FadeRenderer;
 import net.rasanovum.viaromana.client.render.InvalidBlockRenderer;
 import net.rasanovum.viaromana.client.render.NodeRenderer;
