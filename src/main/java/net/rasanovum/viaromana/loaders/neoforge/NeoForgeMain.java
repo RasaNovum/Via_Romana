@@ -36,7 +36,6 @@ public class NeoForgeMain {
         BlockInit.BLOCKS.register(modEventBus);
         BlockInit.ITEMS.register(modEventBus);
         ItemInit.ITEMS.register(modEventBus);
-        NeoForgeRenderInit.load();
         modEventBus.addListener(ItemInit::onBuildContents);
     }
 }

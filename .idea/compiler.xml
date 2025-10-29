@@ -47,16 +47,6 @@
         </processorPath>
         <module name="via-romana.1.20.1-forge.main" />
       </profile>
-      <profile name="Gradle Imported" enabled="true">
-        <outputRelativeToContentRoot value="true" />
-        <option name="mappingTypes" value="searge" />
-        <option name="mixin.checks.interfaces" value="true" />
-        <option name="mixin.gen.noRefmap" value="false" />
-        <processorPath useClasspath="false">
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.spongepowered/mixin/0.8.7/3d051c66329d162a52fc062f7da912c37904a6a0/mixin-0.8.7-processor.jar" />
-        </processorPath>
-        <module name="via-romana.1.21.1-neoforge.main" />
-      </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="17">
       <module name="via-romana.1.21.1-neoforge.test" target="21" />

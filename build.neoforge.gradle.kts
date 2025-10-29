@@ -58,11 +58,9 @@ dependencies {
     implementation("maven.modrinth:data-anchor:${property("deps.data-anchor")}")
     implementation("maven.modrinth:midnightlib:${property("deps.midnightlib")}")
     implementation("curse.maven:selene-499980:${property("deps.moonlightlib")}")
-    implementation("com.google.code.gson:gson:2.10.1")
-    implementation("maven.modrinth:supplementaries:${property("deps.supplementaries")}")
+    compileOnly("maven.modrinth:supplementaries:${property("deps.supplementaries")}")
 
-    compileOnly("org.spongepowered:mixin:0.8.7")
-    annotationProcessor("org.spongepowered:mixin:0.8.7:processor")
+    implementation("com.google.code.gson:gson:2.10.1")
 }
 
 tasks.named<ProcessResources>("processResources") {
@@ -110,11 +108,6 @@ tasks.withType<JavaCompile>().configureEach {
     options.encoding = "UTF-8"
     val javaVersion = if (stonecutter.eval(stonecutter.current.version, ">=1.20.5")) 21 else 17
     options.release.set(javaVersion)
-
-    options.compilerArgs.addAll(listOf(
-        "-Aorg.spongepowered.mixin.obfuscationcontext=neoforge",
-        "-Aorg.spongepowered.mixin.refmap=via_romana.refmap.json"
-    ))
 }
 
 java {
