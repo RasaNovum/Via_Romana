@@ -58,6 +58,7 @@ dependencies {
     implementation("maven.modrinth:data-anchor:${property("deps.data-anchor")}")
     implementation("maven.modrinth:midnightlib:${property("deps.midnightlib")}")
     implementation("curse.maven:selene-499980:${property("deps.moonlightlib")}")
+
     compileOnly("maven.modrinth:supplementaries:${property("deps.supplementaries")}")
 
     implementation("com.google.code.gson:gson:2.10.1")

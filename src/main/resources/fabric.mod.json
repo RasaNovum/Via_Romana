@@ -30,8 +30,7 @@
 	"depends": {
 		"minecraft": ">=${mc}",
 		"fabricloader": ">=${fl}",
-		"fabric-api": ">=${fapi}",
-		"midnightlib": "*"
+		"fabric-api": ">=${fapi}"
 	},
 	"mixins": [
 		"${modId}.mixins.json"

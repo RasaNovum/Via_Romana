@@ -39,21 +39,24 @@ dependencies {
 
     modImplementation("net.fabricmc:fabric-loader:${property("deps.fabric_loader")}")
     modImplementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
-    modImplementation("folk.sisby:surveyor:${property("deps.surveyor")}")
-    modImplementation("mysticdrew:common-networking-common:${property("deps.commonnetworking")}")
-    modImplementation("maven.modrinth:data-anchor:${property("deps.data-anchor")}")
-    modImplementation("maven.modrinth:midnightlib:${property("deps.midnightlib")}")
-    modImplementation("curse.maven:selene-499980:${property("deps.moonlightlib")}")
 
-    include("folk.sisby:surveyor:${property("deps.surveyor")}") //TODO: Remove
+    modImplementation("mysticdrew:common-networking-fabric:${property("deps.commonnetworking")}")
+    modImplementation("mysticdrew:common-networking-common:${property("deps.commonnetworking")}")
     include("mysticdrew:common-networking-fabric:${property("deps.commonnetworking")}")
     include("mysticdrew:common-networking-common:${property("deps.commonnetworking")}")
+    modImplementation("maven.modrinth:data-anchor:${property("deps.data-anchor")}")
     include("maven.modrinth:data-anchor:${property("deps.data-anchor")}")
+    modImplementation("maven.modrinth:midnightlib:${property("deps.midnightlib")}")
     include("maven.modrinth:midnightlib:${property("deps.midnightlib")}")
+    modImplementation("curse.maven:selene-499980:${property("deps.moonlightlib")}")
     include("curse.maven:selene-499980:${property("deps.moonlightlib")}")
 
-    annotationProcessor("net.fabricmc:sponge-mixin:0.12.5+mixin.0.8.5")
     modCompileOnly("maven.modrinth:supplementaries:${property("deps.supplementaries")}")
+//    modCompileOnly("folk.sisby:surveyor:${property("deps.surveyor")}")
+    modImplementation("folk.sisby:surveyor:${property("deps.surveyor")}")
+    include("folk.sisby:surveyor:${property("deps.surveyor")}") // TODO: Make optional
+
+    annotationProcessor("net.fabricmc:sponge-mixin:0.12.5+mixin.0.8.5")
     modImplementation("com.google.code.gson:gson:2.10.1")
 }
 

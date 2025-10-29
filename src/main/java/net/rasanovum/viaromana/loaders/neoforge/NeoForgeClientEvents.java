@@ -18,7 +18,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 *///?}
 //? if neoforge || forge {
 /*import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.Level; 
+import net.minecraft.world.level.Level;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.client.HudMessageManager;
 import net.rasanovum.viaromana.client.FadeManager;
