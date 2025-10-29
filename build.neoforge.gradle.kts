@@ -54,14 +54,15 @@ dependencies {
 //    implementation("org.sinytra.forgified-fabric-api:forgified-fabric-api:${property("deps.fabric_api")}")
 
     implementation("mysticdrew:common-networking-common:${property("deps.commonnetworking")}")
+    implementation("mysticdrew:common-networking-neoforge:${property("deps.commonnetworking")}")
     implementation("maven.modrinth:data-anchor:${property("deps.data-anchor")}")
     implementation("maven.modrinth:midnightlib:${property("deps.midnightlib")}")
     implementation("curse.maven:selene-499980:${property("deps.moonlightlib")}")
     implementation("com.google.code.gson:gson:2.10.1")
-
     implementation("maven.modrinth:supplementaries:${property("deps.supplementaries")}")
 
-    annotationProcessor("net.fabricmc:sponge-mixin:0.12.5+mixin.0.8.5")
+    compileOnly("org.spongepowered:mixin:0.8.7")
+    annotationProcessor("org.spongepowered:mixin:0.8.7:processor")
 }
 
 tasks.named<ProcessResources>("processResources") {
@@ -87,7 +88,6 @@ tasks.named<ProcessResources>("processResources") {
         expand(props)
     }
 
-    // Exclude Fabric-specific files
     exclude("**/fabric.mod.json", "**/*.accesswidener", "**/forge.mods.toml")
 }
 
@@ -112,8 +112,8 @@ tasks.withType<JavaCompile>().configureEach {
     options.release.set(javaVersion)
 
     options.compilerArgs.addAll(listOf(
-        "-AoutRefMapFile=${project.buildDir}/resources/main/${project.property("mod.id")}.refmap.json",
-        "-AdefaultObfuscationEnv=searge"
+        "-Aorg.spongepowered.mixin.obfuscationcontext=neoforge",
+        "-Aorg.spongepowered.mixin.refmap=via_romana.refmap.json"
     ))
 }
 
