@@ -6,7 +6,6 @@ import java.util.List;
 import com.google.common.collect.Lists;
 
 public class CommonConfig extends MidnightConfig {
-
     public static final String CHARTING = "charting";
     public static final String MAP = "map";
     public static final String WARP = "warp";
@@ -44,6 +43,7 @@ public class CommonConfig extends MidnightConfig {
     @Entry(category = MAP, min = 0) public static int map_save_interval = 5;
     @Entry(category = MAP) public static boolean enable_surveyor_landmark = false;
     @Entry(category = MAP) public static boolean enable_surveyor_landmark_coloring = false;
+    @Entry(category = MAP) public static List<String> biomeColor = Lists.newArrayList();
 
     @Entry(category = VISUALS, min = 0f, max = 1f) public static float invalid_block_overlay_opacity = 0.4f;
     @Entry(category = VISUALS, min = 0f, max = 1f) public static float biome_map_opacity = 0.4f;

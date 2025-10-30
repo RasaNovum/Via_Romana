@@ -16,6 +16,7 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.world.level.biome.Climate;
+import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.storage.level.LevelDataManager;
 import net.rasanovum.viaromana.util.VersionUtils;
@@ -27,6 +28,61 @@ import java.util.*;
  */
 public class ChunkPixelRenderer {
     private static final Map<ResourceLocation, Integer> biomeColorCache = new HashMap<>();
+    private static Map<String, Integer> parsedBiomeColors = null;
+    
+    private static final MapColor WATER_MAP_COLOR = MapColor.WATER;
+    
+    private static TagKey<Biome> badlandsTag;
+    private static TagKey<Biome> beachTag;
+    private static TagKey<Biome> oceanTag;
+    private static TagKey<Biome> deepOceanTag;
+    private static TagKey<Biome> endTag;
+    private static TagKey<Biome> forestTag;
+    private static TagKey<Biome> hillTag;
+    private static TagKey<Biome> jungleTag;
+    private static TagKey<Biome> mountainTag;
+    private static TagKey<Biome> netherTag;
+    private static TagKey<Biome> riverTag;
+    private static TagKey<Biome> savannaTag;
+    private static TagKey<Biome> taigaTag;
+    private static TagKey<Biome> plainsTag;
+    
+    /**
+     * Initialize static data structures.
+     */
+    public static void init() {
+        biomeColorCache.clear();
+
+        parsedBiomeColors = new HashMap<>();
+        for (String biomePair : CommonConfig.biomeColor) {
+            if (biomePair.trim().isEmpty()) continue;
+            try {
+                String[] parts = biomePair.split("=", 2);
+                if (parts.length != 2) continue;
+                String biome = parts[0].trim();
+                int color = Integer.parseInt(parts[1].trim());
+                parsedBiomeColors.put(biome, color);
+            } catch (Exception e) {
+                ViaRomana.LOGGER.warn("Skipping invalid biome color pair '{}': {}", biomePair, e.getMessage());
+            }
+        }
+        ViaRomana.LOGGER.info("Loaded {} biome-color pairs from config.", parsedBiomeColors.size());
+        
+        badlandsTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_badlands"));
+        beachTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_beach"));
+        oceanTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_ocean"));
+        deepOceanTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_deep_ocean"));
+        endTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_end"));
+        forestTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_forest"));
+        hillTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_hill"));
+        jungleTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_jungle"));
+        mountainTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_mountain"));
+        netherTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_nether"));
+        riverTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_river"));
+        savannaTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_savanna"));
+        taigaTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_taiga"));
+        plainsTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:has_structure/village_plains"));
+    }
 
     /**
      * Renders 16x16 raw pixel bytes from chunk surface.
@@ -51,6 +107,8 @@ public class ChunkPixelRenderer {
             }
         }
 
+        BlockPos.MutableBlockPos mutablePos = new BlockPos.MutableBlockPos();
+
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
                 int idx = x + z * 16;
@@ -67,12 +125,12 @@ public class ChunkPixelRenderer {
                 MapColor.Brightness brightness;
 
                 if (waterDepth > 0) {
-                    mapColor = MapColor.WATER;
+                    mapColor = WATER_MAP_COLOR;
                     brightness = calculateWaterBrightness(idx, waterDepth);
                 } else {
-                    BlockPos posBlock = new BlockPos(chunkMinX + x, surfaceY, chunkMinZ + z);
-                    BlockState state = chunk.getBlockState(posBlock);
-                    mapColor = state.getMapColor(level, posBlock);
+                    mutablePos.set(chunkMinX + x, surfaceY, chunkMinZ + z);
+                    BlockState state = chunk.getBlockState(mutablePos);
+                    mapColor = state.getMapColor(level, mutablePos);
 
                     if (mapColor == MapColor.NONE) {
                         pixels[idx] = 0;
@@ -217,23 +275,15 @@ public class ChunkPixelRenderer {
             return biomeColorCache.get(biomeId);
         }
 
-        String biomePath = biomeId.getPath().toLowerCase();
         int colorIndex = 0;
+        
+        if (parsedBiomeColors != null && parsedBiomeColors.containsKey(biomeId.toString())) {
+            colorIndex = parsedBiomeColors.get(biomeId.toString());
+            biomeColorCache.put(biomeId, colorIndex);
+            return colorIndex;
+        }
 
-        TagKey<Biome> badlandsTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_badlands"));
-        TagKey<Biome> beachTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_beach"));
-        TagKey<Biome> oceanTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_ocean"));
-        TagKey<Biome> deepOceanTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_deep_ocean"));
-        TagKey<Biome> endTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_end"));
-        TagKey<Biome> forestTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_forest"));
-        TagKey<Biome> hillTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_hill"));
-        TagKey<Biome> jungleTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_jungle"));
-        TagKey<Biome> mountainTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_mountain"));
-        TagKey<Biome> netherTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_nether"));
-        TagKey<Biome> riverTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_river"));
-        TagKey<Biome> savannaTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_savanna"));
-        TagKey<Biome> taigaTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_taiga"));
-        TagKey<Biome> plainsTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:has_structure/village_plains"));
+        String biomePath = biomeId.getPath().toLowerCase();
 
         if (biomePath.contains("snow") || biomePath.contains("ice") || biomePath.contains("tundra")) {
             colorIndex = 8;

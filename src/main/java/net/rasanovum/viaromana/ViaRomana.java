@@ -15,6 +15,7 @@ import net.rasanovum.viaromana.core.LinkHandler;
 import net.rasanovum.viaromana.core.SignInteract;
 import net.rasanovum.viaromana.init.*;
 import net.rasanovum.viaromana.integration.IntegrationManager;
+import net.rasanovum.viaromana.map.ChunkPixelRenderer;
 import net.rasanovum.viaromana.map.ServerMapCache;
 import net.rasanovum.viaromana.network.PacketRegistration;
 import net.rasanovum.viaromana.storage.player.PlayerData;
@@ -56,6 +57,7 @@ public class ViaRomana {
 
     public static void onServerStart(MinecraftServer server) {
         ServerMapCache.init(server);
+        ChunkPixelRenderer.init();
     }
 
     public static void onServerStop() {
@@ -68,6 +70,7 @@ public class ViaRomana {
         ServerMapCache.shutdown();
         ServerMapCache.clear();
         ServerMapCache.init(server);
+        ChunkPixelRenderer.init();
     }
 
     public static void onDimensionChange(ServerLevel level, ServerPlayer player) {

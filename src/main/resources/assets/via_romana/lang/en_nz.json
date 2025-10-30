@@ -1,4 +1,6 @@
 {
   "via_romana.midnightconfig.enable_surveyor_landmark_coloring": "Colours connected destinations",
-  "via_romana.midnightconfig.enable_surveyor_landmark_coloring.tooltip": "Colour all landmarks in the same network the same colour to indicate connections."
+  "via_romana.midnightconfig.enable_surveyor_landmark_coloring.tooltip": "Colour all landmarks in the same network the same colour to indicate connections.",
+  "via_romana.midnightconfig.biomeColor": "Biome Colour Pairs",
+  "via_romana.midnightconfig.biomeColor.tooltip": "Format: biome_path=map_colour\n• biome_path: A valid Minecraft biome path (e.g., minecraft:plains).\n• map_colour: Integer index for a map colour (0-61, check wiki).\n\nMust reload for changes to take effect."
 }
