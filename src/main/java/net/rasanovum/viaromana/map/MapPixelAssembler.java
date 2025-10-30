@@ -100,11 +100,13 @@ public class MapPixelAssembler {
         ViaRomana.LOGGER.debug("Render attempt complete: {}/{} chunks processed. High-res: {} cached, {} rendered. Biome: {} cached, {} rendered.",
                 chunksWithData.get(), totalChunks, chunksFromCache.get(), chunksRendered.get(), chunksFromBiomeCache.get(), chunksRenderedBiome.get());
 
-        int missingCount = totalChunks - chunksWithData.get();
-        if (chunksWithData.get() == 0 && totalChunks > 0) {
-            ViaRomana.LOGGER.warn("Map Bake: No chunk pixel data was available for the requested map area.");
-        } else if (missingCount > 0) {
-            ViaRomana.LOGGER.warn("Map Bake: {} chunks were allowed but had no pixel data.", missingCount);
+        if (!isPseudo) {
+            int missingCount = totalChunks - chunksWithData.get();
+            if (chunksWithData.get() == 0 && totalChunks > 0) {
+                ViaRomana.LOGGER.warn("Map Bake: No chunk pixel data was available for the requested map area.");
+            } else if (missingCount > 0) {
+                ViaRomana.LOGGER.warn("Map Bake: {} chunks were allowed but had no pixel data.", missingCount);
+            }
         }
 
         return chunksWithData.get();
