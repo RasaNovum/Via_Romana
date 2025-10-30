@@ -19,16 +19,17 @@ import net.rasanovum.viaromana.util.VersionUtils;
  * Called on init and on data pack reload.
  */
 public class TagGenerator {
+    public static final TagKey<Block> PATH_BLOCK_TAG = TagKey.create(Registries.BLOCK, VersionUtils.getLocation("via_romana:path_block"));
+    public static final TagKey<Block> WARP_BLOCK_TAG = TagKey.create(Registries.BLOCK, VersionUtils.getLocation("via_romana:warp_block"));
+    public static final TagKey<Block> LEAVES_TAG = TagKey.create(Registries.BLOCK, VersionUtils.getLocation("minecraft:leaves"));
+
     @SuppressWarnings("removal")
     public static void generateAllTags(DynamicDataPack pack) {
         try {
             pack.setClearOnReload(true);
-            
-            TagKey<Block> pathBlockTagKey = TagKey.create(Registries.BLOCK, VersionUtils.getLocation("via_romana:path_block"));
-            TagKey<Block> warpBlockTagKey = TagKey.create(Registries.BLOCK, VersionUtils.getLocation("via_romana:warp_block"));
 
-            SimpleTagBuilder pathTagBuilder = generatePathBlockTagBuilder(pathBlockTagKey);
-            SimpleTagBuilder warpTagBuilder = generateWarpBlockTagBuilder(warpBlockTagKey);
+            SimpleTagBuilder pathTagBuilder = generatePathBlockTagBuilder();
+            SimpleTagBuilder warpTagBuilder = generateWarpBlockTagBuilder();
 
             pack.addTag(pathTagBuilder, Registries.BLOCK);
             pack.addTag(warpTagBuilder, Registries.BLOCK);
@@ -39,12 +40,12 @@ public class TagGenerator {
         }
     }
 
-    private static SimpleTagBuilder generatePathBlockTagBuilder(TagKey<Block> tagKey) {
-        return generateBlockTagBuilder(tagKey, CommonConfig.path_block_ids, CommonConfig.path_block_tags, CommonConfig.path_block_strings);
+    private static SimpleTagBuilder generatePathBlockTagBuilder() {
+        return generateBlockTagBuilder(TagGenerator.PATH_BLOCK_TAG, CommonConfig.path_block_ids, CommonConfig.path_block_tags, CommonConfig.path_block_strings);
     }
 
-    private static SimpleTagBuilder generateWarpBlockTagBuilder(TagKey<Block> tagKey) {
-        return generateBlockTagBuilder(tagKey, CommonConfig.warp_block_ids, CommonConfig.warp_block_tags, null);
+    private static SimpleTagBuilder generateWarpBlockTagBuilder() {
+        return generateBlockTagBuilder(TagGenerator.WARP_BLOCK_TAG, CommonConfig.warp_block_ids, CommonConfig.warp_block_tags, null);
     }
 
     private static SimpleTagBuilder generateBlockTagBuilder(TagKey<Block> tagKey, List<String> explicitIds, List<String> tagStrings, List<String> searchStrings) {

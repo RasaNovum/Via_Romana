@@ -2,12 +2,11 @@ package net.rasanovum.viaromana.util;
 
 import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.storage.player.PlayerData;
+import net.rasanovum.viaromana.tags.TagGenerator;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.tags.TagKey;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.core.BlockPos;
 
 public class PathUtils {
@@ -28,7 +27,7 @@ public class PathUtils {
 
         BlockState blockState = world.getBlockState(targetBlock);
 
-        return blockState.is(TagKey.create(Registries.BLOCK, VersionUtils.getLocation("via_romana:path_block"))); //TODO Look into caching/hashing path_block list for performance, idk if it would make a difference
+        return blockState.is(TagGenerator.PATH_BLOCK_TAG);
     }
 
     public static float calculateInfrastructureQuality(LevelAccessor world, Entity entity) {
@@ -86,7 +85,7 @@ public class PathUtils {
             mutablePos.set(entityX, y, entityZ);
             BlockState blockState = world.getBlockState(mutablePos);
             
-            if (!world.isEmptyBlock(mutablePos) && !blockState.is(TagKey.create(Registries.BLOCK, VersionUtils.getLocation("minecraft:leaves")))) {
+            if (!world.isEmptyBlock(mutablePos) && !blockState.is(TagGenerator.LEAVES_TAG)) {
                 return clearance;
             }
             
