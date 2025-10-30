@@ -26,7 +26,7 @@ public class InvalidBlockRenderer {
     private static final int FADE_BUFFER = 3;
 
     private static float getAlpha() {
-        return (float) CommonConfig.invalid_block_overlay_opacity;
+        return CommonConfig.invalid_block_overlay_opacity;
     }
 
     private static int getRegionSize() {
