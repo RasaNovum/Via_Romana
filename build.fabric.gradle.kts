@@ -42,19 +42,21 @@ dependencies {
 
     modImplementation("mysticdrew:common-networking-fabric:${property("deps.commonnetworking")}")
     modImplementation("mysticdrew:common-networking-common:${property("deps.commonnetworking")}")
-    include("mysticdrew:common-networking-fabric:${property("deps.commonnetworking")}")
-    include("mysticdrew:common-networking-common:${property("deps.commonnetworking")}")
     modImplementation("maven.modrinth:data-anchor:${property("deps.data-anchor")}")
-    include("maven.modrinth:data-anchor:${property("deps.data-anchor")}")
     modImplementation("maven.modrinth:midnightlib:${property("deps.midnightlib")}")
+    modImplementation("maven.modrinth:moonlight:${property("deps.moonlightlib")}")
+
+    include("mysticdrew:common-networking-fabric:${property("deps.commonnetworking")}")
+    include("maven.modrinth:data-anchor:${property("deps.data-anchor")}")
     include("maven.modrinth:midnightlib:${property("deps.midnightlib")}")
-    modImplementation("curse.maven:selene-499980:${property("deps.moonlightlib")}")
-    include("curse.maven:selene-499980:${property("deps.moonlightlib")}")
+    include("mysticdrew:common-networking-common:${property("deps.commonnetworking")}")
+    include("maven.modrinth:moonlight:${property("deps.moonlightlib")}")
 
     modCompileOnly("maven.modrinth:supplementaries:${property("deps.supplementaries")}")
     modCompileOnly("folk.sisby:surveyor:${property("deps.surveyor")}")
+
 //    modImplementation("folk.sisby:surveyor:${property("deps.surveyor")}")
-//    include("folk.sisby:surveyor:${property("deps.surveyor")}") // TODO: Make optional
+//    include("folk.sisby:surveyor:${property("deps.surveyor")}")
 
     annotationProcessor("net.fabricmc:sponge-mixin:0.12.5+mixin.0.8.5")
     modImplementation("com.google.code.gson:gson:2.10.1")
@@ -83,7 +85,7 @@ tasks.named<ProcessResources>("processResources") {
 
     filesMatching("fabric.mod.json") { expand(props) }
 
-    exclude("**/neoforge.mods.toml", "**/mods.toml", "META-INF/mods.toml")
+    exclude("**/neoforge.mods.toml", "**/mods.toml")
 }
 
 stonecutter {

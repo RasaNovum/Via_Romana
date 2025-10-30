@@ -14,7 +14,6 @@ public class IntegrationManager {
     
     /**
      * Initializes all available integrations during mod startup.
-     * Call this once during mod initialization.
      */
     public static void initialize() {
         //? if fabric {

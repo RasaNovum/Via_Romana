@@ -51,13 +51,11 @@ repositories {
 }
 
 dependencies {
-//    implementation("org.sinytra.forgified-fabric-api:forgified-fabric-api:${property("deps.fabric_api")}")
-
     implementation("mysticdrew:common-networking-common:${property("deps.commonnetworking")}")
     implementation("mysticdrew:common-networking-neoforge:${property("deps.commonnetworking")}")
     implementation("maven.modrinth:data-anchor:${property("deps.data-anchor")}")
     implementation("maven.modrinth:midnightlib:${property("deps.midnightlib")}")
-    implementation("curse.maven:selene-499980:${property("deps.moonlightlib")}")
+    implementation("maven.modrinth:moonlight:${property("deps.moonlightlib")}")
 
     compileOnly("maven.modrinth:supplementaries:${property("deps.supplementaries")}")
 
@@ -87,7 +85,7 @@ tasks.named<ProcessResources>("processResources") {
         expand(props)
     }
 
-    exclude("**/fabric.mod.json", "**/*.accesswidener", "**/forge.mods.toml")
+    exclude("**/fabric.mod.json", "**/*.accesswidener", "**/mods.toml")
 }
 
 stonecutter {

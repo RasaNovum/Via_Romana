@@ -68,6 +68,7 @@ repositories {
     mavenCentral()
 }
 
+
 dependencies {
     minecraft("net.minecraftforge:forge:${property("deps.minecraft")}-${property("deps.forge_version")}")
 
@@ -75,7 +76,7 @@ dependencies {
     implementation(fg.deobf("mysticdrew:common-networking-forge:${property("deps.commonnetworking")}"))
     implementation(fg.deobf("maven.modrinth:data-anchor:${property("deps.data-anchor")}"))
     implementation(fg.deobf("maven.modrinth:midnightlib:${property("deps.midnightlib")}"))
-    implementation(fg.deobf("curse.maven:selene-499980:${property("deps.moonlightlib")}"))
+    implementation(fg.deobf("maven.modrinth:moonlight:${property("deps.moonlightlib")}"))
 
     compileOnly(fg.deobf("maven.modrinth:supplementaries:${property("deps.supplementaries")}"))
 

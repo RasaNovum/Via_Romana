@@ -26,9 +26,30 @@ versionRange = "[${mc}]"
 ordering = "NONE"
 side = "BOTH"
 
-#[[dependencies.${modId}]]
-#modId = "midnightlib"
-#mandatory = true
-#versionRange = "*"
-#ordering = "NONE"
-#side = "BOTH"
+[[dependencies.${modId}]]
+modId = "commonnetworking"
+mandatory = true
+versionRange = "*"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.${modId}]]
+modId = "moonlight"
+mandatory = true
+versionRange = "*"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.${modId}]]
+modId = "midnightlib"
+mandatory = true
+versionRange = "*"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.${modId}]]
+modId = "dataanchor"
+mandatory = true
+versionRange = "*"
+ordering = "NONE"
+side = "BOTH"
