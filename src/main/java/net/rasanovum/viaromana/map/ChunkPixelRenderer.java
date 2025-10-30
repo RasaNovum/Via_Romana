@@ -149,9 +149,10 @@ public class ChunkPixelRenderer {
      * @param biomeChunk     The position of the chunk to process.
      * @param biomeSource    The world's BiomeSource, from {@code level.getChunkSource().getGenerator().getBiomeSource()}.
      * @param climateSampler The world's Climate.Sampler, from {@code level.getChunkSource().randomState().sampler()}.
+     * @param maxBuildHeight The maximum build height for this world.
      * @return A BiomePixelResult containing the pixel data and cache/render status.
      */
-    public static MapPixelAssembler.BiomePixelResult getOrRenderBiomePixels(ServerLevel level, ChunkPos biomeChunk, BiomeSource biomeSource, Climate.Sampler climateSampler) {
+    public static MapPixelAssembler.BiomePixelResult getOrRenderBiomePixels(ServerLevel level, ChunkPos biomeChunk, BiomeSource biomeSource, Climate.Sampler climateSampler, int maxBuildHeight) {
         Optional<byte[]> cachedCorners = LevelDataManager.getCornerBytes(level, biomeChunk);
         int[] cornerPackedIds = new int[4];
         int cacheIncrement = 0;
@@ -170,7 +171,7 @@ public class ChunkPixelRenderer {
             for (int c = 0; c < 4; c++) {
                 int blockX = biomeChunk.getMinBlockX() + corners[c][0] * 4;
                 int blockZ = biomeChunk.getMinBlockZ() + corners[c][1] * 4;
-                int blockY = 70;
+                int blockY = maxBuildHeight;
 
                 int quartX = blockX >> 2;
                 int quartY = blockY >> 2;

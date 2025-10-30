@@ -47,13 +47,14 @@ public class MapPixelAssembler {
         var randomState = chunkSource.randomState();
         var biomeSource = chunkSource.getGenerator().getBiomeSource();
         var climateSampler = randomState.sampler();
+        int maxBuildHeight = level.getMaxBuildHeight();
 
         ViaRomana.LOGGER.info("Starting parallel bake for {} total chunks, {} renderable (isPseudo: {})", totalChunks, renderedChunks.size(), isPseudo);
 
         targetChunkSet.parallelStream().forEach(chunkToProcess -> {
             byte[] biomeChunkPixels = null;
             if (!isPseudo) {
-                var biomeResult = ChunkPixelRenderer.getOrRenderBiomePixels(level, chunkToProcess, biomeSource, climateSampler);
+                var biomeResult = ChunkPixelRenderer.getOrRenderBiomePixels(level, chunkToProcess, biomeSource, climateSampler, maxBuildHeight);
                 biomeChunkPixels = biomeResult.pixels();
 
                 if (biomeChunkPixels == null || biomeChunkPixels.length != 256) {
