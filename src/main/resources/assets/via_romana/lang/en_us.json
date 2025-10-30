@@ -115,6 +115,7 @@
   "via_romana.midnightconfig.path_quality_threshold.tooltip": "Minimum percentage of valid infrastructure blocks required between two nodes.",
   "via_romana.midnightconfig.travel_fatigue_cooldown": "Travel Fatigue Cooldown",
   "via_romana.midnightconfig.travel_fatigue_cooldown.tooltip": "Cooldown (in seconds) before a player can warp again.",
+  "via_romana.midnightconfig.charting_footer": "• Check the 'Visuals' tab for charting visuals.",
 
   "via_romana.midnightconfig.fog_of_war_distance": "Fog of War Distance",
   "via_romana.midnightconfig.fog_of_war_distance.tooltip": "The radius (in chunks) around charted areas that will be rendered on the map (this will impact performance).",
@@ -132,6 +133,7 @@
   "via_romana.midnightconfig.enable_surveyor_landmark_coloring.tooltip": "Colors all landmarks in the same network the same colour to indicate connections.",
   "via_romana.midnightconfig.biomeColor": "Biome Color Pairs",
   "via_romana.midnightconfig.biomeColor.tooltip": "Format: biome_path=map_color\n• biome_path: A valid Minecraft biome path (e.g., minecraft:plains).\n• map_color: Integer index for a map color (0-61, check wiki).\n\nMust reload for changes to take effect.",
+  "via_romana.midnightconfig.map_footer": "• Check the 'Visuals' tab for map visuals.",
 
   "via_romana.midnightconfig.invalid_entities": "Invalid Entities",
   "via_romana.midnightconfig.invalid_entities.tooltip": "List of entity IDs that cannot warp.",
@@ -149,11 +151,14 @@
   "via_romana.midnightconfig.warp_block_tags.tooltip": "List of block tags that can act as warp blocks.",
   "via_romana.midnightconfig.block_string_blacklist": "Block Substring Blacklist",
   "via_romana.midnightconfig.block_string_blacklist.tooltip": "Substrings to search for in block IDs to exclude them from being valid for paths (used to avoid crashes with other mods).",
+  "via_romana.midnightconfig.warp_footer": "• Check the 'Visuals' tab for warping visuals.",
 
   "via_romana.midnightconfig.invalid_block_overlay_opacity": "Invalid Block Overlay Opacity",
   "via_romana.midnightconfig.invalid_block_overlay_opacity.tooltip": "Highlights blocks that do not count as valid infrastructure for charting. Set to 0 to disable.",
   "via_romana.midnightconfig.biome_map_opacity": "Biome Background Opacity",
   "via_romana.midnightconfig.biome_map_opacity.tooltip": "The opacity of the biome fallback texture in Teleport Map Screen.",
+  "via_romana.midnightconfig.node_vignette_opacity": "Node Vignette Opacity",
+  "via_romana.midnightconfig.node_vignette_opacity.tooltip": "The opacity of the vignette displayed when close to a node.",
   "via_romana.midnightconfig.enable_teleport_particles": "Enable Warp Particles",
   "via_romana.midnightconfig.enable_teleport_particles.tooltip": "Enables particle effects during player warping."
 }

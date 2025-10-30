@@ -35,7 +35,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @net.fabricmc.api.Environment(net.fabricmc.api.EnvType.CLIENT)
 public class NodeRenderer {
-    // Constants
     private static final float BEAM_HEIGHT = 2.0f;
     private static final float BEAM_WIDTH = 0.6f;
     private static final float BEAM_FADE_FRACTION = 0.5f;
@@ -54,7 +53,7 @@ public class NodeRenderer {
     private static final float CROSS_COS = (float) Math.cos(CROSS_ANGLE_RADIANS);
     private static final float CROSS_SIN = (float) Math.sin(CROSS_ANGLE_RADIANS);
     private static final int DEFAULT_BEAM_COLOR = ColorUtil.rgbToHex(255, 255, 255);
-    private static final int CHARTING_BEAM_COLOR = ColorUtil.rgbToHex(0, 255, 0);
+    public static final int CHARTING_BEAM_COLOR = ColorUtil.rgbToHex(0, 255, 0);
     private static final ResourceLocation BEAM_TEXTURE = VersionUtils.getLocation("via_romana:textures/effect/node_beam.png");
     private static final int SOUND_INTERVAL_TICKS = 40;
 
@@ -80,6 +79,7 @@ public class NodeRenderer {
     private static float globalRenderAlpha = 0.0f;
     private static final Map<BlockPos, Float> animatedNodeAlphas = new ConcurrentHashMap<>();
     private static float currentVignetteIntensity = 0.0f;
+    private static int currentVignetteNodeColor = DEFAULT_BEAM_COLOR;
 
     private static long lastRenderTime = 0L;
     private static float animationTime = 0.0f;
@@ -89,6 +89,7 @@ public class NodeRenderer {
     // Public API
     public static int getLightLevel(BlockPos pos) { return dynamicLightSources.getOrDefault(pos, 0); }
     public static float getCurrentVignetteIntensity() { return currentVignetteIntensity * globalRenderAlpha; }
+    public static int getCurrentNodeColor() { return currentVignetteNodeColor; }
     public static float getBeamHeight() { return BEAM_HEIGHT; }
     public static float calculateDistanceAlpha(double distance, float baseAlpha) { return (float) calculateValueWithFade(distance, baseAlpha); }
     public static int calculateDistanceLightBrightness(double distance) { return (int) Math.round(calculateValueWithFade(distance, MAX_LIGHT_BRIGHTNESS)); }
@@ -110,6 +111,7 @@ public class NodeRenderer {
             clearAllLightSources(clientLevel);
             animatedNodeAlphas.clear();
             currentVignetteIntensity = 0.0f;
+            currentVignetteNodeColor = DEFAULT_BEAM_COLOR;
             return;
         }
 
@@ -254,11 +256,23 @@ public class NodeRenderer {
     }
     
     private static float calculateMaxVignette(List<NodeRenderData> nodeDataList) {
-        return nodeDataList.stream()
-            .filter(data -> data.color() != CHARTING_BEAM_COLOR) // exclude charting nodes until I have a green vignette system
-            .map(data -> calculateVignetteForDistance(data.distance()))
-            .max(Float::compare)
-            .orElse(0.0f);
+        NodeRenderData closestNode = null;
+        double minDistance = Double.MAX_VALUE;
+        
+        for (NodeRenderData data : nodeDataList) {
+            if (data.distance() < minDistance) {
+                minDistance = data.distance();
+                closestNode = data;
+            }
+        }
+        
+        if (closestNode != null) {
+            currentVignetteNodeColor = closestNode.color();
+            return calculateVignetteForDistance(closestNode.distance());
+        }
+        
+        currentVignetteNodeColor = DEFAULT_BEAM_COLOR;
+        return 0.0f;
     }
     
     private static void updateLightSources(ClientLevel level, List<NodeRenderData> visibleNodes) {

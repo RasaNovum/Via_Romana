@@ -30,22 +30,26 @@ public class CommonConfig extends MidnightConfig {
     );
     @Entry(category = CHARTING) public static List<String> block_string_blacklist = Lists.newArrayList("diagonalwalls:", "diagonalfences:", "diagonalwindows:");
     @Entry(category = CHARTING) public static List<String> invalid_dimensions = Lists.newArrayList();
+    @Comment(category = CHARTING) public static Comment charting_footer;
 
     @Entry(category = WARP) public static List<String> invalid_entities = Lists.newArrayList();
     @Entry(category = WARP) public static List<String> warp_block_ids = Lists.newArrayList("via_romana:warp_block");
     @Entry(category = WARP) public static List<String> warp_block_tags = Lists.newArrayList("minecraft:all_signs");
     @Entry(category = WARP, min = 0) public static int travel_fatigue_cooldown = 10;
+    @Comment(category = WARP) public static Comment warp_footer;
 
     @Entry(category = MAP, min = 1) public static int fog_of_war_distance = 10;
     @Entry(category = MAP, min = 0f, max = 200f) public static float spline_animation_speed = 2.0f;
     @Entry(category = MAP, min = 128) public static int maximum_map_dimension = 512;
     @Entry(category = MAP, min = 0) public static int map_refresh_interval = 10;
     @Entry(category = MAP, min = 0) public static int map_save_interval = 5;
+    @Entry(category = MAP) public static List<String> biomeColor = Lists.newArrayList();
     @Entry(category = MAP) public static boolean enable_surveyor_landmark = false;
     @Entry(category = MAP) public static boolean enable_surveyor_landmark_coloring = false;
-    @Entry(category = MAP) public static List<String> biomeColor = Lists.newArrayList();
+    @Comment(category = MAP) public static Comment map_footer;
 
     @Entry(category = VISUALS, min = 0f, max = 1f) public static float invalid_block_overlay_opacity = 0.4f;
     @Entry(category = VISUALS, min = 0f, max = 1f) public static float biome_map_opacity = 0.4f;
+    @Entry(category = VISUALS, min = 0f, max = 1f) public static float node_vignette_opacity = 1.0f;
     @Entry(category = VISUALS) public static boolean enable_teleport_particles = true;
 }
