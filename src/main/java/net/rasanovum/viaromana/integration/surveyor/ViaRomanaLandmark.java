@@ -1,6 +1,5 @@
-package net.rasanovum.viaromana.surveyor;
+package net.rasanovum.viaromana.integration.surveyor;
 
-//? if fabric {
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import folk.sisby.surveyor.landmark.Landmark;
@@ -16,10 +15,8 @@ import net.rasanovum.viaromana.path.PathGraph;
 import net.rasanovum.viaromana.util.VersionUtils;
 
 import java.util.Optional;
-//?}
 
 
-//? if fabric {
 /**
  * Landmark for displaying destinations on surveyor-compatible maps.
  */
@@ -84,4 +81,3 @@ public record ViaRomanaLandmark(BlockPos pos, Component name, DyeColor color) im
         return color;
     }
 }
-//?}

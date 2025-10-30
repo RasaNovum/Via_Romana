@@ -52,9 +52,9 @@ dependencies {
     include("curse.maven:selene-499980:${property("deps.moonlightlib")}")
 
     modCompileOnly("maven.modrinth:supplementaries:${property("deps.supplementaries")}")
-//    modCompileOnly("folk.sisby:surveyor:${property("deps.surveyor")}")
-    modImplementation("folk.sisby:surveyor:${property("deps.surveyor")}")
-    include("folk.sisby:surveyor:${property("deps.surveyor")}") // TODO: Make optional
+    modCompileOnly("folk.sisby:surveyor:${property("deps.surveyor")}")
+//    modImplementation("folk.sisby:surveyor:${property("deps.surveyor")}")
+//    include("folk.sisby:surveyor:${property("deps.surveyor")}") // TODO: Make optional
 
     annotationProcessor("net.fabricmc:sponge-mixin:0.12.5+mixin.0.8.5")
     modImplementation("com.google.code.gson:gson:2.10.1")

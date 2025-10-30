@@ -12,6 +12,7 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.ChunkPos;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.client.data.ClientPathData;
+import net.rasanovum.viaromana.integration.IntegrationManager;
 import net.rasanovum.viaromana.map.ServerMapCache;
 import net.rasanovum.viaromana.map.ServerMapUtils;
 import net.rasanovum.viaromana.network.packets.DestinationResponseS2C;
@@ -24,13 +25,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
-//? if fabric {
-import folk.sisby.surveyor.WorldSummary;
-import folk.sisby.surveyor.landmark.Landmark;
-import folk.sisby.surveyor.landmark.WorldLandmarks;
-import net.rasanovum.viaromana.surveyor.ViaRomanaLandmark;
-//?}
 
 public final class PathGraph {
     private final ObjectArrayList<Node> nodes = new ObjectArrayList<>();
@@ -223,41 +217,6 @@ public final class PathGraph {
         int colorIndex = Math.abs(cache.id().hashCode() % NETWORK_COLORS.length);
         return NETWORK_COLORS[colorIndex];
     }
-    
-    public void updateAllNetworkColors(ServerLevel level) {
-        //? if fabric {
-        WorldLandmarks worldLandmarks;
-        try {
-            worldLandmarks = WorldSummary.of(level).landmarks();
-        } catch (Exception e) {
-            ViaRomana.LOGGER.warn("Failed to access WorldLandmarks, skipping network color update.", e);
-            return;
-        }
-
-        Set<UUID> processedNetworks = new HashSet<>();
-        for (Node node : nodes) {
-            NetworkCache cache = getNetworkCacheForNode(node);
-            if (processedNetworks.contains(cache.id())) {
-                continue;
-            }
-
-            DyeColor requiredColor = getNetworkColor(node);
-            for (Node destinationNode : cache.destinationNodes()) {
-                try {
-                    Landmark<?> landmark = worldLandmarks.get(ViaRomanaLandmark.TYPE, destinationNode.getBlockPos());
-                    if (landmark != null && landmark.color() != requiredColor) {
-                        ViaRomanaLandmark updatedLandmark = ViaRomanaLandmark.createDestination(level, destinationNode, destinationNode.getBlockPos());
-                        worldLandmarks.put(level, updatedLandmark);
-                    }
-                } catch (Exception e) {
-                    ViaRomana.LOGGER.warn("Failed to update landmark color for node at {}: {}", destinationNode.getBlockPos(), e.getMessage());
-                }
-            }
-            processedNetworks.add(cache.id());
-        }
-        //?}
-    }
-
     //endregion
 
     // region Basic Accessors & Mutators

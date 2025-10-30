@@ -1,12 +1,12 @@
-package net.rasanovum.viaromana.loaders.neoforge;
+package net.rasanovum.viaromana.loaders.forge;
 
-//? if neoforge {
-/*import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.ModList;
-import net.neoforged.fml.loading.FMLLoader;
+//? if forge {
+/*import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.ModList;
+import net.minecraftforge.fml.loading.FMLLoader;
 import net.rasanovum.viaromana.loaders.Platform;
 
-public class NeoForgePlatformImpl implements Platform {
+public class ForgePlatformImpl implements Platform {
     @Override
     public boolean isModLoaded(String modid) {
         return ModList.get().isLoaded(modid);
@@ -24,7 +24,8 @@ public class NeoForgePlatformImpl implements Platform {
 
     @Override
     public String loader() {
-        return "neoforge";
+        return "forge";
     }
 }
 *///?}
+

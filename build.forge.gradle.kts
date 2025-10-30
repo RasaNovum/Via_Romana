@@ -76,6 +76,7 @@ dependencies {
     implementation(fg.deobf("maven.modrinth:data-anchor:${property("deps.data-anchor")}"))
     implementation(fg.deobf("maven.modrinth:midnightlib:${property("deps.midnightlib")}"))
     implementation(fg.deobf("curse.maven:selene-499980:${property("deps.moonlightlib")}"))
+
     compileOnly(fg.deobf("maven.modrinth:supplementaries:${property("deps.supplementaries")}"))
 
     implementation("com.google.code.gson:gson:2.10.1")
@@ -128,6 +129,8 @@ tasks.withType<JavaCompile>().configureEach {
     options.encoding = "UTF-8"
     val javaVersion = 17
     options.release.set(javaVersion)
+    
+    exclude("**/integration/surveyor/**")
 }
 
 java {

@@ -1,11 +1,11 @@
-package net.rasanovum.viaromana.loaders.neoforge;
+package net.rasanovum.viaromana.loaders.forge;
 
-//? if neoforge {
-/*import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.neoforge.client.event.RenderGuiEvent;
-import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
-import net.neoforged.neoforge.common.NeoForge;
+//? if forge {
+/*import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.client.event.RenderGuiEvent;
+import net.minecraftforge.client.event.RenderLevelStageEvent;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.rasanovum.viaromana.ViaRomana;
@@ -15,15 +15,15 @@ import net.rasanovum.viaromana.client.render.NodeRenderer;
 import net.rasanovum.viaromana.client.render.VignetteRenderer;
 
 @OnlyIn(Dist.CLIENT)
-public class NeoForgeRenderInit {
+public class ForgeRenderInit {
 	public static void load() {
-		NeoForge.EVENT_BUS.addListener(NeoForgeRenderInit::onRenderGui);
-		NeoForge.EVENT_BUS.addListener(NeoForgeRenderInit::onRenderLevelStage);
+		MinecraftForge.EVENT_BUS.addListener(ForgeRenderInit::onRenderGui);
+		MinecraftForge.EVENT_BUS.addListener(ForgeRenderInit::onRenderLevelStage);
 	}
 
 	public static void onRenderGui(RenderGuiEvent.Post event) {
 		GuiGraphics matrices = event.getGuiGraphics();
-		float tickDelta = event.getPartialTick().getGameTimeDeltaTicks();
+		float tickDelta = event.getPartialTick();
 		
 		VignetteRenderer.renderVignette(matrices);
 		FadeRenderer.render(matrices, tickDelta);
@@ -33,7 +33,7 @@ public class NeoForgeRenderInit {
 		if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) {
 			Minecraft mc = Minecraft.getInstance();
 			if (mc.player != null && mc.level != null) {
-				float tickDelta = mc.getTimer().getGameTimeDeltaTicks();
+				float tickDelta = mc.getFrameTime();
 				
 				NodeRenderer.renderNodeBeams(event.getPoseStack(), mc.level, mc.player, tickDelta);
 				InvalidBlockRenderer.renderInfrastructureBlocks(event.getPoseStack(), mc.level, mc.player, tickDelta);
@@ -42,3 +42,4 @@ public class NeoForgeRenderInit {
 	}
 }
 *///?}
+

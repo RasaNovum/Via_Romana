@@ -2,7 +2,7 @@ package net.rasanovum.viaromana.core;
 
 import net.rasanovum.viaromana.path.PathGraph;
 import net.rasanovum.viaromana.storage.path.PathDataManager;
-import net.rasanovum.viaromana.surveyor.ViaRomanaLandmarkManager;
+import net.rasanovum.viaromana.integration.IntegrationManager;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.util.PathSyncUtils;
 import net.rasanovum.viaromana.util.VersionUtils;
@@ -81,7 +81,7 @@ public class LinkHandler {
         PathDataManager.markDirty(level);
         PathSyncUtils.syncPathGraphToAllPlayers(level);
 
-        ViaRomanaLandmarkManager.addDestinationLandmark(level, node);
+        IntegrationManager.addDestination(level, node);
         return true;
     }
     
@@ -100,8 +100,8 @@ public class LinkHandler {
             PathDataManager.markDirty(level);
             
             PathSyncUtils.syncPathGraphToAllPlayers(level);
-            ViaRomanaLandmarkManager.removeDestinationLandmark(level, node);
-
+            
+            IntegrationManager.removeDestination(level, node);
         }
 
     }
@@ -119,7 +119,8 @@ public class LinkHandler {
                 PathDataManager.markDirty(level);
                 
                 PathSyncUtils.syncPathGraphToAllPlayers(level);
-                ViaRomanaLandmarkManager.removeDestinationLandmark(level, linkedNode);
+                
+                IntegrationManager.removeDestination(level, linkedNode);
             }
         }
     }

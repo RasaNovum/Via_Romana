@@ -2,6 +2,7 @@ package net.rasanovum.viaromana.util;
 
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.rasanovum.viaromana.integration.IntegrationManager;
 import net.rasanovum.viaromana.network.packets.PathGraphSyncPacket;
 import net.rasanovum.viaromana.path.PathGraph;
 import net.rasanovum.viaromana.ViaRomana;
@@ -22,7 +23,7 @@ public class PathSyncUtils {
 
             if (CommonConfig.enable_surveyor_landmark && CommonConfig.enable_surveyor_landmark_coloring) {
                 try {
-                    graph.updateAllNetworkColors(level);
+                    IntegrationManager.updateAllNetworkColors(graph, level);
                 } catch (NullPointerException e) {
                     ViaRomana.LOGGER.warn("Surveyor landmark system not ready yet, skipping network color update for sync");
                 }

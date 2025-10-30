@@ -109,6 +109,8 @@ tasks.withType<JavaCompile>().configureEach {
     options.encoding = "UTF-8"
     val javaVersion = if (stonecutter.eval(stonecutter.current.version, ">=1.20.5")) 21 else 17
     options.release.set(javaVersion)
+    
+    exclude("**/integration/surveyor/**")
 }
 
 java {

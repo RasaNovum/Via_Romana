@@ -1,8 +1,9 @@
-package net.rasanovum.viaromana.loaders.neoforge;
+package net.rasanovum.viaromana.loaders.forge;
 
-//? if neoforge {
-/*import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.common.Mod;
+//? if forge {
+/*import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.init.BlockInit;
 import net.rasanovum.viaromana.init.EffectInit;
@@ -10,8 +11,10 @@ import net.rasanovum.viaromana.init.ItemInit;
 import net.rasanovum.viaromana.network.PacketRegistration;
 
 @Mod(ViaRomana.MODID)
-public class NeoForgeMain {
-    public NeoForgeMain(IEventBus modEventBus) {
+public class ForgeMain {
+    public ForgeMain() {
+        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+
         ViaRomana.initialize();
         new PacketRegistration().initCommon();
         EffectInit.MOB_EFFECTS.register(modEventBus);
@@ -22,3 +25,4 @@ public class NeoForgeMain {
     }
 }
 *///?}
+

@@ -14,6 +14,7 @@ import net.rasanovum.viaromana.core.DimensionHandler;
 import net.rasanovum.viaromana.core.LinkHandler;
 import net.rasanovum.viaromana.core.SignInteract;
 import net.rasanovum.viaromana.init.*;
+import net.rasanovum.viaromana.integration.IntegrationManager;
 import net.rasanovum.viaromana.map.ServerMapCache;
 import net.rasanovum.viaromana.network.PacketRegistration;
 import net.rasanovum.viaromana.storage.player.PlayerData;
@@ -40,6 +41,8 @@ public class ViaRomana {
 
         ServerResourcesGenerator generator = new ServerResourcesGenerator(DYNAMIC_PACK);
         generator.register();
+
+        IntegrationManager.initialize();
     }
 
     public static void onJoin(ServerPlayer player) {
