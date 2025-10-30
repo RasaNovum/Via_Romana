@@ -104,7 +104,7 @@ public class MapClient {
 
             long totalTime = System.nanoTime() - startTime;
 
-            ViaRomana.LOGGER.info("[PERF-CLIENT] Created raw map images for network {}: total={}ms, create={}ms, convert={}ms, dimensions={}x{}, pixels={}",
+            ViaRomana.LOGGER.debug("[PERF-CLIENT] Created raw map images for network {}: total={}ms, create={}ms, convert={}ms, dimensions={}x{}, pixels={}",
                     mapInfo.networkId(), totalTime / 1_000_000.0, createImageTime / 1_000_000.0,
                     convertTime / 1_000_000.0, width, height, biomePixels.length);
 

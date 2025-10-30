@@ -93,7 +93,7 @@ public record PreProcessChunksC2S(List<NodeData> tempNodes) implements CustomPac
 
             UUID pseudoNetworkId = ServerMapCache.getPseudoNetworkId(playerUUID);
             
-            ViaRomana.LOGGER.info("Creating/updating pseudonetwork {} for player {} with {} temp nodes", 
+            ViaRomana.LOGGER.debug("Creating/updating pseudonetwork {} for player {} with {} temp nodes", 
                 pseudoNetworkId, ctx.sender().getName().getString(), tempNodes.size());
 
             PathGraph graph = PathGraph.getInstance(level);
@@ -111,7 +111,7 @@ public record PreProcessChunksC2S(List<NodeData> tempNodes) implements CustomPac
                 MapBaker.bakeAsync(pseudoNetworkId, level, executor)
                     .thenAccept(mapInfo -> {
                         if (mapInfo != null) {
-                            ViaRomana.LOGGER.info("Completed async chunk pre-processing for pseudonetwork {}: {}x{} pixels",
+                            ViaRomana.LOGGER.debug("Completed async chunk pre-processing for pseudonetwork {}: {}x{} pixels",
                                 pseudoNetworkId, mapInfo.pixelWidth(), mapInfo.pixelHeight());
                         }
                     })

@@ -174,7 +174,7 @@ public final class ServerMapCache {
         dirtyNetworks.clear();
 
         int totalDirtyChunks = toProcess.values().stream().mapToInt(Set::size).sum();
-        ViaRomana.LOGGER.info("[PERF] Processing {} dirty networks ({} total dirty chunks) - batched update", 
+        ViaRomana.LOGGER.debug("[PERF] Processing {} dirty networks ({} total dirty chunks) - batched update", 
             toProcess.size(), totalDirtyChunks);
 
         // Process each network (full rebake is fast with raw pixels)
@@ -320,7 +320,7 @@ public final class ServerMapCache {
                 worldMinX, worldMinZ, worldMaxX, worldMaxZ, List.of(), List.of());
             cache.put(networkId, info);
             long loadTime = System.nanoTime() - startTime;
-            ViaRomana.LOGGER.info("[PERF] Loaded map {} from disk: {}ms, biomeSize={}KB, chunkSize={}KB", 
+            ViaRomana.LOGGER.info("Loaded map {} from disk: {}ms, biomeSize={}KB, chunkSize={}KB", 
                 networkId, loadTime / 1_000_000.0, biomePixels.length / 1024.0, chunkPixels != null ? chunkPixels.length / 1024.0 : 0);
             return Optional.of(info);
 
@@ -418,7 +418,7 @@ public final class ServerMapCache {
 
             long saveTime = System.nanoTime() - startTime;
             if (savedCount > 0) {
-                ViaRomana.LOGGER.info("[PERF] Saved {} maps to disk: {}ms, total={}KB, avg={}KB/map", 
+                ViaRomana.LOGGER.info("Saved {} maps to disk: {}ms, total={}KB, avg={}KB/map", 
                     savedCount, saveTime / 1_000_000.0, totalBytes / 1024.0, (totalBytes / savedCount) / 1024.0);
             }
             modifiedForSaving.removeAll(networksToSave);
@@ -475,7 +475,7 @@ public final class ServerMapCache {
         }
         
         long totalTime = System.nanoTime() - startTime;
-        ViaRomana.LOGGER.info("[PERF] Regenerated all chunk pixel data: {} chunks in {}ms", 
+        ViaRomana.LOGGER.debug("[PERF] Regenerated all chunk pixel data: {} chunks in {}ms", 
             totalChunks, totalTime / 1_000_000.0);
     }
 

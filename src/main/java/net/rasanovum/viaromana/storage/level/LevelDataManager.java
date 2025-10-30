@@ -88,7 +88,7 @@ public class LevelDataManager {
             clearPixelBytes(level, pos);
         }
         long totalTime = System.nanoTime() - startTime;
-        ViaRomana.LOGGER.info("[PERF] Cleared pixel data for {} chunks in {}ms", chunks.size(), totalTime / 1_000_000.0);
+        ViaRomana.LOGGER.debug("[PERF] Cleared pixel data for {} chunks in {}ms", chunks.size(), totalTime / 1_000_000.0);
     }
 
     /**
@@ -132,7 +132,7 @@ public class LevelDataManager {
 
         long totalTime = System.nanoTime() - startTime;
         long totalBytes = regenerated * 256L;
-        ViaRomana.LOGGER.info("[PERF] Regenerated pixel data for {} chunks in {}ms, total size={}KB (256B/chunk)",
+        ViaRomana.LOGGER.debug("[PERF] Regenerated pixel data for {} chunks in {}ms, total size={}KB (256B/chunk)",
                 regenerated, totalTime / 1_000_000.0, totalBytes / 1024.0);
     }
 }

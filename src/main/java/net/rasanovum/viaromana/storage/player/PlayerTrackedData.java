@@ -36,7 +36,7 @@ public class PlayerTrackedData extends SyncedPlayerTrackedData {
 
     @Override
     public void load(CompoundTag tag) {
-        ViaRomana.LOGGER.info("Loading PlayerTrackedData for entity ID {}: {}", this.entity.getId(), tag);
+        // ViaRomana.LOGGER.info("Loading PlayerTrackedData for entity ID {}: {}", this.entity.getId(), tag);
         if (tag.contains("ChartingPath")) {
             this.chartingPath = tag.getBoolean("ChartingPath");
         }
@@ -64,7 +64,7 @@ public class PlayerTrackedData extends SyncedPlayerTrackedData {
             super.sync();
         }
         else if (this.entity.level() instanceof ClientLevel) {
-            ViaRomana.LOGGER.info("Sending SyncPlayerDataC2S packet to server for entity ID {}: {}", this.entity.getId(), this.writeToNetwork());
+            // ViaRomana.LOGGER.info("Sending SyncPlayerDataC2S packet to server for entity ID {}: {}", this.entity.getId(), this.writeToNetwork());
             Dispatcher.sendToServer(new SyncPlayerDataC2S(this.entity.getId(), this.trackedDataKey.getId(), this.writeToNetwork()));
         }
     }
@@ -118,6 +118,6 @@ public class PlayerTrackedData extends SyncedPlayerTrackedData {
             sync();
         }
 
-        ViaRomana.LOGGER.info("Resetting Variables");
+        // ViaRomana.LOGGER.info("Resetting Variables");
     }
 }

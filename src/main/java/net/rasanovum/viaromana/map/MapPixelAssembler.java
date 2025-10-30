@@ -49,7 +49,7 @@ public class MapPixelAssembler {
         var climateSampler = randomState.sampler();
         int maxBuildHeight = level.getMaxBuildHeight();
 
-        ViaRomana.LOGGER.info("Starting parallel bake for {} total chunks, {} renderable (isPseudo: {})", totalChunks, renderedChunks.size(), isPseudo);
+        ViaRomana.LOGGER.debug("Starting parallel bake for {} total chunks, {} renderable (isPseudo: {})", totalChunks, renderedChunks.size(), isPseudo);
 
         targetChunkSet.parallelStream().forEach(chunkToProcess -> {
             byte[] biomeChunkPixels = null;
@@ -97,7 +97,7 @@ public class MapPixelAssembler {
             chunksWithData.incrementAndGet();
         });
 
-        ViaRomana.LOGGER.info("Render attempt complete: {}/{} chunks processed. High-res: {} cached, {} rendered. Biome: {} cached, {} rendered.",
+        ViaRomana.LOGGER.debug("Render attempt complete: {}/{} chunks processed. High-res: {} cached, {} rendered. Biome: {} cached, {} rendered.",
                 chunksWithData.get(), totalChunks, chunksFromCache.get(), chunksRendered.get(), chunksFromBiomeCache.get(), chunksRenderedBiome.get());
 
         int missingCount = totalChunks - chunksWithData.get();
