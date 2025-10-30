@@ -43,6 +43,7 @@
   "gui.viaromana.access_tooltip": "Not a warp destination",
   "gui.viaromana.unlink_button": "Unlink",
   "gui.viaromana.unlink_tooltip": "Unlink sign from network",
+  "gui.viaromana.confirm_link_tooltip": "Click to confirm link",
   "gui.viaromana.name_label": "Name:",
   "gui.viaromana.type_label": "Type:",
   "gui.viaromana.icon_label": "Icon:",

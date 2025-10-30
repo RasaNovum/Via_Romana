@@ -24,7 +24,7 @@ public class MapSignatureButton extends AbstractButton {
         this.playerName = playerName;
         this.onPress = onPress;
         
-        this.setTooltip(Tooltip.create(Component.literal("Click to confirm link")));
+        this.setTooltip(Tooltip.create(Component.translatable("gui.viaromana.confirm_link_tooltip")));
     }
 
     @Override
