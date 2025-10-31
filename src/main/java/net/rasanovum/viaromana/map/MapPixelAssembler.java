@@ -89,7 +89,7 @@ public class MapPixelAssembler {
 
             byte[] chunkPixelData = null;
             if (renderedChunks.contains(chunkToProcess)) {
-                ChunkPixelResult result = getOrRenderChunkPixels(level, chunkToProcess);
+                ChunkPixelResult result = getOrRenderChunkPixels(level, chunkToProcess, scaleFactor, biomeChunkPixels);
                 if (result.pixels() != null && result.pixels().length == 256) {
                     chunkPixelData = result.pixels();
                     chunksFromCache.addAndGet(result.cacheIncrement());
@@ -133,15 +133,20 @@ public class MapPixelAssembler {
     }
 
     /**
-     * Returns pixel result along with cache/render increment
+     * Returns pixel result along with cache/render increment.
+     * If scaleFactor >= 4 and no chunkPixel exists in cache, uses biomePixels to avoid expensive chunk rendering.
      */
-    private static ChunkPixelResult getOrRenderChunkPixels(ServerLevel level, ChunkPos chunkPos) {
+    private static ChunkPixelResult getOrRenderChunkPixels(ServerLevel level, ChunkPos chunkPos, int scaleFactor, byte[] biomePixels) {
         Optional<byte[]> cached = LevelDataManager.getPixelBytes(level, chunkPos);
         if (cached.isPresent()) {
             byte[] pixels = cached.get();
             if (pixels.length == 256) {
                 return new ChunkPixelResult(pixels, 1, 0);
             }
+        }
+
+        if (CommonConfig.use_biome_fallback_for_lowres && scaleFactor >= 4 && biomePixels != null && biomePixels.length == 256) {
+            return new ChunkPixelResult(biomePixels, 0, 0);
         }
 
         level.getChunk(chunkPos.x, chunkPos.z);

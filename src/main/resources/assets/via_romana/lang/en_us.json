@@ -133,6 +133,8 @@
   "via_romana.midnightconfig.enable_surveyor_landmark_coloring.tooltip": "Colors all landmarks in the same network the same colour to indicate connections.\n • Server Managed",
   "via_romana.midnightconfig.biomeColor": "Biome Color Pairs",
   "via_romana.midnightconfig.biomeColor.tooltip": "Format: biome_path=map_color\n• biome_path: A valid Minecraft biome path (e.g., minecraft:plains).\n• map_color: Integer index for a map color (0-61, check wiki).\n\nMust reload for changes to take effect.\n • Server Managed",
+  "via_romana.midnightconfig.use_biome_fallback_for_lowres": "Use Biome Fallback for Low Resolution",
+  "via_romana.midnightconfig.use_biome_fallback_for_lowres.tooltip": "When enabled, uses biome data instead of rendering chunks for low-resolution maps, improving performance with minimal quality loss.\n • Server Managed",
   "via_romana.midnightconfig.map_footer": "• Check the 'Visuals' tab for map visuals.",
 
   "via_romana.midnightconfig.invalid_entities": "Invalid Entities",
