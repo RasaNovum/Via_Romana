@@ -29,7 +29,7 @@ public class RenderUtil {
             BlockPos belowPos = checkPos.below();
             BlockState belowState = level.getBlockState(belowPos);
 
-            if (belowState.isSolid() || PathUtils.isBlockValidPath(level, belowPos)) {
+            if ((belowState.isSolid() || PathUtils.isBlockValidPath(level, belowPos)) && !PathUtils.isBlockLeaveBlock(level, belowPos)) {
                 VoxelShape shape = belowState.getCollisionShape(level, belowPos, CollisionContext.empty());
                 if (!shape.isEmpty()) {
                     double blockTopY = belowPos.getY() + shape.max(Direction.Axis.Y);

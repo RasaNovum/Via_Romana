@@ -66,7 +66,7 @@ public final class ServerMapCache {
                 TimeUnit.SECONDS
         );
 
-        ViaRomana.LOGGER.debug("Scheduled map reprocessing every {} seconds.", CommonConfig.map_refresh_interval);
+        ViaRomana.LOGGER.info("Scheduled map reprocessing every {} seconds.", CommonConfig.map_refresh_interval);
 
         scheduler.scheduleAtFixedRate(
                 () -> runSafe(() -> saveAllToDisk(false), "Error during scheduled map cache saving"),
@@ -75,7 +75,7 @@ public final class ServerMapCache {
                 TimeUnit.MINUTES
         );
 
-        ViaRomana.LOGGER.debug("Scheduled map saving every {} minutes.", CommonConfig.map_save_interval);
+        ViaRomana.LOGGER.info("Scheduled map saving every {} minutes.", CommonConfig.map_save_interval);
     }
 
     public static void shutdown() {
@@ -128,7 +128,7 @@ public final class ServerMapCache {
      */
     public static void markAsPseudoNetwork(UUID networkId) {
         pseudoNetworkIds.add(networkId);
-        ViaRomana.LOGGER.debug("Marked network {} as pseudonetwork", networkId);
+        ViaRomana.LOGGER.info("Marked network {} as pseudonetwork", networkId);
     }
 
     /**
@@ -138,7 +138,7 @@ public final class ServerMapCache {
     public static void invalidatePseudoNetwork(UUID networkId) {
         if (pseudoNetworkIds.remove(networkId)) {
             invalidate(networkId);
-            ViaRomana.LOGGER.debug("Invalidated pseudonetwork {}", networkId);
+            ViaRomana.LOGGER.info("Invalidated pseudonetwork {}", networkId);
         }
     }
 
@@ -174,7 +174,7 @@ public final class ServerMapCache {
         dirtyNetworks.clear();
 
         int totalDirtyChunks = toProcess.values().stream().mapToInt(Set::size).sum();
-        ViaRomana.LOGGER.debug("[PERF] Processing {} dirty networks ({} total dirty chunks) - batched update", 
+        ViaRomana.LOGGER.info("[PERF] Processing {} dirty networks ({} total dirty chunks) - batched update",
             toProcess.size(), totalDirtyChunks);
 
         // Process each network (full rebake is fast with raw pixels)
@@ -201,13 +201,13 @@ public final class ServerMapCache {
                     CompletableFuture<MapInfo> bakeFuture;
                     
                     if (previousResult != null && previousResult.hasImageData()) {
-                        ViaRomana.LOGGER.debug("Performing incremental update for network {}.", networkId);
+                        ViaRomana.LOGGER.info("Performing incremental update for network {}.", networkId);
                         bakeFuture = CompletableFuture.supplyAsync(() -> {
                             MapBaker worker = new MapBaker();
                             return worker.updateMap(previousResult, new HashSet<>(chunksToUpdate), level);
                         }, mapBakingExecutor);
                     } else {
-                        ViaRomana.LOGGER.debug("Performing full bake for network {}.", networkId);
+                        ViaRomana.LOGGER.info("Performing full bake for network {}.", networkId);
                         bakeFuture = MapBaker.bakeAsync(networkId, level, mapBakingExecutor);
                     }
                     
@@ -216,7 +216,7 @@ public final class ServerMapCache {
                         if (!isPseudoNetwork(networkId)) {
                             modifiedForSaving.add(networkId);
                         }
-                        ViaRomana.LOGGER.debug("Map update completed for network {}.", networkId);
+                        ViaRomana.LOGGER.info("Map update completed for network {}.", networkId);
                         return newResult;
                     }).exceptionally(ex -> {
                         ViaRomana.LOGGER.error("Failed during map update for network {}", networkId, ex);
@@ -249,7 +249,7 @@ public final class ServerMapCache {
         return getMapData(networkId)
                 .map(CompletableFuture::completedFuture)
                 .orElseGet(() -> {
-                    ViaRomana.LOGGER.debug("Generating initial map for network {} (client request).", networkId);
+                    ViaRomana.LOGGER.info("Generating initial map for network {} (client request).", networkId);
                     PathGraph graph = PathGraph.getInstance(level);
                     if (graph != null) {
                         PathGraph.NetworkCache network = graph.getNetworkCache(networkId);
@@ -342,7 +342,7 @@ public final class ServerMapCache {
             boolean nbtDeleted = Files.deleteIfExists(mapDir.resolve(base + ".nbt"));
             boolean pixelsDeleted = Files.deleteIfExists(mapDir.resolve(base + ".pixels"));
             if (pngDeleted || nbtDeleted || pixelsDeleted) {
-                ViaRomana.LOGGER.debug("Deleted map files from disk for network {}", networkId);
+                ViaRomana.LOGGER.info("Deleted map files from disk for network {}", networkId);
             }
         } catch (IOException e) {
             ViaRomana.LOGGER.error("Failed to delete map files from disk for network {}", networkId, e);
@@ -367,7 +367,7 @@ public final class ServerMapCache {
         if (networksToSave.isEmpty()) return;
 
         long startTime = System.nanoTime();
-        ViaRomana.LOGGER.debug("Saving {} maps to disk...", networksToSave.size());
+        ViaRomana.LOGGER.info("Saving {} maps to disk...", networksToSave.size());
 
         try {
             Path mapDir = getMapDirectory();
@@ -438,7 +438,7 @@ public final class ServerMapCache {
                             .map(Path::toFile)
                             .forEach(java.io.File::delete);
                 }
-                ViaRomana.LOGGER.debug("Deleted all map files from disk.");
+                ViaRomana.LOGGER.info("Deleted all map files from disk.");
             }
         } catch (IOException e) {
             ViaRomana.LOGGER.error("Failed to delete map directory from disk.", e);
@@ -475,7 +475,7 @@ public final class ServerMapCache {
         }
         
         long totalTime = System.nanoTime() - startTime;
-        ViaRomana.LOGGER.debug("[PERF] Regenerated all chunk pixel data: {} chunks in {}ms", 
+        ViaRomana.LOGGER.info("[PERF] Regenerated all chunk pixel data: {} chunks in {}ms",
             totalChunks, totalTime / 1_000_000.0);
     }
 

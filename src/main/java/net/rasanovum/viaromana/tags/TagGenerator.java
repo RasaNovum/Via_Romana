@@ -21,7 +21,7 @@ import net.rasanovum.viaromana.util.VersionUtils;
 public class TagGenerator {
     public static final TagKey<Block> PATH_BLOCK_TAG = TagKey.create(Registries.BLOCK, VersionUtils.getLocation("via_romana:path_block"));
     public static final TagKey<Block> WARP_BLOCK_TAG = TagKey.create(Registries.BLOCK, VersionUtils.getLocation("via_romana:warp_block"));
-    public static final TagKey<Block> LEAVES_TAG = TagKey.create(Registries.BLOCK, VersionUtils.getLocation("minecraft:leaves"));
+    public static final TagKey<Block> LEAVES_BLOCK_TAG = TagKey.create(Registries.BLOCK, VersionUtils.getLocation("minecraft:leaves"));
 
     @SuppressWarnings("removal")
     public static void generateAllTags(DynamicDataPack pack) {

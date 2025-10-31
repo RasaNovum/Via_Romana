@@ -17,23 +17,37 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class MapPixelAssembler {
     public record ChunkPixelResult(byte[] pixels, int cacheIncrement, int renderIncrement) {}
     public record BiomePixelResult(byte[] pixels, int cacheIncrement, int renderIncrement) {}
+    public record RenderScale(int chunkScale, int chunkStride, int effectiveScale) {}
 
     /**
-     * Calculates the scale factor for pixel rendering based on dimensions.
+     * Calculates chunk-level scale and stride for rendering.
+     * When total scale > 16, render fewer chunks (stride).
+     * 
+     * @param width Full width in blocks
+     * @param height Full height in blocks
+     * @return RenderScale with chunkScale (max 16), chunkStride, and effectiveScale
      */
-    public static int calculateScaleFactor(int width, int height) {
+    public static RenderScale calculateRenderScale(int width, int height) {
         int maxDim = Math.max(width, height);
         int MAX_DIM = CommonConfig.maximum_map_dimension;
-        if (maxDim <= MAX_DIM) return 1;
-        int requiredScale = (int) Math.ceil((double) maxDim / MAX_DIM);
-        return Integer.highestOneBit(requiredScale - 1) << 1;
+        
+        int totalScale = 1;
+        if (maxDim > MAX_DIM) {
+            int requiredScale = (int) Math.ceil((double) maxDim / MAX_DIM);
+            totalScale = Integer.highestOneBit(requiredScale - 1) << 1;
+        }
+        
+        int chunkScale = Math.min(totalScale, 16);
+        int chunkStride = Math.max(1, totalScale / 16);
+        return new RenderScale(chunkScale, chunkStride, chunkScale * chunkStride);
     }
 
     /**
      * Processes raw chunk pixels directly into separate biome and chunk pixel arrays.
      * Biome pixels are generated for all chunks, chunk pixels only for renderable chunks.
+     * When stride > 1, only chunks at stride intervals are processed.
      */
-    public static int processChunkPixels(byte[] biomePixels, byte[] chunkPixels, ServerLevel level, Set<ChunkPos> allChunks, Set<ChunkPos> renderedChunks, int scaleFactor, int pixelWidth, int pixelHeight, ChunkPos minChunk, boolean isPseudo) {
+    public static int processChunkPixels(byte[] biomePixels, byte[] chunkPixels, ServerLevel level, Set<ChunkPos> allChunks, Set<ChunkPos> renderedChunks, int scaleFactor, int pixelWidth, int pixelHeight, ChunkPos minChunk, boolean isPseudo, int chunkStride) {
         AtomicInteger chunksWithData = new AtomicInteger(0);
         AtomicInteger chunksFromCache = new AtomicInteger(0);
         AtomicInteger chunksRendered = new AtomicInteger(0);
@@ -49,9 +63,17 @@ public class MapPixelAssembler {
         var climateSampler = randomState.sampler();
         int maxBuildHeight = level.getMaxBuildHeight();
 
-        ViaRomana.LOGGER.debug("Starting parallel bake for {} total chunks, {} renderable (isPseudo: {})", totalChunks, renderedChunks.size(), isPseudo);
+        ViaRomana.LOGGER.info("Starting parallel bake for {} total chunks, {} renderable (isPseudo: {}, stride: {})", totalChunks, renderedChunks.size(), isPseudo, chunkStride);
 
         targetChunkSet.parallelStream().forEach(chunkToProcess -> {
+            if (chunkStride > 1) { // Skip chunks that don't match stride pattern
+                int relX = chunkToProcess.x - minChunk.x;
+                int relZ = chunkToProcess.z - minChunk.z;
+                if (relX % chunkStride != 0 || relZ % chunkStride != 0) {
+                    return;
+                }
+            }
+            
             byte[] biomeChunkPixels = null;
             if (!isPseudo) {
                 var biomeResult = ChunkPixelRenderer.getOrRenderBiomePixels(level, chunkToProcess, biomeSource, climateSampler, maxBuildHeight);
@@ -77,27 +99,25 @@ public class MapPixelAssembler {
 
             if (isPseudo) return;
 
-            int baseX = (chunkToProcess.x - minChunk.x) * scaledChunkSize;
-            int baseZ = (chunkToProcess.z - minChunk.z) * scaledChunkSize;
+            int baseX = (chunkToProcess.x - minChunk.x) / chunkStride * scaledChunkSize;
+            int baseZ = (chunkToProcess.z - minChunk.z) / chunkStride * scaledChunkSize;
             if (baseX < 0 || baseZ < 0 || baseX + scaledChunkSize > pixelWidth || baseZ + scaledChunkSize > pixelHeight) {
                 ViaRomana.LOGGER.warn("Chunk {} out of pixel bounds, skipping", chunkToProcess);
                 return;
             }
 
-            if (true) {
-                byte[] scaledBiomePixels = (scaleFactor > 1) ? ChunkPixelRenderer.scalePixels(biomeChunkPixels, scaleFactor) : biomeChunkPixels;
-                copyChunkToFull(scaledBiomePixels, chunkToProcess, minChunk, scaledChunkSize, pixelWidth, biomePixels);
-            }
+            byte[] scaledBiomePixels = (scaleFactor > 1) ? ChunkPixelRenderer.scalePixels(biomeChunkPixels, scaleFactor) : biomeChunkPixels;
+            copyChunkToFullDirect(scaledBiomePixels, baseX, baseZ, scaledChunkSize, pixelWidth, biomePixels);
 
             if (chunkPixelData != null) {
                 byte[] scaledChunkPixels = (scaleFactor > 1) ? ChunkPixelRenderer.scalePixels(chunkPixelData, scaleFactor) : chunkPixelData;
-                copyChunkToFull(scaledChunkPixels, chunkToProcess, minChunk, scaledChunkSize, pixelWidth, chunkPixels);
+                copyChunkToFullDirect(scaledChunkPixels, baseX, baseZ, scaledChunkSize, pixelWidth, chunkPixels);
             }
 
             chunksWithData.incrementAndGet();
         });
 
-        ViaRomana.LOGGER.debug("Render attempt complete: {}/{} chunks processed. High-res: {} cached, {} rendered. Biome: {} cached, {} rendered.",
+        ViaRomana.LOGGER.info("Render attempt complete: {}/{} chunks processed. High-res: {} cached, {} rendered. Biome: {} cached, {} rendered.",
                 chunksWithData.get(), totalChunks, chunksFromCache.get(), chunksRendered.get(), chunksFromBiomeCache.get(), chunksRenderedBiome.get());
 
         if (!isPseudo) {
@@ -137,11 +157,9 @@ public class MapPixelAssembler {
     }
 
     /**
-     * Copy scaled chunk row-by-row to full array.
+     * Copy scaled chunk row-by-row to full array at specified position.
      */
-    private static void copyChunkToFull(byte[] chunkPixels, ChunkPos chunkPos, ChunkPos min, int scaledChunkSize, int pixelWidth, byte[] fullPixels) {
-        int baseX = (chunkPos.x - min.x) * scaledChunkSize;
-        int baseZ = (chunkPos.z - min.z) * scaledChunkSize;
+    private static void copyChunkToFullDirect(byte[] chunkPixels, int baseX, int baseZ, int scaledChunkSize, int pixelWidth, byte[] fullPixels) {
         for (int dz = 0; dz < scaledChunkSize; dz++) {
             int srcIdx = dz * scaledChunkSize;
             int dstIdx = (baseZ + dz) * pixelWidth + baseX;

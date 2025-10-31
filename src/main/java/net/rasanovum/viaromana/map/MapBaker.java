@@ -39,7 +39,7 @@ public class MapBaker {
      * @return MapInfo object containing the baked map data.
      */
     public static MapInfo bake(UUID networkId, ServerLevel level) {
-        ViaRomana.LOGGER.debug("[PERF] Starting full map bake for network {}", networkId);
+        ViaRomana.LOGGER.info("[PERF] Starting full map bake for network {}", networkId);
 
         long bakeStartTime = System.nanoTime();
 
@@ -59,7 +59,7 @@ public class MapBaker {
         BlockPos desiredMinBlock = fowCache.minBlock();
         BlockPos desiredMaxBlock = fowCache.maxBlock();
 
-        ViaRomana.LOGGER.debug("Chunks Allowed: {}", bakeChunks.size());
+        ViaRomana.LOGGER.info("Chunks Allowed: {}", bakeChunks.size());
 
         Set<ChunkPos> mapChunks = new HashSet<>();
         for (int cx = bakeMinChunk.x; cx <= bakeMaxChunk.x; cx++) {
@@ -70,23 +70,26 @@ public class MapBaker {
 
         int fullChunkWidth = (bakeMaxChunk.x - bakeMinChunk.x + 1) * 16;
         int fullChunkHeight = (bakeMaxChunk.z - bakeMinChunk.z + 1) * 16;
-        int scaleFactor = MapPixelAssembler.calculateScaleFactor(fullChunkWidth, fullChunkHeight);
+        MapPixelAssembler.RenderScale renderScale = MapPixelAssembler.calculateRenderScale(fullChunkWidth, fullChunkHeight);
+        int scaleFactor = renderScale.chunkScale();
+        int chunkStride = renderScale.chunkStride();
+        int effectiveScale = renderScale.effectiveScale();
 
         long renderStartTime = System.nanoTime();
-        int fullPixelWidth = fullChunkWidth / scaleFactor;
-        int fullPixelHeight = fullChunkHeight / scaleFactor;
-        byte[] biomePixels = new byte[fullPixelWidth * fullPixelHeight];
-        byte[] chunkPixels = new byte[fullPixelWidth * fullPixelHeight];
+        int pixelWidth = fullChunkWidth / effectiveScale;
+        int pixelHeight = fullChunkHeight / effectiveScale;
+        byte[] biomePixels = new byte[pixelWidth * pixelHeight];
+        byte[] chunkPixels = new byte[pixelWidth * pixelHeight];
         
-        int chunksWithData = MapPixelAssembler.processChunkPixels(biomePixels, chunkPixels, level, mapChunks, bakeChunks, scaleFactor, fullPixelWidth, fullPixelHeight, bakeMinChunk, isPseudo);
+        int chunksWithData = MapPixelAssembler.processChunkPixels(biomePixels, chunkPixels, level, mapChunks, bakeChunks, scaleFactor, pixelWidth, pixelHeight, bakeMinChunk, isPseudo, chunkStride);
         long renderTime = System.nanoTime() - renderStartTime;
 
         if (isPseudo) {
             long totalBakeTime = System.nanoTime() - bakeStartTime;
-            ViaRomana.LOGGER.debug("[PERF] Pseudonetwork {} pre-processing completed: total={}ms, render={}ms, " +
+            ViaRomana.LOGGER.info("[PERF] Pseudonetwork {} pre-processing completed: total={}ms, render={}ms, " +
                 "dimensions={}x{} (full FoW), scale={}, chunks={}",
                 networkId, totalBakeTime / 1_000_000.0, renderTime / 1_000_000.0,
-                fullPixelWidth, fullPixelHeight, scaleFactor, chunksWithData);
+                pixelWidth, pixelHeight, effectiveScale, chunksWithData);
             
             return MapInfo.fromServer(networkId, new byte[0], new byte[0], 0, 0, 1, 0, 0, 0, 0, new ArrayList<>(bakeChunks), new ArrayList<>());
         }
@@ -99,16 +102,16 @@ public class MapBaker {
         int bakedMinX = bakeMinChunk.x * 16;
         int bakedMinZ = bakeMinChunk.z * 16;
         
-        int startPixelX = (desiredMinX - bakedMinX) / scaleFactor;
-        int startPixelZ = (desiredMinZ - bakedMinZ) / scaleFactor;
-        int croppedPixelWidth = ((desiredMaxX - desiredMinX + 1) / scaleFactor);
-        int croppedPixelHeight = ((desiredMaxZ - desiredMinZ + 1) / scaleFactor);
+        int startPixelX = (desiredMinX - bakedMinX) / effectiveScale;
+        int startPixelZ = (desiredMinZ - bakedMinZ) / effectiveScale;
+        int croppedPixelWidth = ((desiredMaxX - desiredMinX + 1) / effectiveScale);
+        int croppedPixelHeight = ((desiredMaxZ - desiredMinZ + 1) / effectiveScale);
         
         // Clamp to valid ranges
         int effectiveStartX = Math.max(0, startPixelX);
         int effectiveStartZ = Math.max(0, startPixelZ);
-        int effectiveWidth = Math.min(croppedPixelWidth, fullPixelWidth - effectiveStartX);
-        int effectiveHeight = Math.min(croppedPixelHeight, fullPixelHeight - effectiveStartZ);
+        int effectiveWidth = Math.min(croppedPixelWidth, pixelWidth - effectiveStartX);
+        int effectiveHeight = Math.min(croppedPixelHeight, pixelHeight - effectiveStartZ);
         
         byte[] croppedBiomePixels = new byte[effectiveWidth * effectiveHeight];
         byte[] croppedChunkPixels = new byte[effectiveWidth * effectiveHeight];
@@ -116,24 +119,23 @@ public class MapBaker {
         // Copy relevant region to cropped arrays
         for (int z = 0; z < effectiveHeight; z++) {
             int srcZ = effectiveStartZ + z;
-            if (srcZ >= fullPixelHeight) break;
-            int srcIdx = srcZ * fullPixelWidth + effectiveStartX;
+            if (srcZ >= pixelHeight) break;
+            int srcIdx = srcZ * pixelWidth + effectiveStartX;
             int dstIdx = z * effectiveWidth;
-            int copyWidth = Math.min(effectiveWidth, fullPixelWidth - effectiveStartX);
+            int copyWidth = Math.min(effectiveWidth, pixelWidth - effectiveStartX);
             System.arraycopy(biomePixels, srcIdx, croppedBiomePixels, dstIdx, copyWidth);
             System.arraycopy(chunkPixels, srcIdx, croppedChunkPixels, dstIdx, copyWidth);
         }
 
-        // Return with chunk-aligned world coordinates from FoW
         long totalBakeTime = System.nanoTime() - bakeStartTime;
         
-        ViaRomana.LOGGER.debug("[PERF] Map bake completed for network {}: total={}ms, render={}ms, " +
+        ViaRomana.LOGGER.info("[PERF] Map bake completed for network {}: total={}ms, render={}ms, " +
             "dimensions={}x{}, scale={}, rawSize={}KB, chunks={}",
             networkId, totalBakeTime / 1_000_000.0, renderTime / 1_000_000.0,
-            effectiveWidth, effectiveHeight, scaleFactor, (croppedBiomePixels.length + croppedChunkPixels.length) / 1024.0,
+            effectiveWidth, effectiveHeight, effectiveScale, (croppedBiomePixels.length + croppedChunkPixels.length) / 1024.0,
             chunksWithData);
 
-        return MapInfo.fromServer(networkId, croppedBiomePixels, croppedChunkPixels, effectiveWidth, effectiveHeight, scaleFactor, desiredMinX, desiredMinZ, desiredMaxX, desiredMaxZ, new ArrayList<>(bakeChunks), graph.getNodesAsInfo(network));
+        return MapInfo.fromServer(networkId, croppedBiomePixels, croppedChunkPixels, effectiveWidth, effectiveHeight, effectiveScale, desiredMinX, desiredMinZ, desiredMaxX, desiredMaxZ, new ArrayList<>(bakeChunks), graph.getNodesAsInfo(network));
     }
 
 
@@ -142,7 +144,7 @@ public class MapBaker {
      * TODO: Re-implement image array splicing
      */
     public MapInfo updateMap(MapInfo previousResult, Set<ChunkPos> dirtyChunks, ServerLevel level) {
-        ViaRomana.LOGGER.debug("Incremental update requested for {} dirty chunks, performing rebake.", dirtyChunks.size());
+        ViaRomana.LOGGER.info("Incremental update requested for {} dirty chunks, performing rebake.", dirtyChunks.size());
         return bake(previousResult.networkId(), level);
     }
 }
