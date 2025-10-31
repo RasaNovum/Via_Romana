@@ -10,6 +10,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.client.data.ClientPathData;
+import net.rasanovum.viaromana.loaders.Platform;
 import net.rasanovum.viaromana.path.Node;
 import net.rasanovum.viaromana.client.gui.LinkSignScreen;
 import net.rasanovum.viaromana.client.gui.WarpBlockScreen;
@@ -29,9 +30,11 @@ public class SignEditHelper {
 
         ClientPathData clientPathData = ClientPathData.getInstance();
         BlockPos signPos;
+        int yOffset = 0;
 
         if (screen instanceof AbstractSignEditScreen signEditScreen) {
             signPos = ((AbstractSignEditScreenAccessor) signEditScreen).getSign().getBlockPos();
+            yOffset = Platform.INSTANCE.isModLoaded("signcopy") ? -26 : 0;
         } else if (screen instanceof WarpBlockScreen warpBlockScreen) {
             signPos = warpBlockScreen.getBlockPos();
         } else if (screen instanceof net.mehvahdjukaar.supplementaries.client.screens.SignPostScreen signPostScreen) {
@@ -113,11 +116,11 @@ public class SignEditHelper {
         final LinkData finalLinkData = linkData;
         final boolean finalIsNodeTemp = isNodeTemp;
         final boolean finalIsSignLinked = isSignPermLinked || isSignTempLinked;
-
-        ForceTooltipButton signLinkButton = new ForceTooltipButton(screen.width / 2 - 100, screen.height / 4 + (144 - 24), 200, 20,
+        ForceTooltipButton signLinkButton = new ForceTooltipButton(screen.width / 2 - 100, screen.height / 4 + (144 - 24) + yOffset, 200, 20,
         Component.translatable(buttonText),
             (button) -> {
                 if (finalLinkData != null) {
+                    assert Minecraft.getInstance().player != null;
                     LinkSignScreen linkScreen = new LinkSignScreen(Minecraft.getInstance().player, finalLinkData, finalIsNodeTemp, finalIsSignLinked);
                     Minecraft.getInstance().setScreen(linkScreen);
                 }
