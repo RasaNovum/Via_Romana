@@ -32,6 +32,8 @@ public class ViaRomana {
     public static final String MODID = "via_romana";
     @SuppressWarnings("removal")
     public static final DynamicDataPack DYNAMIC_PACK = new DynamicDataPack(VersionUtils.getLocation(MODID, "dynamic_tags"));
+    
+    private static MinecraftServer currentServer = null;
 
     public static void initialize() {
         LOGGER.info("Initializing Via Romana");
@@ -48,6 +50,7 @@ public class ViaRomana {
 
     public static void onJoin(ServerPlayer player) {
         PlayerData.resetVariables(player);
+        PathSyncUtils.syncConfigToPlayer(player);
         PathSyncUtils.syncPathGraphToPlayer(player);
     }
 
@@ -56,6 +59,7 @@ public class ViaRomana {
     }
 
     public static void onServerStart(MinecraftServer server) {
+        currentServer = server;
         ServerMapCache.init(server);
         ChunkPixelRenderer.init();
     }
@@ -64,6 +68,7 @@ public class ViaRomana {
         ServerMapCache.processAllDirtyNetworks();
         ServerMapCache.saveAllToDisk(true);
         ServerMapCache.clear();
+        currentServer = null;
     }
 
     public static void onDataPackReload(MinecraftServer server) {
@@ -71,6 +76,7 @@ public class ViaRomana {
         ServerMapCache.clear();
         ServerMapCache.init(server);
         ChunkPixelRenderer.init();
+        PathSyncUtils.syncConfigToAllPlayers(server);
     }
 
     public static void onDimensionChange(ServerLevel level, ServerPlayer player) {
@@ -88,5 +94,12 @@ public class ViaRomana {
 
     public static void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher) {
         ViaRomanaCommands.register(dispatcher);
+    }
+
+    /**
+     * Gets the current server instance. May be null if server is not running.
+     */
+    public static MinecraftServer getServer() {
+        return currentServer;
     }
 }

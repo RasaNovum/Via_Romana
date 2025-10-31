@@ -4,8 +4,27 @@ import eu.midnightdust.lib.config.MidnightConfig;
 import java.util.List;
 
 import com.google.common.collect.Lists;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.packs.PackResources;
+import net.rasanovum.viaromana.tags.TagGenerator;
 
 public class CommonConfig extends MidnightConfig {
+    //? if >1.21 {
+    @Override
+    public void writeChanges(String modid) {
+        System.out.println("Config save triggered for mod: " + modid);
+        super.writeChanges(modid);
+
+        MinecraftServer server = ViaRomana.getServer();
+        if (server == null) return;
+
+        server.execute(() -> {
+            ViaRomana.LOGGER.info("Reloading server resources due to config change...");
+            server.reloadResources(server.getResourceManager().listPacks().map(PackResources::packId).toList());
+        });
+    }
+    //?}
+
     public static final String CHARTING = "charting";
     public static final String MAP = "map";
     public static final String WARP = "warp";

@@ -14,7 +14,7 @@ import net.rasanovum.viaromana.util.PathUtils;
 import net.rasanovum.viaromana.util.VersionUtils;
 import net.rasanovum.viaromana.client.HudMessageManager;
 import net.rasanovum.viaromana.client.data.ClientPathData;
-import net.rasanovum.viaromana.CommonConfig;
+import net.rasanovum.viaromana.client.ClientConfigCache;
 import net.rasanovum.viaromana.core.LinkHandler.LinkData;
 import net.rasanovum.viaromana.network.packets.ChartedPathC2S;
 import net.rasanovum.viaromana.network.packets.PreProcessChunksC2S;
@@ -38,19 +38,20 @@ public final class ChartingHandler {
         float infrastructureQuality = PathUtils.calculateInfrastructureQuality(level, entity);
         float clearance = PathUtils.calculateClearance(level, entity);
 
-        if (nodeDistance > CommonConfig.node_distance_maximum) {
+        if (nodeDistance > ClientConfigCache.nodeDistanceMaximum) {
             HudMessageManager.queueMessage("message.via_romana.too_far_from_node_message");
             return;
         }
-        if (infrastructureQuality < CommonConfig.path_quality_threshold) {
-            float threshold = CommonConfig.path_quality_threshold;
+
+        if (infrastructureQuality < ClientConfigCache.pathQualityThreshold) {
+            float threshold = ClientConfigCache.pathQualityThreshold;
             int requiredBlocks = (int) Math.ceil(threshold * 9.0);
             int currentBlocks = Math.round(infrastructureQuality * 9.0f);
             HudMessageManager.queueMessage(Component.translatable("gui.viaromana.infrastructure_insufficient", currentBlocks, requiredBlocks));
             return;
         }
 
-        if (nodeDistance < CommonConfig.node_distance_minimum) {
+        if (nodeDistance < ClientConfigCache.nodeDistanceMinimum) {
             HudMessageManager.queueMessage("message.via_romana.path_charting");
             return;
         }
@@ -62,12 +63,13 @@ public final class ChartingHandler {
         if (!(level instanceof Level lvl)) return;
 
         var pos  = BlockPos.containing(player.getX(), player.getY(), player.getZ());
-        var snd  = BuiltInRegistries.SOUND_EVENT.get(VersionUtils.getLocation("minecraft:ui.cartography_table.take_result"));
+        var sound  = BuiltInRegistries.SOUND_EVENT.get(VersionUtils.getLocation("minecraft:ui.cartography_table.take_result"));
+        assert sound != null;
 
         if (lvl.isClientSide()) {
-            lvl.playLocalSound(player.getX(), player.getY(), player.getZ(), snd, SoundSource.PLAYERS, 1, 1, false);
+            lvl.playLocalSound(player.getX(), player.getY(), player.getZ(), sound, SoundSource.PLAYERS, 1, 1, false);
         } else {
-            lvl.playSound(null, pos, snd, SoundSource.PLAYERS, 1, 1);
+            lvl.playSound(null, pos, sound, SoundSource.PLAYERS, 1, 1);
         }
     }
 
@@ -75,14 +77,13 @@ public final class ChartingHandler {
      * Merges with an existing nearby node (preferred) or creates a new one.
      */
     public static void addChartingNode(LevelAccessor level, Entity entity, BlockPos pos, Float quality, Float clearance) {
-        if (entity == null || !(entity instanceof Player player)) return;
+        if (!(entity instanceof Player player)) return;
         if (Math.random() > 0.9) playCartographySound(level, player);
 
-        Optional<Node> nearbyNode = ClientPathData.getInstance().getNearestNode(pos, CommonConfig.node_utility_distance, 1.0f, true);
+        Optional<Node> nearbyNode = ClientPathData.getInstance().getNearestNode(pos, ClientConfigCache.nodeUtilityDistance, 1.0f, true);
 
         if (nearbyNode.isPresent()) {
-            BlockPos nearbyPos = nearbyNode.get().getBlockPos();
-            pos = nearbyPos;
+            pos = nearbyNode.get().getBlockPos();
             clearance = nearbyNode.get().getClearance();
         }
 

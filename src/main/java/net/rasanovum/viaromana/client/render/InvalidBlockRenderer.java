@@ -13,6 +13,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.rasanovum.viaromana.CommonConfig;
+import net.rasanovum.viaromana.client.ClientConfigCache;
 import net.rasanovum.viaromana.items.ChartingMap;
 import net.rasanovum.viaromana.storage.player.PlayerData;
 import net.rasanovum.viaromana.util.PathUtils;
@@ -30,7 +31,7 @@ public class InvalidBlockRenderer {
     }
 
     private static int getRegionSize() {
-        return CommonConfig.infrastructure_check_radius + FADE_BUFFER;
+        return ClientConfigCache.infrastructureCheckRadius + FADE_BUFFER;
     }
 
     public static void renderInfrastructureBlocks(PoseStack poseStack, Level level, Player player, float tickDelta) {
@@ -70,10 +71,10 @@ public class InvalidBlockRenderer {
                     
                     float fadeAlpha;
                     
-                    if (distance <= CommonConfig.infrastructure_check_radius) {
+                    if (distance <= ClientConfigCache.infrastructureCheckRadius) {
                         fadeAlpha = getAlpha();
-                    } else if (distance <= CommonConfig.infrastructure_check_radius + FADE_BUFFER) {
-                        float fadeProgress = (float)(distance - CommonConfig.infrastructure_check_radius) / FADE_BUFFER;
+                    } else if (distance <= ClientConfigCache.infrastructureCheckRadius + FADE_BUFFER) {
+                        float fadeProgress = (float)(distance - ClientConfigCache.infrastructureCheckRadius) / FADE_BUFFER;
                         fadeAlpha = getAlpha() * (1.0f - fadeProgress);
                     } else {
                         continue;

@@ -8,6 +8,10 @@ import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.ViaRomana;
 
 import org.apache.logging.log4j.Logger;
+import com.google.gson.Gson;
+import java.lang.reflect.Field;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.function.Consumer;
 
 @SuppressWarnings("removal")
@@ -28,8 +32,16 @@ public class ServerResourcesGenerator extends DynServerResourcesGenerator {
         ResourceGenTask task = (manager, sink) -> {
             try {
                 //? if <1.21 {
-                /*MidnightConfig.write(ViaRomana.MODID);
-                MidnightConfig.init(ViaRomana.MODID, CommonConfig.class);
+                /*try {
+                    Field gsonField = MidnightConfig.class.getDeclaredField("gson");
+                    gsonField.setAccessible(true);
+                    Gson gson = (Gson) gsonField.get(null);
+                    Path configPath = eu.midnightdust.lib.util.PlatformFunctions.getConfigDirectory().resolve(ViaRomana.MODID + ".json");
+        
+                    gson.fromJson(Files.newBufferedReader(configPath), CommonConfig.class);
+                } catch (Exception e) {
+                    ViaRomana.LOGGER.error("Failed to reload config from file", e);
+                }
                 *///?} else {
                 MidnightConfig.loadValuesFromJson(ViaRomana.MODID);
                 //?}

@@ -48,6 +48,7 @@ public class PacketRegistration {
         ViaRomana.LOGGER.info("Registering common network packets");
 
         registerPacket(PathGraphSyncPacket.TYPE, PathGraphSyncPacket.class, PathGraphSyncPacket::encode, PathGraphSyncPacket::decode, PathGraphSyncPacket.STREAM_CODEC, PathGraphSyncPacket::handle);
+        registerPacket(ConfigSyncS2C.TYPE, ConfigSyncS2C.class, ConfigSyncS2C::encode, ConfigSyncS2C::decode, ConfigSyncS2C.STREAM_CODEC, ConfigSyncS2C::handle);
         registerPacket(PreProcessChunksC2S.TYPE, PreProcessChunksC2S.class, PreProcessChunksC2S::encode, PreProcessChunksC2S::decode, PreProcessChunksC2S.STREAM_CODEC, PreProcessChunksC2S::handle);
         registerPacket(ChartedPathC2S.TYPE, ChartedPathC2S.class, ChartedPathC2S::encode, ChartedPathC2S::decode, ChartedPathC2S.STREAM_CODEC, ChartedPathC2S::handle);
         registerPacket(RoutedActionC2S.TYPE, RoutedActionC2S.class, RoutedActionC2S::encode, RoutedActionC2S::decode, RoutedActionC2S.STREAM_CODEC, RoutedActionC2S::handle);

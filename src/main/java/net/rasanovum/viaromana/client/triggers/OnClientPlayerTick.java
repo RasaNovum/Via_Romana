@@ -11,8 +11,7 @@ import net.rasanovum.viaromana.client.core.ChartingHandler;
 public class OnClientPlayerTick {
     public static void onClientTick() {
         Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft == null) return;
-        
+
         LocalPlayer player = minecraft.player;
         ClientLevel level = minecraft.level;
         
