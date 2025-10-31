@@ -3,11 +3,14 @@ package net.rasanovum.viaromana.command;
 import net.rasanovum.viaromana.path.PathGraph;
 import net.rasanovum.viaromana.storage.level.LevelDataManager;
 import net.rasanovum.viaromana.storage.path.PathDataManager;
+import net.rasanovum.viaromana.storage.path.legacy.IPathStorage;
 import net.rasanovum.viaromana.storage.player.PlayerData;
 import net.rasanovum.viaromana.util.PathSyncUtils;
 import net.rasanovum.viaromana.client.data.ClientPathData;
 import net.rasanovum.viaromana.client.gui.MapRenderer;
 import net.rasanovum.viaromana.map.ServerMapCache;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
@@ -30,6 +33,9 @@ public class ViaRomanaCommands {
                 .then(Commands.literal("client")
                         .then(Commands.literal("clear")
                                 .executes(ViaRomanaCommands::clearCache)))
+                .then(Commands.literal("convert")
+                        .then(Commands.literal("legacyPaths")
+                                .executes(ViaRomanaCommands::convertLegacyPaths)))
                 .then(Commands.literal("maps")
                         .then(Commands.literal("clear")
                                 .then(Commands.literal("all")
@@ -85,6 +91,43 @@ public class ViaRomanaCommands {
 
         source.sendSuccess(() -> Component.literal("Cleared all Via Romana caches"), true);
         return 1;
+    }
+
+    /**
+     * Converts paths from the legacy (level-based) storage system to the new (dimension-based) system.
+     * This imports all paths from the old save data into the current dimension.
+     */
+    private static int convertLegacyPaths(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        CommandSourceStack source = context.getSource();
+        ServerLevel currentLevel = source.getLevel();
+
+        PathGraph legacyGraph = IPathStorage.get(currentLevel).graph();
+        int legacyNodeCount = legacyGraph.size();
+
+        if (legacyNodeCount == 0) {
+            source.sendFailure(Component.literal("No legacy paths found to convert"));
+            return 0;
+        }
+
+        // Get current dimension's path graph and check if empty
+        PathGraph currentGraph = PathDataManager.getOrCreatePathGraph(currentLevel);
+        if (currentGraph.size() > 0) {
+            source.sendFailure(Component.literal(
+                "Current dimension already has " + currentGraph.size() + " nodes. Use /viaromana nodes clear first."
+            ));
+            return 0;
+        }
+
+        // Copy legacy data to current dimension
+        currentGraph.deserialize(legacyGraph.serialize(new CompoundTag()));
+        PathDataManager.markDirty(currentLevel);
+        PathSyncUtils.syncPathGraphToAllPlayers(currentLevel);
+
+        source.sendSuccess(() -> Component.literal(
+            "Converted " + legacyNodeCount + " nodes to " + currentLevel.dimension().location()
+        ), true);
+        
+        return legacyNodeCount;
     }
 
     /**
