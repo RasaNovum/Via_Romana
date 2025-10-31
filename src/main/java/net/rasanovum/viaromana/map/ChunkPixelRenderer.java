@@ -45,6 +45,8 @@ public class ChunkPixelRenderer {
     private static TagKey<Biome> riverTag;
     private static TagKey<Biome> savannaTag;
     private static TagKey<Biome> taigaTag;
+    private static TagKey<Biome> desertTag;
+    private static TagKey<Biome> swampTag;
     private static TagKey<Biome> plainsTag;
     
     /**
@@ -81,6 +83,8 @@ public class ChunkPixelRenderer {
         riverTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_river"));
         savannaTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_savanna"));
         taigaTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_taiga"));
+        desertTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:is_desert"));
+        swampTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:allows_surface_slime_spawns"));
         plainsTag = TagKey.create(Registries.BIOME, VersionUtils.getLocation("minecraft:has_structure/village_plains"));
     }
 
@@ -287,7 +291,7 @@ public class ChunkPixelRenderer {
 
         if (biomePath.contains("snow") || biomePath.contains("ice") || biomePath.contains("tundra")) {
             colorIndex = 8;
-        } else if (holder.is(forestTag) || holder.is(taigaTag) || holder.is(jungleTag) || biomePath.contains("forest")) {
+        } else if (holder.is(forestTag) || holder.is(taigaTag) || holder.is(jungleTag) || holder.is(swampTag) || biomePath.contains("forest")) {
             colorIndex = 7;
         } else if (holder.is(deepOceanTag) || holder.is(oceanTag) || holder.is(riverTag) || biomePath.contains("ocean")) {
             colorIndex = 12;
@@ -295,11 +299,11 @@ public class ChunkPixelRenderer {
             colorIndex = 11;
         } else if (holder.is(plainsTag) || biomePath.contains("plains") || biomePath.contains("meadow")) {
             colorIndex = 1;
-        } else if (holder.is(beachTag) || holder.is(endTag)) {
+        } else if (holder.is(beachTag) || holder.is(endTag) || holder.is(desertTag) || biomePath.contains("desert")) {
             colorIndex = 2;
-        } else if (holder.is(savannaTag)) {
+        } else if (holder.is(savannaTag) || biomePath.contains("savanna")) {
             colorIndex = 27;
-        } else if (holder.is(badlandsTag)) {
+        } else if (holder.is(badlandsTag) || biomePath.contains("badlands")) {
             colorIndex = 15;
         } else if (holder.is(netherTag)) {
             colorIndex = 35;
