@@ -10,6 +10,7 @@ import net.rasanovum.viaromana.tags.TagGenerator;
 import net.rasanovum.viaromana.util.PathUtils;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class RenderUtil {
@@ -24,22 +25,37 @@ public class RenderUtil {
             return pos.getY() + offsetY;
         }
 
-        for (int yOffset = maxUp + 1; yOffset >= -maxDown; yOffset--) {
+        BlockPos belowSource = pos.below();
+        BlockState belowSourceState = level.getBlockState(belowSource);
+        VoxelShape belowSourceShape = belowSourceState.getCollisionShape(level, belowSource, CollisionContext.empty());
+        double sourceSurfaceY = belowSourceShape.isEmpty() ? pos.getY() : belowSource.getY() + belowSourceShape.max(Direction.Axis.Y);
+        
+        List<Double> validPositions = new ArrayList<>();
+        
+        for (int yOffset = -maxDown; yOffset <= maxUp; yOffset++) {
             BlockPos checkPos = pos.offset(0, yOffset, 0);
-            BlockPos belowPos = checkPos.below();
-            BlockState belowState = level.getBlockState(belowPos);
-
-            if ((belowState.isSolid() || PathUtils.isBlockValidPath(level, belowPos)) && !PathUtils.isBlockLeaveBlock(level, belowPos)) {
-                VoxelShape shape = belowState.getCollisionShape(level, belowPos, CollisionContext.empty());
-                if (!shape.isEmpty()) {
-                    double blockTopY = belowPos.getY() + shape.max(Direction.Axis.Y);
-                    return blockTopY + offsetY;
-                } else {
-                    return checkPos.getY() + offsetY;
+            BlockState checkState = level.getBlockState(checkPos);
+            VoxelShape checkShape = checkState.getCollisionShape(level, checkPos, CollisionContext.empty());
+            
+            if (!checkShape.isEmpty() || PathUtils.isBlockValidPath(level, checkPos)) {
+                BlockPos abovePos = checkPos.above();
+                BlockState aboveState = level.getBlockState(abovePos);
+                VoxelShape aboveShape = aboveState.getCollisionShape(level, abovePos, CollisionContext.empty());
+                
+                if (aboveShape.isEmpty() && !PathUtils.isBlockValidPath(level, abovePos)) {
+                    double surfaceY = checkShape.isEmpty() ? checkPos.getY() + 1.0 : checkPos.getY() + checkShape.max(Direction.Axis.Y);
+                    validPositions.add(surfaceY + offsetY);
                 }
             }
         }
-
-        return pos.getY() + offsetY;
+        
+        if (validPositions.isEmpty()) {
+            return sourceSurfaceY + offsetY;
+        }
+        
+        double biasedTarget = sourceSurfaceY + offsetY + 1.0;
+        return validPositions.stream()
+                .min(Comparator.comparingDouble(a -> Math.abs(a - biasedTarget)))
+                .orElse(sourceSurfaceY + offsetY);
     }
 }

@@ -10,7 +10,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.core.BlockPos;
 
 public class PathUtils {
-    
+    public static int CLEARANCE_CHECK = 32;
+
     public static float calculateNodeDistance(Entity entity) {
         if (!(entity instanceof Player player)) return 0;
 
@@ -89,7 +90,7 @@ public class PathUtils {
         int entityX = (int) Math.floor(entity.getX());
         int entityZ = (int) Math.floor(entity.getZ());
 
-        for (int y = surfaceY + 1; y <= surfaceY + 6; y++) {
+        for (int y = surfaceY + 1; y <= surfaceY + CLEARANCE_CHECK; y++) {
             mutablePos.set(entityX, y, entityZ);
             BlockState blockState = world.getBlockState(mutablePos);
             
@@ -100,6 +101,6 @@ public class PathUtils {
             clearance++;
         }
 
-        return 6;
+        return 0;
     }
 }

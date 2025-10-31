@@ -84,6 +84,7 @@ public final class ChartingHandler {
 
         if (nearbyNode.isPresent()) {
             pos = nearbyNode.get().getBlockPos();
+            quality = nearbyNode.get().getQuality();
             clearance = nearbyNode.get().getClearance();
         }
 

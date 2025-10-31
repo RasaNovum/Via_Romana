@@ -180,7 +180,7 @@ public class TeleportMapScreen extends Screen {
                     final boolean isEndAnimating = currentlyAnimatingSources.contains(endPos);
 
                     DestinationResponseS2C.NodeNetworkInfo endNodeInfo = networkNodeMap.get(endPos);
-                    boolean bothUnderground = nodeInfo.clearance > 0 && nodeInfo.clearance < 5 && endNodeInfo != null && endNodeInfo.clearance > 0 && endNodeInfo.clearance < 5;
+                    boolean bothUnderground = nodeInfo.clearance > 0 && nodeInfo.clearance < 24 && endNodeInfo != null && endNodeInfo.clearance > 0 && endNodeInfo.clearance < 24;
                     int lineColor = bothUnderground ? 0xFFAAAAAA : 0xFFFFFFFF;
 
                     // Case 1: Connection between two fully completed nodes. Drawn once.
