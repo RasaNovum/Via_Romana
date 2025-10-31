@@ -461,8 +461,10 @@ public class ChartingScreen extends Screen {
 
         if (!hasGoodInfrastructure) {
             float threshold = ClientConfigCache.pathQualityThreshold;
-            int requiredBlocks = (int) Math.ceil(threshold * 9.0);
-            int currentBlocks = Math.round(this.currentInfrastructureQuality * 9.0f);
+            int areaCheck = (ClientConfigCache.infrastructureCheckRadius * 2) + 1;
+            areaCheck = areaCheck * areaCheck;
+            int requiredBlocks = (int) Math.ceil(threshold * areaCheck);
+            int currentBlocks = Math.round(this.currentInfrastructureQuality * areaCheck);
             chartStartButton.setTooltips(
                 getChartStartTooltip(),
                 Component.translatable("gui.viaromana.infrastructure_insufficient", currentBlocks, requiredBlocks)

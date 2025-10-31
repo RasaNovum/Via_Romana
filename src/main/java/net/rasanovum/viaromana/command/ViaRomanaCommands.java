@@ -1,5 +1,7 @@
 package net.rasanovum.viaromana.command;
 
+import net.rasanovum.viaromana.CommonConfig;
+import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.path.PathGraph;
 import net.rasanovum.viaromana.storage.level.LevelDataManager;
 import net.rasanovum.viaromana.storage.path.PathDataManager;
@@ -16,10 +18,14 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
+import eu.midnightdust.lib.config.MidnightConfig;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 
 public class ViaRomanaCommands {
@@ -96,6 +102,7 @@ public class ViaRomanaCommands {
     /**
      * Converts paths from the legacy (level-based) storage system to the new (dimension-based) system.
      * This imports all paths from the old save data into the current dimension.
+     * All converted nodes will have their clearance value set to 0.
      */
     private static int convertLegacyPaths(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         CommandSourceStack source = context.getSource();
@@ -118,15 +125,23 @@ public class ViaRomanaCommands {
             return 0;
         }
 
-        // Copy legacy data to current dimension
-        currentGraph.deserialize(legacyGraph.serialize(new CompoundTag()));
+        CompoundTag serializedData = legacyGraph.serialize(new CompoundTag());
+
+        // Set all node clearance values to 0
+        if (serializedData.contains("nodes")) {
+            net.minecraft.nbt.ListTag nodeList = serializedData.getList("nodes", net.minecraft.nbt.Tag.TAG_COMPOUND);
+            for (int i = 0; i < nodeList.size(); i++) {
+                CompoundTag nodeTag = nodeList.getCompound(i);
+                nodeTag.putFloat("clearance", 0.0f);
+            }
+        }
+
+        currentGraph.deserialize(serializedData);
         PathDataManager.markDirty(currentLevel);
         PathSyncUtils.syncPathGraphToAllPlayers(currentLevel);
 
-        source.sendSuccess(() -> Component.literal(
-            "Converted " + legacyNodeCount + " nodes to " + currentLevel.dimension().location()
-        ), true);
-        
+        source.sendSuccess(() -> Component.literal("Converted " + legacyNodeCount + " nodes to " + currentLevel.dimension().location()), true);
+
         return legacyNodeCount;
     }
 

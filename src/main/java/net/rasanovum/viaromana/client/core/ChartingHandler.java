@@ -45,8 +45,10 @@ public final class ChartingHandler {
 
         if (infrastructureQuality < ClientConfigCache.pathQualityThreshold) {
             float threshold = ClientConfigCache.pathQualityThreshold;
-            int requiredBlocks = (int) Math.ceil(threshold * 9.0);
-            int currentBlocks = Math.round(infrastructureQuality * 9.0f);
+            int areaCheck = (ClientConfigCache.infrastructureCheckRadius * 2) + 1;
+            areaCheck = areaCheck * areaCheck;
+            int requiredBlocks = (int) Math.ceil(threshold * areaCheck);
+            int currentBlocks = Math.round(infrastructureQuality * areaCheck);
             HudMessageManager.queueMessage(Component.translatable("gui.viaromana.infrastructure_insufficient", currentBlocks, requiredBlocks));
             return;
         }

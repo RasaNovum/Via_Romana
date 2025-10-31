@@ -24,14 +24,13 @@ import org.joml.Matrix4f;
 @net.fabricmc.api.Environment(net.fabricmc.api.EnvType.CLIENT)
 public class InvalidBlockRenderer {
     private static final ResourceLocation BARRIER_TEXTURE = VersionUtils.getLocation("minecraft:textures/item/barrier.png");
-    private static final int FADE_BUFFER = 3;
 
     private static float getAlpha() {
         return CommonConfig.invalid_block_overlay_opacity;
     }
 
-    private static int getRegionSize() {
-        return ClientConfigCache.infrastructureCheckRadius + FADE_BUFFER;
+    private static int getRadius() {
+        return ClientConfigCache.infrastructureCheckRadius;
     }
 
     public static void renderInfrastructureBlocks(PoseStack poseStack, Level level, Player player, float tickDelta) {
@@ -47,13 +46,15 @@ public class InvalidBlockRenderer {
         poseStack.pushPose();
         poseStack.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z);
 
-        BlockPos playerPos = player.blockPosition();
-        Vec3 playerPosition = player.position();
+        BlockPos centerPos = player.blockPosition();
+        int radius = getRadius();
+        float baseAlpha = getAlpha();
+        double maxDistance = Math.sqrt(3) * radius;
 
-        for (int x = -getRegionSize(); x <= getRegionSize(); x++) {
-            for (int z = -getRegionSize(); z <= getRegionSize(); z++) {
-                for (int y = -getRegionSize(); y <= getRegionSize(); y++) {
-                    BlockPos pos = playerPos.offset(x, y, z);
+        for (int x = -radius; x <= radius; x++) {
+            for (int z = -radius; z <= radius; z++) {
+                for (int y = -radius; y <= radius; y++) {
+                    BlockPos pos = centerPos.offset(x, y, z);
                     BlockState state = level.getBlockState(pos);
 
                     if (state.isAir()) continue;
@@ -66,28 +67,16 @@ public class InvalidBlockRenderer {
                     if (currentShape.isEmpty()) continue;
                     if (PathUtils.isBlockValidPath(level, pos)) continue;
 
-                    Vec3 blockCenter = Vec3.atCenterOf(pos);
-                    double distance = playerPosition.distanceTo(blockCenter);
-                    
-                    float fadeAlpha;
-                    
-                    if (distance <= ClientConfigCache.infrastructureCheckRadius) {
-                        fadeAlpha = getAlpha();
-                    } else if (distance <= ClientConfigCache.infrastructureCheckRadius + FADE_BUFFER) {
-                        float fadeProgress = (float)(distance - ClientConfigCache.infrastructureCheckRadius) / FADE_BUFFER;
-                        fadeAlpha = getAlpha() * (1.0f - fadeProgress);
-                    } else {
-                        continue;
-                    }
-                    
-                    if (fadeAlpha <= 0) continue;
+                    double distance = Math.sqrt(x * x + y * y + z * z);
+                    float fadeFactor = 1.0f - (float)(distance / maxDistance) * 0.75f;
+                    float alpha = baseAlpha * fadeFactor;
 
                     float topY = (float) currentShape.bounds().maxY;
 
                     poseStack.pushPose();
                     poseStack.translate(pos.getX(), pos.getY(), pos.getZ());
                     PoseStack.Pose blockPose = poseStack.last();
-                    renderTopFace(blockPose, consumer, 0, 1, topY, 0, 1, fadeAlpha);
+                    renderTopFace(blockPose, consumer, 0, 1, topY, 0, 1, alpha);
 
                     poseStack.popPose();
                 }
