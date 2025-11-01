@@ -53,62 +53,14 @@ public record MapInfo(
                           networkNodes != null ? new ArrayList<>(networkNodes) : new ArrayList<>());
     }
 
-    // Helper methods
     public boolean hasImageData() {
         return (biomePixels != null || chunkPixels != null) && pixelWidth > 0 && pixelHeight > 0;
-    }
-
-    public boolean isRequest() {
-        return biomePixels == null && chunkPixels == null;
-    }
-
-    public boolean isResponse() {
-        return (biomePixels != null || chunkPixels != null) && pixelWidth > 0 && pixelHeight > 0;
-    }
-
-    public int getWorldWidth() {
-        return worldMaxX - worldMinX + 1;
-    }
-
-    public int getWorldHeight() {
-        return worldMaxZ - worldMinZ + 1;
-    }
-
-    /**
-     * Get the ChunkPos corresponding to worldMinX/Z.
-     */
-    public ChunkPos getMinChunk() {
-        return new ChunkPos(worldMinX >> 4, worldMinZ >> 4);
-    }
-
-    /**
-     * Get the ChunkPos corresponding to worldMaxX/Z.
-     */
-    public ChunkPos getMaxChunk() {
-        return new ChunkPos(worldMaxX >> 4, worldMaxZ >> 4);
-    }
-
-    public boolean hasTimestamp() {
-        return createdAtMs != null;
-    }
-
-    public long getAgeMs() {
-        return createdAtMs != null ? System.currentTimeMillis() - createdAtMs : 0L;
-    }
-
-    public String getFormattedAge() {
-        if (createdAtMs == null) return "no timestamp";
-        long ageMs = getAgeMs();
-        if (ageMs < 1000) return ageMs + "ms ago";
-        if (ageMs < 60000) return (ageMs / 1000) + "s ago";
-        return (ageMs / 60000) + "m ago";
     }
 
     // Network serialization
     public void writeToBuffer(FriendlyByteBuf buffer) {
         buffer.writeUUID(networkId);
 
-        // Write network nodes
         buffer.writeInt(networkNodes.size());
         for (NodeNetworkInfo node : networkNodes) {
             buffer.writeBlockPos(node.position);
@@ -119,10 +71,8 @@ public record MapInfo(
             }
         }
 
-        // Write raw pixel data and world coordinates
         if (hasImageData()) {
             buffer.writeBoolean(true);
-            // Write biome pixels
             if (biomePixels != null) {
                 buffer.writeBoolean(true);
                 buffer.writeInt(biomePixels.length);
@@ -130,7 +80,7 @@ public record MapInfo(
             } else {
                 buffer.writeBoolean(false);
             }
-            // Write chunk pixels
+
             if (chunkPixels != null) {
                 buffer.writeBoolean(true);
                 buffer.writeInt(chunkPixels.length);
@@ -210,7 +160,6 @@ public record MapInfo(
         return new MapInfo(networkId, biomePixels, chunkPixels, pixelWidth, pixelHeight, scaleFactor, worldMinX, worldMinZ, worldMaxX, worldMaxZ, createdAtMs, null, networkNodes);
     }
 
-    // Ensure defensive copying of mutable fields
     public MapInfo {
         networkNodes = networkNodes != null ? new ArrayList<>(networkNodes) : new ArrayList<>();
         allowedChunks = allowedChunks != null ? new ArrayList<>(allowedChunks) : null;

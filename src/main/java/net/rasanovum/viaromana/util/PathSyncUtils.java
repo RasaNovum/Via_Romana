@@ -36,7 +36,7 @@ public class PathSyncUtils {
                 Dispatcher.sendToClient(packet, player);
             }
 
-            ViaRomana.LOGGER.info("Synced PathGraph with {} nodes to {} players", graph.size(), level.getPlayers(player -> true).size());
+            ViaRomana.LOGGER.debug("Synced PathGraph with {} nodes to {} players", graph.size(), level.getPlayers(player -> true).size());
 
         } catch (Exception e) {
             ViaRomana.LOGGER.error("Failed to sync PathGraph to players in level " + level.dimension().location(), e);
@@ -54,7 +54,7 @@ public class PathSyncUtils {
             PathGraphSyncPacket packet = new PathGraphSyncPacket(graph, level.dimension());
             Dispatcher.sendToClient(packet, player);
             
-            ViaRomana.LOGGER.info("Synced PathGraph with {} nodes to player {}", graph.size(), player.getName().getString());
+            ViaRomana.LOGGER.debug("Synced PathGraph with {} nodes to player {}", graph.size(), player.getName().getString());
                 
         } catch (Exception e) {
             ViaRomana.LOGGER.error("Failed to sync PathGraph to player " + player.getName().getString(), e);
@@ -102,7 +102,7 @@ public class PathSyncUtils {
                 Dispatcher.sendToClient(packet, player);
             }
 
-            ViaRomana.LOGGER.info("Synced config to {} players", server.getPlayerList().getPlayerCount());
+            ViaRomana.LOGGER.debug("Synced config to {} players", server.getPlayerList().getPlayerCount());
         } catch (Exception e) {
             ViaRomana.LOGGER.error("Failed to sync config to all players", e);
         }

@@ -63,7 +63,7 @@ public record ConfigSyncS2C(float pathQualityThreshold, int nodeDistanceMin, int
                 packet.pathQualityThreshold, packet.nodeDistanceMin, packet.nodeDistanceMax, packet.nodeUtilityDistance, packet.infrastructureCheckRadius
             );
             
-            ViaRomana.LOGGER.info("Received config sync from server: pathQuality={}, nodeMin={}, nodeMax={}, utility={}, infraRadius={}",
+            ViaRomana.LOGGER.debug("Received config sync from server: pathQuality={}, nodeMin={}, nodeMax={}, utility={}, infraRadius={}",
                 packet.pathQualityThreshold, packet.nodeDistanceMin, packet.nodeDistanceMax, packet.nodeUtilityDistance, packet.infrastructureCheckRadius);
         }
     }

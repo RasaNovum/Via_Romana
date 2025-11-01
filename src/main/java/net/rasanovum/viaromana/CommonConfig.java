@@ -32,8 +32,8 @@ public class CommonConfig extends MidnightConfig {
 
     @Entry(category = CHARTING, min = 1) public static int infrastructure_check_radius = 2;
     @Entry(category = CHARTING, min = 0f, max = 1f) public static float path_quality_threshold = 0.3f;
-    @Entry(category = CHARTING, min = 1) public static int node_distance_minimum = 5;
-    @Entry(category = CHARTING, min = 2) public static int node_distance_maximum = 10;
+    @Entry(category = CHARTING, min = 1) public static int node_distance_minimum = 4;
+    @Entry(category = CHARTING, min = 2) public static int node_distance_maximum = 8;
     @Entry(category = CHARTING, min = 1) public static int node_utility_distance = 3;
     @Entry(category = CHARTING) public static List<String> path_block_ids = Lists.newArrayList(
             "minecraft:dirt_path", "minecraft:packed_mud", "minecraft:coarse_dirt", "minecraft:rooted_dirt"
@@ -69,7 +69,7 @@ public class CommonConfig extends MidnightConfig {
     @Comment(category = MAP) public static Comment map_footer;
 
     @Entry(category = VISUALS, min = 0f, max = 1f) public static float invalid_block_overlay_opacity = 0.4f;
-    @Entry(category = VISUALS, min = 0f, max = 1f) public static float biome_map_opacity = 0.4f;
+    @Entry(category = VISUALS, min = 0f, max = 1f) public static float biome_map_opacity = 0.3f;
     @Entry(category = VISUALS, min = 0f, max = 1f) public static float node_vignette_opacity = 1.0f;
     @Entry(category = VISUALS) public static boolean enable_teleport_particles = true;
 }
