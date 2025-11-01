@@ -146,7 +146,7 @@ publishMods {
     file = tasks.jar.get().archiveFile
     changelog = rootProject.file("CHANGELOG.md").takeIf { it.exists() }?.readText() ?: "No changelog provided"
     type = STABLE
-    modLoaders.add("forge")
+    modLoaders.addAll("forge", "neoforge")
     
     modrinth {
         accessToken = providers.environmentVariable("MODRINTH_TOKEN")
