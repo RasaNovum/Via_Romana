@@ -17,10 +17,10 @@ stonecutter {
         constants.match(node.metadata.project.substringAfterLast('-'), "fabric", "neoforge", "forge")
     }
 
-//    tasks {
-//        order("publishModrinth")
-//        order("publishCurseforge")
-//    }
+    tasks {
+        order("publishModrinth")
+        order("publishCurseforge")
+    }
 }
 
 for (version in stonecutter.versions.map { it.version }.distinct()) {

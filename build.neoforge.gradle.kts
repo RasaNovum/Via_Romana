@@ -2,6 +2,7 @@ import org.gradle.language.jvm.tasks.ProcessResources
 
 plugins {
     id("net.neoforged.moddev")
+    id("me.modmuss50.mod-publish-plugin")
 }
 
 version = "${property("mod.version")}+${property("deps.minecraft")}-neoforge"
@@ -116,4 +117,37 @@ java {
     val javaVersion = if (stonecutter.eval(stonecutter.current.version, ">=1.20.5")) 21 else 17
     sourceCompatibility = JavaVersion.toVersion(javaVersion)
     targetCompatibility = JavaVersion.toVersion(javaVersion)
+}
+
+publishMods {
+    file = tasks.jar.get().archiveFile
+    changelog = rootProject.file("CHANGELOG.md").takeIf { it.exists() }?.readText() ?: "No changelog provided"
+    type = STABLE
+    modLoaders.add("neoforge")
+    
+    modrinth {
+        accessToken = providers.environmentVariable("MODRINTH_TOKEN")
+        projectId = property("publish.modrinth") as String
+        minecraftVersions.add(property("deps.minecraft") as String)
+        
+        requires {
+            slug = "common-network"
+            slug = "data-anchor"
+            slug = "midnightlib"
+            slug = "moonlight"
+        }
+    }
+    
+    curseforge {
+        accessToken = providers.environmentVariable("CURSEFORGE_TOKEN")
+        projectId = property("publish.curseforge") as String
+        minecraftVersions.add(property("deps.minecraft") as String)
+        
+        requires {
+            slug = "common-network"
+            slug = "data-anchor"
+            slug = "midnightlib"
+            slug = "selene"
+        }
+    }
 }

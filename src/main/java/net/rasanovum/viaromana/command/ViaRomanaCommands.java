@@ -140,7 +140,7 @@ public class ViaRomanaCommands {
         PathDataManager.markDirty(currentLevel);
         PathSyncUtils.syncPathGraphToAllPlayers(currentLevel);
 
-        source.sendSuccess(() -> Component.literal("Converted " + legacyNodeCount + " nodes to " + currentLevel.dimension().location()), true);
+        source.sendSuccess(() -> Component.literal("Converted " + legacyNodeCount + " nodes to " + currentLevel.dimension().location() + "\n • Accessing the maps of legacy paths may cause a one-time lag spike.\n • Deleting your existing via_romana.json config and letting it regenerate is strongly recommended."), true);
 
         return legacyNodeCount;
     }

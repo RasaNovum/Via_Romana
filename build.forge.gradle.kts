@@ -4,6 +4,7 @@ plugins {
     id("net.minecraftforge.gradle") version ("[6.0,6.2)")
     id("org.spongepowered.mixin") version "0.7.+"
     id("org.parchmentmc.librarian.forgegradle") version "1.+"
+    id("me.modmuss50.mod-publish-plugin")
 }
 
 version = "${property("mod.version")}+${property("deps.minecraft")}-forge"
@@ -141,3 +142,35 @@ java {
     targetCompatibility = JavaVersion.toVersion(javaVersion)
 }
 
+publishMods {
+    file = tasks.jar.get().archiveFile
+    changelog = rootProject.file("CHANGELOG.md").takeIf { it.exists() }?.readText() ?: "No changelog provided"
+    type = STABLE
+    modLoaders.add("forge")
+    
+    modrinth {
+        accessToken = providers.environmentVariable("MODRINTH_TOKEN")
+        projectId = property("publish.modrinth") as String
+        minecraftVersions.add(property("deps.minecraft") as String)
+        
+        requires {
+            slug = "common-network"
+            slug = "data-anchor"
+            slug = "midnightlib"
+            slug = "moonlight"
+        }
+    }
+    
+    curseforge {
+        accessToken = providers.environmentVariable("CURSEFORGE_TOKEN")
+        projectId = property("publish.curseforge") as String
+        minecraftVersions.add(property("deps.minecraft") as String)
+        
+        requires {
+            slug = "common-network"
+            slug = "data-anchor"
+            slug = "midnightlib"
+            slug = "selene"
+        }
+    }
+}

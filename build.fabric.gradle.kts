@@ -3,7 +3,7 @@ import org.gradle.language.jvm.tasks.ProcessResources
 
 plugins {
     id("fabric-loom")
-    id("com.modrinth.minotaur") version "2.+"
+    id("me.modmuss50.mod-publish-plugin")
 }
 
 version = "${property("mod.version")}+${property("deps.minecraft")}-fabric"
@@ -108,15 +108,37 @@ java {
     targetCompatibility = JavaVersion.toVersion(javaVersion)
 }
 
-//modrinth {
-//    token = System.getenv("MODRINTH_TOKEN")
-//    projectId = property("publish.modrinth") as String
-//    versionNumber = project.version.toString()
-//    versionName = "${property("mod.name")} ${project.version} for Fabric ${property("deps.minecraft")}"
-//    val remapJarTask = tasks.named<RemapJarTask>("remapJar")
-//    uploadFile.set(remapJarTask.flatMap { it.archiveFile })
-//    gameVersions.add(property("deps.minecraft") as String)
-//    dependencies {
-//        required.project("fabric-api")
-//    }
-//}
+publishMods {
+    file = tasks.named<RemapJarTask>("remapJar").get().archiveFile
+    changelog = rootProject.file("CHANGELOG.md").takeIf { it.exists() }?.readText() ?: "No changelog provided"
+    type = STABLE
+    modLoaders.add("fabric")
+    
+    modrinth {
+        accessToken = providers.environmentVariable("MODRINTH_TOKEN")
+        projectId = property("publish.modrinth") as String
+        minecraftVersions.add(property("deps.minecraft") as String)
+        
+        requires {
+            slug = "fabric-api"
+            slug = "common-network"
+            slug = "data-anchor"
+            slug = "midnightlib"
+            slug = "moonlight"
+        }
+    }
+    
+    curseforge {
+        accessToken = providers.environmentVariable("CURSEFORGE_TOKEN")
+        projectId = property("publish.curseforge") as String
+        minecraftVersions.add(property("deps.minecraft") as String)
+        
+        requires {
+            slug = "fabric-api"
+            slug = "common-network"
+            slug = "data-anchor"
+            slug = "midnightlib"
+            slug = "selene"
+        }
+    }
+}
