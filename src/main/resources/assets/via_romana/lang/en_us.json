@@ -162,5 +162,20 @@
   "via_romana.midnightconfig.node_vignette_opacity": "Node Vignette Opacity",
   "via_romana.midnightconfig.node_vignette_opacity.tooltip": "The opacity of the vignette displayed when close to a node.",
   "via_romana.midnightconfig.enable_teleport_particles": "Enable Warp Particles",
-  "via_romana.midnightconfig.enable_teleport_particles.tooltip": "Enables particle effects during player warping."
+  "via_romana.midnightconfig.enable_teleport_particles.tooltip": "Enables particle effects during player warping.",
+
+  "command.via_romana.nodes_cleared": "Cleared all nodes",
+  "command.via_romana.cache_cleared": "Cleared all Via Romana caches",
+  "command.via_romana.no_legacy_paths": "No legacy paths found to convert",
+  "command.via_romana.dimension_has_nodes": "Current dimension already has nodes. Use /viaromana nodes clear first.",
+  "command.via_romana.legacy_converted": "Converted legacy nodes to current dimension\n • Accessing the maps of legacy paths may cause a one-time lag spike.\n • Deleting your existing via_romana.json config and letting it regenerate is strongly recommended.",
+  "command.via_romana.clearing_chunk_data": "Clearing level chunk data...",
+  "command.via_romana.maps_and_chunks_cleared": "Cleared Via Romana maps and chunk images",
+  "command.via_romana.clearing_biome_data": "Clearing level biome pixel data...",
+  "command.via_romana.maps_and_biomes_cleared": "Cleared Via Romana maps and biome images",
+  "command.via_romana.clearing_chunk_pixels": "Clearing level chunk pixel data...",
+  "command.via_romana.regenerating_chunks": "Regenerating chunk image data...",
+  "command.via_romana.maps_regenerated": "Regenerated Via Romana maps",
+  "command.via_romana.maps_cleared": "Cleared Via Romana maps",
+  "command.via_romana.maps_saved": "Saved Via Romana maps to disk"
 }

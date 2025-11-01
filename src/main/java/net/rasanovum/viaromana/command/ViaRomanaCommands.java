@@ -79,7 +79,7 @@ public class ViaRomanaCommands {
 
         PathDataManager.markDirty(source.getLevel());
         
-        source.sendSuccess(() -> Component.literal("Cleared " + nodeCount + " nodes"), true);
+        source.sendSuccess(() -> Component.translatable("command.via_romana.nodes_cleared"), true);
         return nodeCount;
     }
 
@@ -95,7 +95,7 @@ public class ViaRomanaCommands {
 
         // PlayerData.setReceivedTutorial(source.getPlayerOrException(), false);
 
-        source.sendSuccess(() -> Component.literal("Cleared all Via Romana caches"), true);
+        source.sendSuccess(() -> Component.translatable("command.via_romana.cache_cleared"), true);
         return 1;
     }
 
@@ -112,16 +112,14 @@ public class ViaRomanaCommands {
         int legacyNodeCount = legacyGraph.size();
 
         if (legacyNodeCount == 0) {
-            source.sendFailure(Component.literal("No legacy paths found to convert"));
+            source.sendFailure(Component.translatable("command.via_romana.no_legacy_paths"));
             return 0;
         }
 
         // Get current dimension's path graph and check if empty
         PathGraph currentGraph = PathDataManager.getOrCreatePathGraph(currentLevel);
         if (currentGraph.size() > 0) {
-            source.sendFailure(Component.literal(
-                "Current dimension already has " + currentGraph.size() + " nodes. Use /viaromana nodes clear first."
-            ));
+            source.sendFailure(Component.translatable("command.via_romana.dimension_has_nodes"));
             return 0;
         }
 
@@ -140,7 +138,7 @@ public class ViaRomanaCommands {
         PathDataManager.markDirty(currentLevel);
         PathSyncUtils.syncPathGraphToAllPlayers(currentLevel);
 
-        source.sendSuccess(() -> Component.literal("Converted " + legacyNodeCount + " nodes to " + currentLevel.dimension().location() + "\n • Accessing the maps of legacy paths may cause a one-time lag spike.\n • Deleting your existing via_romana.json config and letting it regenerate is strongly recommended."), true);
+        source.sendSuccess(() -> Component.translatable("command.via_romana.legacy_converted"), true);
 
         return legacyNodeCount;
     }
@@ -151,7 +149,7 @@ public class ViaRomanaCommands {
     private static int clearMaps(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         CommandSourceStack source = context.getSource();
 
-        source.sendSuccess(() -> Component.literal("Clearing level chunk data..."), false);
+        source.sendSuccess(() -> Component.translatable("command.via_romana.clearing_chunk_data"), false);
         LevelDataManager.clearAllPixelBytes(source.getLevel());
         LevelDataManager.clearAllCornerBytes(source.getLevel());
 
@@ -159,7 +157,7 @@ public class ViaRomanaCommands {
         ServerMapCache.deleteAllMapsFromDisk();
         if (source.getLevel().isClientSide()) MapRenderer.clearCache();
         
-        source.sendSuccess(() -> Component.literal("Cleared Via Romana maps and chunk images"), true);
+        source.sendSuccess(() -> Component.translatable("command.via_romana.maps_and_chunks_cleared"), true);
         return 1;
     }
 
@@ -169,14 +167,14 @@ public class ViaRomanaCommands {
     private static int clearBiomePixels(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         CommandSourceStack source = context.getSource();
 
-        source.sendSuccess(() -> Component.literal("Clearing level biome pixel data..."), false);
+        source.sendSuccess(() -> Component.translatable("command.via_romana.clearing_biome_data"), false);
         LevelDataManager.clearAllCornerBytes(source.getLevel());
 
         ServerMapCache.clear();
         ServerMapCache.deleteAllMapsFromDisk();
         if (source.getLevel().isClientSide()) MapRenderer.clearCache();
 
-        source.sendSuccess(() -> Component.literal("Cleared Via Romana maps and biome images"), true);
+        source.sendSuccess(() -> Component.translatable("command.via_romana.maps_and_biomes_cleared"), true);
         return 1;
     }
 
@@ -186,14 +184,14 @@ public class ViaRomanaCommands {
     private static int clearChunkPixels(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         CommandSourceStack source = context.getSource();
 
-        source.sendSuccess(() -> Component.literal("Clearing level chunk pixel data..."), false);
+        source.sendSuccess(() -> Component.translatable("command.via_romana.clearing_chunk_pixels"), false);
         LevelDataManager.clearAllPixelBytes(source.getLevel());
 
         ServerMapCache.clear();
         ServerMapCache.deleteAllMapsFromDisk();
         if (source.getLevel().isClientSide()) MapRenderer.clearCache();
 
-        source.sendSuccess(() -> Component.literal("Cleared Via Romana maps and biome images"), true);
+        source.sendSuccess(() -> Component.translatable("command.via_romana.maps_and_chunks_cleared"), true);
         return 1;
     }
 
@@ -204,13 +202,13 @@ public class ViaRomanaCommands {
         CommandSourceStack source = context.getSource();
         
         // Regenerate chunk image data
-        source.sendSuccess(() -> Component.literal("Regenerating chunk image data..."), false);
+        source.sendSuccess(() -> Component.translatable("command.via_romana.regenerating_chunks"), false);
         ServerMapCache.regenerateAllChunkPixelData();
         
         // Process dirty networks to regenerate maps
         ServerMapCache.processAllDirtyNetworks();
         
-        source.sendSuccess(() -> Component.literal("Regenerated Via Romana maps"), true);
+        source.sendSuccess(() -> Component.translatable("command.via_romana.maps_regenerated"), true);
         return 1;
     }
 
@@ -225,7 +223,7 @@ public class ViaRomanaCommands {
         ServerMapCache.deleteAllMapsFromDisk();
         if (source.getLevel().isClientSide()) MapRenderer.clearCache();
 
-        source.sendSuccess(() -> Component.literal("Cleared Via Romana maps"), true);
+        source.sendSuccess(() -> Component.translatable("command.via_romana.maps_cleared"), true);
         return 1;
     }
 
@@ -235,7 +233,7 @@ public class ViaRomanaCommands {
     private static int saveMaps(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         CommandSourceStack source = context.getSource();
         ServerMapCache.saveAllToDisk(true);
-        source.sendSuccess(() -> Component.literal("Saved Via Romana maps to disk"), true);
+        source.sendSuccess(() -> Component.translatable("command.via_romana.maps_saved"), true);
         return 1;
     }
 }

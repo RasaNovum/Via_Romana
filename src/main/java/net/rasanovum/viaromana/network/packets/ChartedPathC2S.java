@@ -132,7 +132,7 @@ public record ChartedPathC2S(List<NodeData> chartedNodes) implements CustomPacke
                 }
             }
             *///?} else {
-            ResourceLocation advancementId = VersionUtils.getLocation("via_romana:a_strand_type_game");
+            ResourceLocation advancementId = VersionUtils.getLocation("via_romana:story/a_strand_type_game");
             AdvancementHolder advancement = player.server.getAdvancements().get(advancementId);
             if (advancement != null) {
                 AdvancementProgress advancementProgress = player.getAdvancements().getOrStartProgress(advancement);
