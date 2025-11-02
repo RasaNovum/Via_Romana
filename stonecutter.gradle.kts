@@ -29,3 +29,16 @@ for (version in stonecutter.versions.map { it.version }.distinct()) {
         dependsOn(stonecutter.tasks.named("publishMods") { metadata.version == version })
     }
 }
+
+for (project in stonecutter.versions) {
+    val loader = project.project.substringAfterLast('-').replaceFirstChar { it.titlecase() }
+    val version = project.version
+    val taskName = "publish$version$loader"
+    
+    tasks.register(taskName) {
+        group = "publishing"
+        dependsOn(stonecutter.tasks.named("publishMods") { 
+            metadata.project == project.project 
+        })
+    }
+}
