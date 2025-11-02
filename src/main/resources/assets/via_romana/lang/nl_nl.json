@@ -129,8 +129,8 @@
 
   "via_romana.midnightconfig.invalid_entities": "Ongeldige Entiteiten",
   "via_romana.midnightconfig.invalid_entities.tooltip": "Lijst van entiteit-IDs waarvoor snel reizen is uitgeschakeld.",
-  "via_romana.midnightconfig.message.via_romana.invalid_dimensions": "Ongeldige Dimensies",
-  "via_romana.midnightconfig.message.via_romana.invalid_dimensions.tooltip": "Lijst met dimensie-IDs waar snel reizen is uitgeschakeld.",
+  "via_romana.midnightconfig.invalid_dimensions": "Ongeldige Dimensies",
+  "via_romana.midnightconfig.invalid_dimensions.tooltip": "Lijst met dimensie-IDs waar snel reizen is uitgeschakeld.",
   "via_romana.midnightconfig.path_block_ids": "Padblok-IDs",
   "via_romana.midnightconfig.path_block_ids.tooltip": "Lijst met blok-IDs die als geldig voor paden worden beschouwd.",
   "via_romana.midnightconfig.path_block_tags": "Padblok-tags",

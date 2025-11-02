@@ -18,13 +18,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -158,6 +152,8 @@ public final class ServerMapCache {
 
         LevelDataManager.clearPixelBytes(level, pos);
 
+        ViaRomana.LOGGER.debug("Marked chunk {} dirty", pos);
+
         graph.findNetworksForChunk(pos).forEach(network -> {
             UUID networkId = network.id();
             dirtyNetworks.computeIfAbsent(networkId, k -> ConcurrentHashMap.newKeySet()).add(pos);
@@ -165,11 +161,16 @@ public final class ServerMapCache {
     }
 
     public static void processAllDirtyNetworks() {
+        processAllDirtyNetworks(false);
+    }
+    
+    public static void processAllDirtyNetworks(boolean waitForCompletion) {
         if (dirtyNetworks.isEmpty()) {
             return;
         }
 
-        // Snapshot all dirty networks and clear the map
+        ViaRomana.LOGGER.debug("Processing {} dirty networks", dirtyNetworks.size());
+
         Map<UUID, Set<ChunkPos>> toProcess = new ConcurrentHashMap<>(dirtyNetworks);
         dirtyNetworks.clear();
 
@@ -177,12 +178,23 @@ public final class ServerMapCache {
         ViaRomana.LOGGER.debug("[PERF] Processing {} dirty networks ({} total dirty chunks) - batched update",
             toProcess.size(), totalDirtyChunks);
 
-        // Process each network (full rebake is fast with raw pixels)
+        List<CompletableFuture<MapInfo>> futures = waitForCompletion ? new ArrayList<>() : null;
+
         toProcess.forEach((networkId, chunks) -> {
             if (chunks != null && !chunks.isEmpty()) {
-                minecraftServer.execute(() -> updateOrGenerateMapAsync(networkId, chunks));
+                if (waitForCompletion) {
+                    CompletableFuture<MapInfo> future = updateOrGenerateMapAsync(networkId, chunks);
+                    futures.add(future);
+                } else {
+                    minecraftServer.execute(() -> updateOrGenerateMapAsync(networkId, chunks));
+                }
             }
         });
+
+        if (waitForCompletion && !futures.isEmpty()) {
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+            ViaRomana.LOGGER.debug("Completed processing {} dirty networks synchronously", futures.size());
+        }
     }
 
     private static CompletableFuture<MapInfo> updateOrGenerateMapAsync(UUID networkId, Collection<ChunkPos> chunksToUpdate) {

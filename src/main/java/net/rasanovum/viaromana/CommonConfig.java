@@ -38,14 +38,9 @@ public class CommonConfig extends MidnightConfig {
     @Entry(category = CHARTING) public static List<String> path_block_ids = Lists.newArrayList(
             "minecraft:dirt_path", "minecraft:packed_mud", "minecraft:coarse_dirt", "minecraft:rooted_dirt"
     );
-    @Entry(category = CHARTING) public static List<String> path_block_tags = Lists.newArrayList(
-            "minecraft:slabs", "minecraft:stairs", "minecraft:walls", "minecraft:wool", "minecraft:wool_carpets", "minecraft:planks", "minecraft:logs",
-            "minecraft:rails", "minecraft:buttons", "minecraft:pressure_plates",
-            "c:slabs", "c:stairs", "c:walls", "c:wool", "c:wool_carpets", "c:planks", "c:logs", "c:rails", "c:buttons", "c:pressure_plates",
-            "forge:slabs", "forge:stairs", "forge:walls", "forge:wool", "forge:wool_carpets", "forge:planks", "forge:logs", "forge:rails", "forge:buttons", "forge:pressure_plates"
-    );
+    @Entry(category = CHARTING) public static List<String> path_block_tags = Lists.newArrayList();
     @Entry(category = CHARTING) public static List<String> path_block_strings = Lists.newArrayList(
-            "sandstone", "polished", "cobble", "brick", "smooth", "basalt", "path", "road", "concrete", "pavement", "glazed", "tile", "wall", "fence"
+            "sandstone", "polished", "cobble", "brick", "smooth", "basalt", "path", "road", "concrete", "pavement", "glazed", "tile", "_wall", "_fence", "_slab", "_stairs", "_wool", "_carpet", "_plank", "_log", "_wood", "rail", "_button", "_pressure_plate"
     );
     @Entry(category = CHARTING) public static List<String> block_string_blacklist = Lists.newArrayList("diagonalwalls:", "diagonalfences:", "diagonalwindows:");
     @Entry(category = CHARTING) public static List<String> invalid_dimensions = Lists.newArrayList();

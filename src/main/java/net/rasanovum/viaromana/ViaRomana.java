@@ -65,7 +65,8 @@ public class ViaRomana {
     }
 
     public static void onServerStop() {
-        ServerMapCache.processAllDirtyNetworks();
+        ServerMapCache.processAllDirtyNetworks(true);
+        ServerMapCache.shutdown();
         ServerMapCache.saveAllToDisk(true);
         ServerMapCache.clear();
         currentServer = null;

@@ -15,9 +15,6 @@ import java.util.Set;
 import static net.rasanovum.viaromana.map.ChunkPixelRenderer.renderChunkPixels;
 
 public class LevelDataManager {
-    /**
-     * Gets corner bytes from Data Anchor.
-     */
     public static Optional<byte[]> getPixelBytes(ServerLevel level, ChunkPos pos) {
         TrackedDataContainer<Level, LevelTrackedData> container = TrackedDataRegistries.LEVEL.getContainer(level);
         if (container == null) return Optional.empty();
@@ -27,9 +24,6 @@ public class LevelDataManager {
                 .flatMap(data -> data.getPixelBytes(pos));
     }
 
-    /**
-     * Sets pixel bytes to Data Anchor.
-     */
     public static void setPixelBytes(ServerLevel level, ChunkPos pos, byte[] bytes) {
         TrackedDataContainer<Level, LevelTrackedData> container = TrackedDataRegistries.LEVEL.getContainer(level);
         if (container == null) return;
@@ -41,9 +35,6 @@ public class LevelDataManager {
                 .ifPresent(data -> data.setPixelBytes(pos, bytes));
     }
 
-    /**
-     * Gets corner bytes from Data Anchor.
-     */
     public static Optional<byte[]> getCornerBytes(ServerLevel level, ChunkPos pos) {
         TrackedDataContainer<Level, LevelTrackedData> container = TrackedDataRegistries.LEVEL.getContainer(level);
         if (container == null) return Optional.empty();
@@ -53,9 +44,6 @@ public class LevelDataManager {
                 .flatMap(data -> data.getCornerBytes(pos));
     }
 
-    /**
-     * Sets corner bytes to Data Anchor.
-     */
     public static void setCornerBytes(ServerLevel level, ChunkPos pos, byte[] bytes) {
         TrackedDataContainer<Level, LevelTrackedData> container = TrackedDataRegistries.LEVEL.getContainer(level);
         if (container == null) return;
@@ -67,9 +55,6 @@ public class LevelDataManager {
                 .ifPresent(data -> data.setCornerBytes(pos, bytes));
     }
 
-    /**
-     * Clears pixel bytes from Data Anchor.
-     */
     public static void clearPixelBytes(ServerLevel level, ChunkPos pos) {
         TrackedDataContainer<Level, LevelTrackedData> container = TrackedDataRegistries.LEVEL.getContainer(level);
         if (container == null) return;
@@ -79,9 +64,6 @@ public class LevelDataManager {
                 .ifPresent(data -> data.setPixelBytes(pos, null));
     }
 
-    /**
-     * Clears pixel bytes for all chunks in the given set.
-     */
     public static void clearPixelBytesForChunks(ServerLevel level, Set<ChunkPos> chunks) {
         long startTime = System.nanoTime();
         for (ChunkPos pos : chunks) {
@@ -91,9 +73,6 @@ public class LevelDataManager {
         ViaRomana.LOGGER.debug("[PERF] Cleared pixel data for {} chunks in {}ms", chunks.size(), totalTime / 1_000_000.0);
     }
 
-    /**
-     * Clears all pixel bytes from Data Anchor.
-     */
     public static void clearAllPixelBytes(ServerLevel level) {
         TrackedDataContainer<Level, LevelTrackedData> container = TrackedDataRegistries.LEVEL.getContainer(level);
         if (container == null) return;
@@ -103,9 +82,6 @@ public class LevelDataManager {
                 .ifPresent(LevelPixelTrackedData::clearAll);
     }
 
-    /**
-     * Clears all corner bytes from Data Anchor.
-     */
     public static void clearAllCornerBytes(ServerLevel level) {
         TrackedDataContainer<Level, LevelTrackedData> container = TrackedDataRegistries.LEVEL.getContainer(level);
         if (container == null) return;
@@ -115,9 +91,6 @@ public class LevelDataManager {
                 .ifPresent(LevelCornerTrackedData::clearAll);
     }
 
-    /**
-     * Regenerates pixel bytes for all chunks in the given set.
-     */
     public static void regeneratePixelBytesForChunks(ServerLevel level, Set<ChunkPos> chunks) {
         long startTime = System.nanoTime();
         int regenerated = 0;

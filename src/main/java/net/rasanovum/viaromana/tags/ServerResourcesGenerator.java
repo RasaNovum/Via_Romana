@@ -45,7 +45,7 @@ public class ServerResourcesGenerator extends DynServerResourcesGenerator {
                 *///?} else {
                 MidnightConfig.loadValuesFromJson(ViaRomana.MODID);
                 //?}
-                TagGenerator.generateAllTags(this.getPack());
+                TagGenerator.generateAllTags(this.getPack(), manager);
                 ViaRomana.LOGGER.info("Successfully regenerated dynamic server resources.");
 
             } catch (Exception e) {

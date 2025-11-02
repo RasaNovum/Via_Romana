@@ -33,16 +33,10 @@ public class LevelPathTrackedData extends ServerLevelTrackedData {
         graph.deserialize(tag);
     }
 
-    /**
-     * Gets the PathGraph for this dimension.
-     */
     public PathGraph getGraph() {
         return graph;
     }
 
-    /**
-     * Clears all paths in this dimension's graph.
-     */
     public void clearAll() {
         List<Node> nodesToRemove = new ArrayList<>(graph.nodesView());
         for (Node node : nodesToRemove) {

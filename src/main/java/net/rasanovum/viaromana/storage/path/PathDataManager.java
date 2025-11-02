@@ -17,9 +17,6 @@ import java.util.Optional;
 public class PathDataManager {
     /**
      * Gets or creates the PathGraph for a specific dimension.
-     * 
-     * @param level The ServerLevel to get or create the graph for
-     * @return The PathGraph for this dimension
      */
     public static PathGraph getOrCreatePathGraph(ServerLevel level) {
         TrackedDataContainer<Level, LevelTrackedData> container = TrackedDataRegistries.LEVEL.getContainer(level);
