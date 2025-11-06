@@ -350,10 +350,12 @@ public class TeleportMapScreen extends Screen {
         getDestinationAtPosition(revealedNodes, mouseX, mouseY).ifPresentOrElse(
             dest -> {
                 long dist = Math.round(dest.distance);
-                String unit = dist > 1000 ? "km" : "m";
                 long displayDist = dist > 1000 ? dist / 1000 : dist;
-                String text = String.format("%s - %d %s", dest.name, displayDist, unit);
-                guiGraphics.renderTooltip(this.font, Component.literal(text), mouseX, mouseY);
+                Component text = Component.translatable(
+                    "gui.viaromana.distance_" + (dist > 1000 ? "kilometers" : "meters"),
+                    dest.name, displayDist
+                );
+                guiGraphics.renderTooltip(this.font, text, mouseX, mouseY);
             },
             () -> {
                 if (isMouseOverPlayer(mouseX, mouseY)) {
