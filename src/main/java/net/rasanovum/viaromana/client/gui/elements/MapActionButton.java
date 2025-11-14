@@ -16,6 +16,7 @@ import org.jetbrains.annotations.Nullable;
  * Custom button for various actions with full borders, always visible text, optional image, and hover background.
  */
 public class MapActionButton extends AbstractButton {
+    // TODO: Make width dependant on text width to allow for better non-English language display
     private final Consumer<Void> onPress;
     @Nullable
     private final ResourceLocation imageLocation;
