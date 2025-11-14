@@ -53,23 +53,29 @@ public final class ServerMapCache {
         mapBakingExecutor = Executors.newFixedThreadPool(Math.max(1, Runtime.getRuntime().availableProcessors() / 4));
         ViaRomana.LOGGER.info("Starting Via Romana schedulers...");
 
-        scheduler.scheduleAtFixedRate(
-                () -> runSafe(ServerMapCache::processAllDirtyNetworks, "Error during scheduled map reprocessing."),
-                CommonConfig.map_refresh_interval,
-                CommonConfig.map_refresh_interval,
-                TimeUnit.SECONDS
-        );
+        if (CommonConfig.map_refresh_interval > 0) {
+            scheduler.scheduleAtFixedRate(
+                    () -> runSafe(ServerMapCache::processAllDirtyNetworks, "Error during scheduled map refreshing."),
+                    CommonConfig.map_refresh_interval,
+                    CommonConfig.map_refresh_interval,
+                    TimeUnit.SECONDS
+            );
 
-        ViaRomana.LOGGER.info("Scheduled map reprocessing every {} seconds.", CommonConfig.map_refresh_interval);
+            ViaRomana.LOGGER.info("Scheduled map refreshing every {} seconds.", CommonConfig.map_refresh_interval);
+        }
+        else ViaRomana.LOGGER.info("Map refreshing disabled by config.");
 
-        scheduler.scheduleAtFixedRate(
-                () -> runSafe(() -> saveAllToDisk(false), "Error during scheduled map cache saving"),
-                CommonConfig.map_save_interval,
-                CommonConfig.map_save_interval,
-                TimeUnit.MINUTES
-        );
+        if (CommonConfig.map_refresh_interval > 0 || CommonConfig.map_save_interval > 0) {
+            scheduler.scheduleAtFixedRate(
+                    () -> runSafe(() -> saveAllToDisk(false), "Error during scheduled map cache saving"),
+                    CommonConfig.map_save_interval,
+                    CommonConfig.map_save_interval,
+                    TimeUnit.MINUTES
+            );
 
-        ViaRomana.LOGGER.info("Scheduled map saving every {} minutes.", CommonConfig.map_save_interval);
+            ViaRomana.LOGGER.info("Scheduled map saving every {} minutes.", CommonConfig.map_save_interval);
+        }
+        else ViaRomana.LOGGER.info("Map file saving disabled by config.");
     }
 
     public static void shutdown() {
@@ -199,7 +205,6 @@ public final class ServerMapCache {
                             return worker.updateMap(previousResult, new HashSet<>(chunksToUpdate), level);
                         }, mapBakingExecutor);
                     } else {
-//                        ViaRomana.LOGGER.info("Performing full bake for network {}.", networkId);
                         bakeFuture = MapBaker.bakeAsync(networkId, level, mapBakingExecutor);
                     }
                     
@@ -208,7 +213,6 @@ public final class ServerMapCache {
                         if (!isPseudoNetwork(networkId)) {
                             modifiedForSaving.add(networkId);
                         }
-//                        ViaRomana.LOGGER.info("Map update completed for network {}.", networkId);
                         return newResult;
                     }).exceptionally(ex -> {
                         ViaRomana.LOGGER.error("Failed during map update for network {}", networkId, ex);

@@ -11,6 +11,7 @@
 - Invisible blocks now scan below themselves until a visible block is located.
 - Added `map_refresh_threshold` to config which allows the user to set a minimum amount of chunks before a map update is allowed. This prevents frequent low-chunk count updates as it's less efficient to update a small amount of chunks due to per-refresh overhead.
 - Added optimization for when config option `use_biome_fallback_for_lowres` is true, path updates will be disabled for large enough path networks (though chunk data is still invalidated to prevent out-of-date chunk information from persisting). This avoids re-rendering network maps for not visible data.
+- Allow disabling of `map_refresh_interval` and `map_save_interval` by setting to `0` in config.
 
 ### Investigating:
 - I am aware of the Data Anchor `onTickBlockEntities` crash, this update is reported to have potentially fixed it. Please let me know if it does or doesn't as it's been hell to recreate it for testing. I've taken exact worlds and modpacks from players who frequently crashed for it to be fine on my end.
