@@ -86,7 +86,7 @@ public class MapBaker {
 
         if (isPseudo) {
             long totalBakeTime = System.nanoTime() - bakeStartTime;
-            ViaRomana.LOGGER.debug("[PERF] Pseudonetwork {} pre-processing completed: total={}ms, render={}ms, " +
+            ViaRomana.LOGGER.info("Pseudonetwork {} pre-processing completed: total={}ms, render={}ms, " +
                 "dimensions={}x{} (full FoW), scale={}, chunks={}",
                 networkId, totalBakeTime / 1_000_000.0, renderTime / 1_000_000.0,
                 pixelWidth, pixelHeight, effectiveScale, chunksWithData);
@@ -129,7 +129,7 @@ public class MapBaker {
 
         long totalBakeTime = System.nanoTime() - bakeStartTime;
         
-        ViaRomana.LOGGER.debug("[PERF] Map bake completed for network {}: total={}ms, render={}ms, " +
+        ViaRomana.LOGGER.info("Map bake completed for network {}: total={}ms, render={}ms, " +
             "dimensions={}x{}, scale={}, rawSize={}KB, chunks={}",
             networkId, totalBakeTime / 1_000_000.0, renderTime / 1_000_000.0,
             effectiveWidth, effectiveHeight, effectiveScale, (croppedBiomePixels.length + croppedChunkPixels.length) / 1024.0,
@@ -144,7 +144,7 @@ public class MapBaker {
      * TODO: Re-implement image array splicing
      */
     public MapInfo updateMap(MapInfo previousResult, Set<ChunkPos> dirtyChunks, ServerLevel level) {
-        ViaRomana.LOGGER.debug("Incremental update requested for {} dirty chunks, performing rebake.", dirtyChunks.size());
+        ViaRomana.LOGGER.info("Incremental update requested for {} dirty chunks, performing rebake.", dirtyChunks.size());
         return bake(previousResult.networkId(), level);
     }
 }

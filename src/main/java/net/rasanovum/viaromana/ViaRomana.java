@@ -17,7 +17,6 @@ import net.rasanovum.viaromana.init.*;
 import net.rasanovum.viaromana.integration.IntegrationManager;
 import net.rasanovum.viaromana.map.ChunkPixelRenderer;
 import net.rasanovum.viaromana.map.ServerMapCache;
-import net.rasanovum.viaromana.network.PacketRegistration;
 import net.rasanovum.viaromana.storage.player.PlayerData;
 import net.rasanovum.viaromana.tags.ServerResourcesGenerator;
 import net.rasanovum.viaromana.teleport.ServerTeleportHandler;
@@ -38,9 +37,9 @@ public class ViaRomana {
     public static void initialize() {
         LOGGER.info("Initializing Via Romana");
 
-        MidnightConfig.init(MODID, CommonConfig.class);
-
         DataInit.load();
+
+        MidnightConfig.init(MODID, CommonConfig.class);
 
         ServerResourcesGenerator generator = new ServerResourcesGenerator(DYNAMIC_PACK);
         generator.register();
@@ -51,7 +50,13 @@ public class ViaRomana {
     public static void onJoin(ServerPlayer player) {
         PlayerData.resetVariables(player);
         PathSyncUtils.syncConfigToPlayer(player);
-        PathSyncUtils.syncPathGraphToPlayer(player);
+
+        MinecraftServer server = player.getServer();
+        if (server != null) {
+            server.execute(() -> {
+                PathSyncUtils.syncPathGraphToPlayer(player);
+            });
+        }
     }
 
     public static void onServerTick(ServerLevel level) {
@@ -65,7 +70,6 @@ public class ViaRomana {
     }
 
     public static void onServerStop() {
-        ServerMapCache.processAllDirtyNetworks(true);
         ServerMapCache.shutdown();
         ServerMapCache.saveAllToDisk(true);
         ServerMapCache.clear();

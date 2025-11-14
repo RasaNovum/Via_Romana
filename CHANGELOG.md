@@ -1,9 +1,15 @@
-# Via Romana 2.1.1 [Neo/Forge & Fabric] Changelog:
+# Via Romana 2.1.2 [Neo/Forge & Fabric] Changelog:
 
 ### Fixes:
-- Resolved server hang on /stop command usage
-- Resolved maps not updating upon chunk changes in singleplayer
-- Resolved certain tags not being found due to mod conflicts causing failed tag construction
-  - Switched to using strings instead of tags where possible, tags are now intended to be added by the player or modpack developer
-  - Config regeneration required for changes to occur
-- Corrected some translation key usage
+- Resolved invisible blocks from 'bleeding' onto map screen due to layer feather.
+- Resolved blocks with no assigned map color from being invisible.
+- Resolved a hang on world/server close when debug logging was enabled.
+- Resolved an issue where PathGraph was not loaded to the client on world join by delaying until Data Anchor is initialized.
+
+### Improvements:
+- Added Russian translations (thanks @thecooldie!).
+- Invisible blocks now scan below themselves until a visible block is located.
+- Added optimization for when config option `use_biome_fallback_for_lowres` is true, path updates will be disabled for large enough path networks (though chunk data is still invalidated to prevent out-of-date chunk information from persisting). This avoids re-rendering network maps for not visible data.
+
+### Investigating:
+- I am aware of the Data Anchor `onTickBlockEntities` crash, this might fix it. Please let me know if it does or doesn't as it's been hell to recreate it for testing. I've taken exact worlds and modpacks from players who frequently crashed for it to be fine on my end.

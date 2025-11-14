@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
- * Server-side map cache. Marks networks with modified chunks as "dirty"
+ * Server-side map cache. Marks networks with modified chunks as dirty
  * and periodically re-processes them to update map images. Also handles
  * saving and lazy-loading map data to/from disk.
  */
@@ -54,7 +54,7 @@ public final class ServerMapCache {
         ViaRomana.LOGGER.info("Starting Via Romana schedulers...");
 
         scheduler.scheduleAtFixedRate(
-                () -> runSafe(ServerMapCache::processAllDirtyNetworks, "Error during scheduled map reprocessing"),
+                () -> runSafe(ServerMapCache::processAllDirtyNetworks, "Error during scheduled map reprocessing."),
                 CommonConfig.map_refresh_interval,
                 CommonConfig.map_refresh_interval,
                 TimeUnit.SECONDS
@@ -122,7 +122,7 @@ public final class ServerMapCache {
      */
     public static void markAsPseudoNetwork(UUID networkId) {
         pseudoNetworkIds.add(networkId);
-        ViaRomana.LOGGER.debug("Marked network {} as pseudonetwork", networkId);
+        ViaRomana.LOGGER.debug("Marked network {} as pseudonetwork.", networkId);
     }
 
     /**
@@ -132,7 +132,7 @@ public final class ServerMapCache {
     public static void invalidatePseudoNetwork(UUID networkId) {
         if (pseudoNetworkIds.remove(networkId)) {
             invalidate(networkId);
-            ViaRomana.LOGGER.debug("Invalidated pseudonetwork {}", networkId);
+            ViaRomana.LOGGER.debug("Invalidated pseudonetwork {}.", networkId);
         }
     }
 
@@ -152,49 +152,29 @@ public final class ServerMapCache {
 
         LevelDataManager.clearPixelBytes(level, pos);
 
-        ViaRomana.LOGGER.debug("Marked chunk {} dirty", pos);
-
         graph.findNetworksForChunk(pos).forEach(network -> {
             UUID networkId = network.id();
+
+            Optional<MapInfo> existingMap = getMapData(networkId);
+            if (existingMap.isPresent() && CommonConfig.use_biome_fallback_for_lowres && existingMap.get().scaleFactor() >= 4) return;
+
             dirtyNetworks.computeIfAbsent(networkId, k -> ConcurrentHashMap.newKeySet()).add(pos);
         });
     }
 
     public static void processAllDirtyNetworks() {
-        processAllDirtyNetworks(false);
-    }
-    
-    public static void processAllDirtyNetworks(boolean waitForCompletion) {
-        if (dirtyNetworks.isEmpty()) {
-            return;
-        }
+        if (dirtyNetworks.isEmpty()) return;
 
-        ViaRomana.LOGGER.debug("Processing {} dirty networks", dirtyNetworks.size());
+        ViaRomana.LOGGER.info("Processing {} dirty networks.", dirtyNetworks.size());
 
         Map<UUID, Set<ChunkPos>> toProcess = new ConcurrentHashMap<>(dirtyNetworks);
         dirtyNetworks.clear();
 
-        int totalDirtyChunks = toProcess.values().stream().mapToInt(Set::size).sum();
-        ViaRomana.LOGGER.debug("[PERF] Processing {} dirty networks ({} total dirty chunks) - batched update",
-            toProcess.size(), totalDirtyChunks);
-
-        List<CompletableFuture<MapInfo>> futures = waitForCompletion ? new ArrayList<>() : null;
-
         toProcess.forEach((networkId, chunks) -> {
             if (chunks != null && !chunks.isEmpty()) {
-                if (waitForCompletion) {
-                    CompletableFuture<MapInfo> future = updateOrGenerateMapAsync(networkId, chunks);
-                    futures.add(future);
-                } else {
-                    minecraftServer.execute(() -> updateOrGenerateMapAsync(networkId, chunks));
-                }
+                minecraftServer.execute(() -> updateOrGenerateMapAsync(networkId, chunks));
             }
         });
-
-        if (waitForCompletion && !futures.isEmpty()) {
-            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-            ViaRomana.LOGGER.debug("Completed processing {} dirty networks synchronously", futures.size());
-        }
     }
 
     private static CompletableFuture<MapInfo> updateOrGenerateMapAsync(UUID networkId, Collection<ChunkPos> chunksToUpdate) {
@@ -213,13 +193,13 @@ public final class ServerMapCache {
                     CompletableFuture<MapInfo> bakeFuture;
                     
                     if (previousResult != null && previousResult.hasImageData()) {
-                        ViaRomana.LOGGER.debug("Performing incremental update for network {}.", networkId);
+                        ViaRomana.LOGGER.info("Performing incremental update for network {}.", networkId);
                         bakeFuture = CompletableFuture.supplyAsync(() -> {
                             MapBaker worker = new MapBaker();
                             return worker.updateMap(previousResult, new HashSet<>(chunksToUpdate), level);
                         }, mapBakingExecutor);
                     } else {
-                        ViaRomana.LOGGER.debug("Performing full bake for network {}.", networkId);
+//                        ViaRomana.LOGGER.info("Performing full bake for network {}.", networkId);
                         bakeFuture = MapBaker.bakeAsync(networkId, level, mapBakingExecutor);
                     }
                     
@@ -228,7 +208,7 @@ public final class ServerMapCache {
                         if (!isPseudoNetwork(networkId)) {
                             modifiedForSaving.add(networkId);
                         }
-                        ViaRomana.LOGGER.debug("Map update completed for network {}.", networkId);
+//                        ViaRomana.LOGGER.info("Map update completed for network {}.", networkId);
                         return newResult;
                     }).exceptionally(ex -> {
                         ViaRomana.LOGGER.error("Failed during map update for network {}", networkId, ex);
@@ -261,7 +241,7 @@ public final class ServerMapCache {
         return getMapData(networkId)
                 .map(CompletableFuture::completedFuture)
                 .orElseGet(() -> {
-                    ViaRomana.LOGGER.debug("Generating initial map for network {} (client request).", networkId);
+                    ViaRomana.LOGGER.debug("Generating initial map for network {}.", networkId);
                     PathGraph graph = PathGraph.getInstance(level);
                     if (graph != null) {
                         PathGraph.NetworkCache network = graph.getNetworkCache(networkId);
@@ -272,7 +252,7 @@ public final class ServerMapCache {
                             return updateOrGenerateMapAsync(networkId, allChunks);
                         }
                     }
-                    ViaRomana.LOGGER.warn("Could not find network to generate map for networkId {}", networkId);
+                    ViaRomana.LOGGER.warn("Could not find network to generate map for networkId {}.", networkId);
                     return CompletableFuture.completedFuture(null);
                 });
     }
@@ -487,7 +467,7 @@ public final class ServerMapCache {
         }
         
         long totalTime = System.nanoTime() - startTime;
-        ViaRomana.LOGGER.debug("[PERF] Regenerated all chunk pixel data: {} chunks in {}ms",
+        ViaRomana.LOGGER.info("Regenerated all chunk pixel data: {} chunks in {}ms",
             totalChunks, totalTime / 1_000_000.0);
     }
 

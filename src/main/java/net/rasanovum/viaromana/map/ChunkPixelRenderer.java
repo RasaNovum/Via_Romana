@@ -10,11 +10,9 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeSource;
 import net.minecraft.world.level.chunk.LevelChunk;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.material.MapColor;
-import net.minecraft.tags.FluidTags;
 import net.minecraft.world.level.biome.Climate;
 import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.ViaRomana;
@@ -125,6 +123,7 @@ public class ChunkPixelRenderer {
 
                 int waterDepth = surfaceY - floorHeights[idx];
 
+                BlockState state;
                 MapColor mapColor;
                 MapColor.Brightness brightness;
 
@@ -133,13 +132,17 @@ public class ChunkPixelRenderer {
                     brightness = calculateWaterBrightness(idx, waterDepth);
                 } else {
                     mutablePos.set(chunkMinX + x, surfaceY, chunkMinZ + z);
-                    BlockState state = chunk.getBlockState(mutablePos);
+                    state = chunk.getBlockState(mutablePos);
                     mapColor = state.getMapColor(level, mutablePos);
 
-                    if (mapColor == MapColor.NONE) {
-                        pixels[idx] = 0;
-                        continue;
+                    while (mapColor == MapColor.NONE && mutablePos.getY() > minY) {
+                        mutablePos.move(0, -1, 0);
+                        state = chunk.getBlockState(mutablePos);
+                        mapColor = state.getMapColor(level, mutablePos);
                     }
+
+//                    ViaRomana.LOGGER.info("Colour ID {} for block {} at {}", mapColor.id, BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString(), mutablePos);
+
                     brightness = calculateTerrainBrightness(surfaceHeights, idx);
                 }
 
