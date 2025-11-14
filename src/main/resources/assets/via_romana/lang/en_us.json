@@ -24,6 +24,8 @@
   "message.via_romana.unsafe": "Cannot warp to an unsafe destination",
 
   "gui.viaromana.player_marker": "You are here",
+  "gui.viaromana.distance_meters": "%s - %d m",
+  "gui.viaromana.distance_kilometers": "%s - %d km",
   "gui.viaromana.warp_block": "Warp Block",
   "gui.viaromana.warp_block.title": "Warp Block",
   "gui.viaromana.edit_destination": "Edit Destination",
