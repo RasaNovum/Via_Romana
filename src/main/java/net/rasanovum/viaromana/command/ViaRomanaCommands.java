@@ -206,7 +206,7 @@ public class ViaRomanaCommands {
         ServerMapCache.regenerateAllChunkPixelData();
         
         // Process dirty networks to regenerate maps
-        ServerMapCache.processAllDirtyNetworks();
+        ServerMapCache.processAllDirtyNetworks(true);
         
         source.sendSuccess(() -> Component.translatable("command.via_romana.maps_regenerated"), true);
         return 1;

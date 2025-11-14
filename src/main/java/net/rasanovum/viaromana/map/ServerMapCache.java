@@ -166,8 +166,12 @@ public final class ServerMapCache {
     }
 
     public static void processAllDirtyNetworks() {
+        processAllDirtyNetworks(false);
+    }
+
+    public static void processAllDirtyNetworks(boolean forceRefresh) {
         if (dirtyNetworks.isEmpty()) return;
-        if (CommonConfig.map_refresh_threshold > 0 && dirtyNetworks.values().stream().mapToInt(Set::size).sum() < CommonConfig.map_refresh_threshold) return;
+        if (!forceRefresh && CommonConfig.map_refresh_threshold > 0 && dirtyNetworks.values().stream().mapToInt(Set::size).sum() < CommonConfig.map_refresh_threshold) return;
 
         ViaRomana.LOGGER.info("Processing {} dirty networks.", dirtyNetworks.size());
 
