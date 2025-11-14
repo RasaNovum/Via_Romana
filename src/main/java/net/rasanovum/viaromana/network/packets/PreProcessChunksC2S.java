@@ -6,6 +6,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.map.MapBaker;
 import net.rasanovum.viaromana.map.ServerMapCache;
@@ -92,8 +93,8 @@ public record PreProcessChunksC2S(List<NodeData> tempNodes) implements CustomPac
             if (tempNodes.isEmpty() || tempNodes.size() < 2) return;
 
             UUID pseudoNetworkId = ServerMapCache.getPseudoNetworkId(playerUUID);
-            
-            ViaRomana.LOGGER.debug("Creating/updating pseudonetwork {} for player {} with {} temp nodes", 
+
+            if (CommonConfig.logging_enum.ordinal() > 1) ViaRomana.LOGGER.info("Creating/updating pseudonetwork {} for player {} with {} temp nodes",
                 pseudoNetworkId, ctx.sender().getName().getString(), tempNodes.size());
 
             PathGraph graph = PathGraph.getInstance(level);
@@ -111,7 +112,7 @@ public record PreProcessChunksC2S(List<NodeData> tempNodes) implements CustomPac
                 MapBaker.bakeAsync(pseudoNetworkId, level, executor)
                     .thenAccept(mapInfo -> {
                         if (mapInfo != null) {
-                            ViaRomana.LOGGER.debug("Completed async chunk pre-processing for pseudonetwork {}: {}x{} pixels",
+                            if (CommonConfig.logging_enum.ordinal() > 1) ViaRomana.LOGGER.info("Completed async chunk pre-processing for pseudonetwork {}: {}x{} pixels",
                                 pseudoNetworkId, mapInfo.pixelWidth(), mapInfo.pixelHeight());
                         }
                     })

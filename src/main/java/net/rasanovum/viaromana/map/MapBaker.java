@@ -3,6 +3,7 @@ package net.rasanovum.viaromana.map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
+import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.network.packets.DestinationResponseS2C.NodeNetworkInfo;
 import net.rasanovum.viaromana.path.PathGraph;
@@ -39,7 +40,7 @@ public class MapBaker {
      * @return MapInfo object containing the baked map data.
      */
     public static MapInfo bake(UUID networkId, ServerLevel level) {
-        ViaRomana.LOGGER.debug("[PERF] Starting full map bake for network {}", networkId);
+        if (CommonConfig.logging_enum.ordinal() > 1) ViaRomana.LOGGER.info("Starting full map bake for network {}", networkId);
 
         long bakeStartTime = System.nanoTime();
 
@@ -59,7 +60,7 @@ public class MapBaker {
         BlockPos desiredMinBlock = fowCache.minBlock();
         BlockPos desiredMaxBlock = fowCache.maxBlock();
 
-        ViaRomana.LOGGER.debug("Chunks Allowed: {}", bakeChunks.size());
+        if (CommonConfig.logging_enum.ordinal() > 1) ViaRomana.LOGGER.info("Chunks Allowed: {}", bakeChunks.size());
 
         Set<ChunkPos> mapChunks = new HashSet<>();
         for (int cx = bakeMinChunk.x; cx <= bakeMaxChunk.x; cx++) {
@@ -86,8 +87,8 @@ public class MapBaker {
 
         if (isPseudo) {
             long totalBakeTime = System.nanoTime() - bakeStartTime;
-            ViaRomana.LOGGER.info("Pseudonetwork {} pre-processing completed: total={}ms, render={}ms, " +
-                "dimensions={}x{} (full FoW), scale={}, chunks={}",
+            if (CommonConfig.logging_enum.ordinal() > 1) ViaRomana.LOGGER.info("Pseudonetwork {} pre-processing completed: total={}ms, render={}ms, " +
+                "dimensions={}x{}, scale={}, chunks={}",
                 networkId, totalBakeTime / 1_000_000.0, renderTime / 1_000_000.0,
                 pixelWidth, pixelHeight, effectiveScale, chunksWithData);
             
@@ -128,8 +129,8 @@ public class MapBaker {
         }
 
         long totalBakeTime = System.nanoTime() - bakeStartTime;
-        
-        ViaRomana.LOGGER.info("Map bake completed for network {}: total={}ms, render={}ms, " +
+
+        if (CommonConfig.logging_enum.ordinal() > 0) ViaRomana.LOGGER.info("Map bake completed for network {}: total={}ms, render={}ms, " +
             "dimensions={}x{}, scale={}, rawSize={}KB, chunks={}",
             networkId, totalBakeTime / 1_000_000.0, renderTime / 1_000_000.0,
             effectiveWidth, effectiveHeight, effectiveScale, (croppedBiomePixels.length + croppedChunkPixels.length) / 1024.0,
@@ -144,7 +145,7 @@ public class MapBaker {
      * TODO: Re-implement image array splicing
      */
     public MapInfo updateMap(MapInfo previousResult, Set<ChunkPos> dirtyChunks, ServerLevel level) {
-        ViaRomana.LOGGER.info("Incremental update requested for {} dirty chunks, performing rebake.", dirtyChunks.size());
+        if (CommonConfig.logging_enum.ordinal() > 0) ViaRomana.LOGGER.info("Incremental update requested for {} dirty chunks, performing rebake.", dirtyChunks.size());
         return bake(previousResult.networkId(), level);
     }
 }

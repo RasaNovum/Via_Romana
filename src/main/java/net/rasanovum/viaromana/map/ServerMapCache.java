@@ -173,7 +173,7 @@ public final class ServerMapCache {
         if (dirtyNetworks.isEmpty()) return;
         if (!forceRefresh && CommonConfig.map_refresh_threshold > 0 && dirtyNetworks.values().stream().mapToInt(Set::size).sum() < CommonConfig.map_refresh_threshold) return;
 
-        ViaRomana.LOGGER.info("Processing {} dirty networks.", dirtyNetworks.size());
+        if (CommonConfig.logging_enum.ordinal() > 0) ViaRomana.LOGGER.info("Processing {} dirty networks.", dirtyNetworks.size());
 
         Map<UUID, Set<ChunkPos>> toProcess = new ConcurrentHashMap<>(dirtyNetworks);
         dirtyNetworks.clear();
@@ -201,7 +201,7 @@ public final class ServerMapCache {
                     CompletableFuture<MapInfo> bakeFuture;
                     
                     if (previousResult != null && previousResult.hasImageData()) {
-                        ViaRomana.LOGGER.info("Performing incremental update for network {}.", networkId);
+                        if (CommonConfig.logging_enum.ordinal() > 0) ViaRomana.LOGGER.info("Performing incremental update for network {}.", networkId);
                         bakeFuture = CompletableFuture.supplyAsync(() -> {
                             MapBaker worker = new MapBaker();
                             return worker.updateMap(previousResult, new HashSet<>(chunksToUpdate), level);
@@ -473,8 +473,7 @@ public final class ServerMapCache {
         }
         
         long totalTime = System.nanoTime() - startTime;
-        ViaRomana.LOGGER.info("Regenerated all chunk pixel data: {} chunks in {}ms",
-            totalChunks, totalTime / 1_000_000.0);
+        if (CommonConfig.logging_enum.ordinal() > 0) ViaRomana.LOGGER.info("Regenerated all chunk pixel data: {} chunks in {}ms", totalChunks, totalTime / 1_000_000.0);
     }
 
     private static Path getMapDirectory() {
