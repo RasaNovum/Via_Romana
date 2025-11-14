@@ -163,7 +163,7 @@ public final class ServerMapCache {
     }
 
     public static void processAllDirtyNetworks() {
-        if (dirtyNetworks.isEmpty()) return;
+        if (dirtyNetworks.isEmpty() || dirtyNetworks.size() < CommonConfig.map_refresh_threshold) return;
 
         ViaRomana.LOGGER.info("Processing {} dirty networks.", dirtyNetworks.size());
 

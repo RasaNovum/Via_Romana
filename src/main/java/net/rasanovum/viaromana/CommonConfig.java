@@ -56,6 +56,7 @@ public class CommonConfig extends MidnightConfig {
     @Entry(category = MAP, min = 0f, max = 200f) public static float spline_animation_speed = 2.0f;
     @Entry(category = MAP, min = 128) public static int maximum_map_dimension = 512;
     @Entry(category = MAP, min = 0) public static int map_refresh_interval = 10;
+    @Entry(category = MAP, min = 0) public static int map_refresh_threshold = 10;
     @Entry(category = MAP, min = 0) public static int map_save_interval = 5;
     @Entry(category = MAP) public static List<String> biomeColor = Lists.newArrayList();
     @Entry(category = MAP) public static boolean use_biome_fallback_for_lowres = true;
