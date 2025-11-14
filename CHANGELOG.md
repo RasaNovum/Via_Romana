@@ -10,6 +10,8 @@
 - Added Russian translations (thanks `@thecooldie`!).
 - Invisible blocks now scan below themselves until a visible block is located.
 - Added `map_refresh_threshold` config value which allows the user to set a minimum amount of chunks before a map update is allowed. This prevents frequent low-chunk count updates as it's less efficient to update a small amount of chunks due to per-refresh overhead (i.e. 1 chunk and 10 chunks both take ~1.5ms to update in large networks).
+- Vastly reduced amount of chunk invalidations caused by block changes that would not be visibly changed in the map.
+  - This primarily covers skipping blocks that remain the same map colour and blocks that have no collision (e.g. snow layers or grass)
 - Added optimization for when config option `use_biome_fallback_for_lowres` is true, path updates will be disabled for large enough path networks (though chunk data is still invalidated to prevent out-of-date chunk information from persisting). This avoids re-rendering network maps for not visible data.
 - Allow disabling of `map_refresh_interval`, `map_refresh_threshold` and `map_save_interval` by setting to `0` in config.
 
