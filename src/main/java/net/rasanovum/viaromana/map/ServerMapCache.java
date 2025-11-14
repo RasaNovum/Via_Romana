@@ -152,20 +152,17 @@ public final class ServerMapCache {
     /**
      * Marks a chunk as dirty for all networks it belongs to.
      */
-    public static void markChunkDirty(ServerLevel level, ChunkPos pos) {
-        PathGraph graph = PathGraph.getInstance(level);
-        if (graph == null) return;
-
+    public static void markChunkDirty(ServerLevel level, ChunkPos pos, List<PathGraph.NetworkCache> networks) {
         LevelDataManager.clearPixelBytes(level, pos);
 
-        graph.findNetworksForChunk(pos).forEach(network -> {
+        for (PathGraph.NetworkCache network : networks) {
             UUID networkId = network.id();
-
             Optional<MapInfo> existingMap = getMapData(networkId);
-            if (existingMap.isPresent() && CommonConfig.use_biome_fallback_for_lowres && existingMap.get().scaleFactor() >= 4) return;
 
-            dirtyNetworks.computeIfAbsent(networkId, k -> ConcurrentHashMap.newKeySet()).add(pos);
-        });
+            if (existingMap.isPresent() && CommonConfig.use_biome_fallback_for_lowres && existingMap.get().scaleFactor() >= 4) continue;
+
+            dirtyNetworks.computeIfAbsent(networkId, uuid -> ConcurrentHashMap.newKeySet()).add(pos);
+        }
     }
 
     public static void processAllDirtyNetworks() {

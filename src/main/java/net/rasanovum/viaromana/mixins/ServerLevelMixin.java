@@ -6,6 +6,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.map.ServerMapCache;
 import net.rasanovum.viaromana.path.PathGraph;
 
@@ -13,6 +14,8 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import java.util.List;
 
 @Mixin(ServerLevel.class)
 public abstract class ServerLevelMixin {
@@ -29,14 +32,25 @@ public abstract class ServerLevelMixin {
         if (levelChunk == null) return;
 
         PathGraph graph = PathGraph.getInstance(world);
-        if (graph == null || graph.findNetworksForChunk(chunkPos).isEmpty()) return;
+        if (graph == null) return;
+
+        List<PathGraph.NetworkCache> networks = graph.findNetworksForChunk(chunkPos);
+        if (networks.isEmpty()) return;
 
         int localX = pos.getX() & 15;
         int localZ = pos.getZ() & 15;
         int surfaceY = levelChunk.getHeight(Heightmap.Types.MOTION_BLOCKING, localX, localZ);
 
-        if (pos.getY() >= surfaceY - 2) {
-            ServerMapCache.markChunkDirty(world, chunkPos);
-        }
+        if (pos.getY() < surfaceY) return;
+        // TODO: Figure out a method to dirty chunk when changing blocks below a transparent motion blocking block (e.g. block below glass roof)
+
+        if (newState.getCollisionShape(world, pos).isEmpty()) return;
+        // TODO: Figure out how to correctly handle snowfall (and similar) in a way that doesn't destroy TPS
+
+        if (oldState.getMapColor(world, pos).equals(newState.getMapColor(world, pos))) return;
+
+//        ViaRomana.LOGGER.info("Marking block at {} dirty.", pos);
+
+        ServerMapCache.markChunkDirty(world, chunkPos, networks);
     }
 }
