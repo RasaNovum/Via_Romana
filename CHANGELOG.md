@@ -15,6 +15,7 @@
 - Resolved blocks with no assigned map color from being displayed as invisible.
 - Resolved a hang on world/server close when debug logging was enabled.
 - Resolved an issue where PathGraph was not loaded to the client on world join by delaying until Data Anchor is initialized.
+- Resolved mixin not adjusting Supplementaries Sign Post 'Done' button to the correct position when using non-Fabric loaders
 
 ### Investigating:
 - I am aware of the Data Anchor `onTickBlockEntities` crash, this update is reported to have potentially fixed it. Please let me know if it does or doesn't as it's been hell to recreate it for testing. I've taken exact worlds and modpacks from players who frequently crashed for it to be fine on my end.
