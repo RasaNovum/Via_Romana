@@ -114,7 +114,7 @@
   "via_romana.midnightconfig.node_utility_distance": "Node Utility Distance",
   "via_romana.midnightconfig.node_utility_distance.tooltip": "The distance (in blocks) to select the nearest node from for actions like connect, sever, and delete.\n • Server Managed",
   "via_romana.midnightconfig.path_quality_threshold": "Path Quality Threshold",
-  "via_romana.midnightconfig.path_quality_threshold.tooltip": "Minimum percentage of valid infrastructure blocks required to place a node (eg. 0.3 = 30% of a 2D slice of area check).\n • Server Managed",
+  "via_romana.midnightconfig.path_quality_threshold.tooltip": "Minimum percentage of valid infrastructure blocks required to place a node (eg. 0.3 = 30%% of a 2D slice of area check).\n • Server Managed",
   "via_romana.midnightconfig.travel_fatigue_cooldown": "Travel Fatigue Cooldown",
   "via_romana.midnightconfig.travel_fatigue_cooldown.tooltip": "Cooldown (in seconds) before a player can warp again.\n • Server Managed",
   "via_romana.midnightconfig.charting_footer": "• Check the 'Visuals' tab for charting visuals.",
