@@ -33,7 +33,7 @@ public class Node {
     //region Core Data
     private final long pos;
     private final float quality;
-    private final float clearance;
+    private final int clearance;
     private final LongSet connectedNodes = new LongOpenHashSet();
     private DestinationInfo destinationInfo = null; // Null if not a destination
     //endregion
@@ -59,11 +59,23 @@ public class Node {
     public Node(long pos, float quality, float clearance) {
         this.pos = pos;
         this.quality = quality;
-        this.clearance = clearance;
+        if (!Float.isFinite(clearance)) clearance = 0.0f;
+        int rounded = Math.round(clearance);
+        if (rounded < 0) rounded = 0;
+        else if (rounded > 255) rounded = 255;
+        this.clearance = rounded;
     }
 
     public Node(CompoundTag tag) {
-        this(tag.getLong("pos"), tag.getFloat("quality"), tag.getFloat("clearance"));
+        this(
+            tag.getLong("pos"),
+            tag.contains("quality", Tag.TAG_FLOAT) ? tag.getFloat("quality") : 1.0f,
+            tag.contains("clearance", Tag.TAG_FLOAT)
+                    ? tag.getFloat("clearance")
+                    : (tag.contains("clearance", Tag.TAG_BYTE)
+                    ? Byte.toUnsignedInt(tag.getByte("clearance"))
+                    : 0.0f)
+        );
 
         long[] connections = tag.getLongArray("connections");
         for (long c : connections) {
@@ -90,8 +102,7 @@ public class Node {
 
     public CompoundTag serialize(CompoundTag tag) {
         tag.putLong("pos", this.pos);
-        tag.putFloat("quality", this.quality);
-        tag.putFloat("clearance", this.clearance);
+        tag.putByte("clearance", (byte) (this.clearance & 0xFF));
         tag.putLongArray("connections", this.connectedNodes.toLongArray());
 
         if (this.destinationInfo != null) {
