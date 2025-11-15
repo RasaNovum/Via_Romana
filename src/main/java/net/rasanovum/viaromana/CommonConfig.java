@@ -52,7 +52,7 @@ public class CommonConfig extends MidnightConfig {
     @Comment(category = WARP) public static Comment warp_footer;
 
     @Entry(category = MAP, min = 1) public static int fog_of_war_distance = 10;
-    @Entry(category = MAP, min = 0f, max = 200f) public static float spline_animation_speed = 2.0f;
+    @Entry(category = MAP, min = 0.5f, max = 10f) public static float spline_animation_time = 2.0f;
     @Entry(category = MAP, min = 128) public static int maximum_map_dimension = 512;
     @Entry(category = MAP, min = 0) public static int map_refresh_interval = 10;
     @Entry(category = MAP, min = 0) public static int map_refresh_threshold = 10;

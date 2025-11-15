@@ -121,8 +121,8 @@
 
   "via_romana.midnightconfig.fog_of_war_distance": "Fog of War Distance",
   "via_romana.midnightconfig.fog_of_war_distance.tooltip": "The radius (in chunks) around charted areas that will be rendered on the map (this will impact performance).\n • Server Managed",
-  "via_romana.midnightconfig.spline_animation_speed": "Map Path Animation Speed",
-  "via_romana.midnightconfig.spline_animation_speed.tooltip": "The speed at which the teleport screen path animates (this will impact performance).",
+  "via_romana.midnightconfig.spline_animation_time": "Map Path Animation Time",
+  "via_romana.midnightconfig.spline_animation_time.tooltip": "The time (in seconds) it takes for the path of the teleport screen path to animate (this may impact performance).",
   "via_romana.midnightconfig.maximum_map_dimension": "Maximum Map Dimension",
   "via_romana.midnightconfig.maximum_map_dimension.tooltip": "The maximum dimension (in blocks) of the generated map texture (this will impact performance).\n • Server Managed",
   "via_romana.midnightconfig.map_refresh_interval": "Map Refresh Interval",

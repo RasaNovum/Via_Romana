@@ -1,6 +1,7 @@
 package net.rasanovum.viaromana.client.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.Util;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
@@ -44,6 +45,10 @@ public class TeleportMapScreen extends Screen {
 
     // Animation & State
     private float animationProgress = 0.0f;
+    private long animationStartMillis = -1L;
+    private long totalAnimationDurationMillis = 500;
+    private int totalAnimationWaves = 1;
+    private int completedAnimationWaves = 0;
     private final Set<BlockPos> animatedNodes = new HashSet<>();
     private final List<DestinationResponseS2C.NodeNetworkInfo> nodesToAnimate = new ArrayList<>();
     private final Map<BlockPos, Float> destinationFadeProgress = new HashMap<>();
@@ -53,7 +58,6 @@ public class TeleportMapScreen extends Screen {
     // Constants
     private static final int MARKER_SIZE = 16;
     private static final int PLAYER_MARKER_SIZE = 8;
-    private static float getAnimationSpeed() { return CommonConfig.spline_animation_speed; }
     private static final float MARKER_FADE_SPEED = 0.05f;
     private static final int DIRECTION_INDICATOR_BUFFER = 2;
     private static final float DIRECTION_ANGLE_RANGE = 45.0f;
@@ -82,6 +86,7 @@ public class TeleportMapScreen extends Screen {
             .map(dest -> dest.position)
             .collect(Collectors.toSet());
 
+        configureAnimationTiming();
         calculateBounds();
 
         this.mapRenderer = new MapRenderer(this.minBounds, this.maxBounds);
@@ -141,26 +146,24 @@ public class TeleportMapScreen extends Screen {
         
         this.mapRenderer.render(guiGraphics, this.width, this.height);
 
-        renderNetwork(guiGraphics, partialTicks);
+        renderNetwork(guiGraphics);
 
-        Set<BlockPos> revealedNodes = new HashSet<>(animatedNodes);
-        nodesToAnimate.forEach(n -> revealedNodes.add(n.position));
+        Set<BlockPos> revealedNodes = getRevealedNodes();
+        TeleportHelper.TeleportDestination hoveredDestination = findDestinationAtPosition(revealedNodes, mouseX, mouseY);
 
-        renderDestinationMarkers(guiGraphics, revealedNodes, mouseX, mouseY);
+        renderDestinationMarkers(guiGraphics, revealedNodes, hoveredDestination);
         renderPlayerMarker(guiGraphics, this.minecraft.player);
-        renderTooltip(guiGraphics, revealedNodes, mouseX, mouseY);
+        renderTooltip(guiGraphics, hoveredDestination, mouseX, mouseY);
 
         super.render(guiGraphics, mouseX, mouseY, partialTicks);
     }
     //endregion
 
     //region Network Animation
-    private void renderNetwork(GuiGraphics guiGraphics, float partialTicks) {
+    private void renderNetwork(GuiGraphics guiGraphics) {
         if (networkNodeMap.isEmpty()) return;
 
-        if (!nodesToAnimate.isEmpty()) {
-            animationProgress = Math.min(1.0f, animationProgress + partialTicks * getAnimationSpeed());
-        }
+        updateAnimationProgress();
 
         Set<BlockPos> currentlyAnimatingSources = nodesToAnimate.stream()
                 .map(info -> info.position)
@@ -204,30 +207,67 @@ public class TeleportMapScreen extends Screen {
             });
         }
 
-        // Progress to the next animation wave if the current one is finished
-        if (animationProgress >= 1.0f && !nodesToAnimate.isEmpty()) {
-            Set<BlockPos> nextWavePositions = new HashSet<>();
-            for (DestinationResponseS2C.NodeNetworkInfo completedNode : nodesToAnimate) {
-                animatedNodes.add(completedNode.position);
+    }
 
-                if (destinationPositions.contains(completedNode.position)) {
-                    validateNodeSign(completedNode.position);
-                }
+    private void updateAnimationProgress() {
+        if (nodesToAnimate.isEmpty()) {
+            return;
+        }
 
-                for (BlockPos connPos : completedNode.connections) {
-                    if (!animatedNodes.contains(connPos)) {
-                        nextWavePositions.add(connPos);
-                    }
-                }
+        long now = Util.getMillis();
+        if (animationStartMillis < 0L) {
+            animationStartMillis = now;
+        }
+
+        float normalizedProgress = totalAnimationDurationMillis <= 0
+                ? 1.0f
+                : (now - animationStartMillis) / (float) totalAnimationDurationMillis;
+        normalizedProgress = Math.max(0.0f, Math.min(1.0f, normalizedProgress));
+
+        float globalWaveProgress = normalizedProgress * totalAnimationWaves;
+        int targetCompletedWaves = Math.min(totalAnimationWaves, (int) Math.floor(globalWaveProgress));
+
+        while (completedAnimationWaves < targetCompletedWaves && !nodesToAnimate.isEmpty()) {
+            advanceAnimationWave();
+        }
+
+        if (nodesToAnimate.isEmpty()) {
+            animationProgress = 1.0f;
+            return;
+        }
+
+        animationProgress = Math.max(0.0f, Math.min(1.0f, globalWaveProgress - completedAnimationWaves));
+    }
+
+    private void advanceAnimationWave() {
+        if (nodesToAnimate.isEmpty()) return;
+
+        Set<BlockPos> nextWavePositions = new HashSet<>();
+
+        for (DestinationResponseS2C.NodeNetworkInfo completedNode : nodesToAnimate) {
+            animatedNodes.add(completedNode.position);
+
+            if (destinationPositions.contains(completedNode.position)) {
+                validateNodeSign(completedNode.position);
             }
 
-            nodesToAnimate.clear();
-            nextWavePositions.stream()
+            for (BlockPos connPos : completedNode.connections) {
+                if (!animatedNodes.contains(connPos)) {
+                    nextWavePositions.add(connPos);
+                }
+            }
+        }
+
+        nodesToAnimate.clear();
+        nextWavePositions.stream()
                 .map(networkNodeMap::get)
                 .filter(Objects::nonNull)
                 .forEach(nodesToAnimate::add);
-            
-            animationProgress = 0.0f;
+
+        completedAnimationWaves++;
+
+        if (nodesToAnimate.isEmpty()) {
+            animationProgress = 1.0f;
         }
     }
 
@@ -239,7 +279,7 @@ public class TeleportMapScreen extends Screen {
     //endregion
 
     //region Marker & Tooltip Rendering
-    private void renderDestinationMarkers(GuiGraphics guiGraphics, Set<BlockPos> revealedNodes, int mouseX, int mouseY) {
+    private void renderDestinationMarkers(GuiGraphics guiGraphics, Set<BlockPos> revealedNodes, TeleportHelper.TeleportDestination hoveredDestination) {
         // Update fade-in progress for newly validated destinations that have been revealed
         revealedNodes.stream()
             .filter(destinationPositions::contains)
@@ -257,9 +297,7 @@ public class TeleportMapScreen extends Screen {
                 worldToScreen(dest.position).ifPresent(screenPos -> {
                     float alpha = destinationFadeProgress.get(dest.position);
 
-                    boolean isHovered = getDestinationAtPosition(revealedNodes, mouseX, mouseY)
-                            .map(hovered -> hovered.position.equals(dest.position))
-                            .orElse(false);
+                    boolean isHovered = hoveredDestination != null && hoveredDestination.position.equals(dest.position);
 
                     ResourceLocation markerTexture = VersionUtils.getLocation("via_romana:textures/screens/marker_" + dest.icon.toString().toLowerCase() + ".png");
                     int x = screenPos.x - MARKER_SIZE / 2;
@@ -346,23 +384,18 @@ public class TeleportMapScreen extends Screen {
         }
     }
 
-    private void renderTooltip(GuiGraphics guiGraphics, Set<BlockPos> revealedNodes, int mouseX, int mouseY) {
-        getDestinationAtPosition(revealedNodes, mouseX, mouseY).ifPresentOrElse(
-            dest -> {
-                long dist = Math.round(dest.distance);
-                long displayDist = dist > 1000 ? dist / 1000 : dist;
-                Component text = Component.translatable(
-                    "gui.viaromana.distance_" + (dist > 1000 ? "kilometers" : "meters"),
-                    dest.name, displayDist
-                );
-                guiGraphics.renderTooltip(this.font, text, mouseX, mouseY);
-            },
-            () -> {
-                if (isMouseOverPlayer(mouseX, mouseY)) {
-                    guiGraphics.renderTooltip(this.font, Component.translatable("gui.viaromana.player_marker"), mouseX, mouseY);
-                }
-            }
-        );
+    private void renderTooltip(GuiGraphics guiGraphics, TeleportHelper.TeleportDestination hoveredDestination, int mouseX, int mouseY) {
+        if (hoveredDestination != null) {
+            long dist = Math.round(hoveredDestination.distance);
+            long displayDist = dist > 1000 ? dist / 1000 : dist;
+            Component text = Component.translatable(
+                "gui.viaromana.distance_" + (dist > 1000 ? "kilometers" : "meters"),
+                hoveredDestination.name, displayDist
+            );
+            guiGraphics.renderTooltip(this.font, text, mouseX, mouseY);
+        } else if (isMouseOverPlayer(mouseX, mouseY)) {
+            guiGraphics.renderTooltip(this.font, Component.translatable("gui.viaromana.player_marker"), mouseX, mouseY);
+        }
     }
     //endregion
 
@@ -370,9 +403,10 @@ public class TeleportMapScreen extends Screen {
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == 0) { // Left Click
-            Set<BlockPos> revealedNodes = new HashSet<>(animatedNodes);
-            nodesToAnimate.forEach(node -> revealedNodes.add(node.position));
-            getDestinationAtPosition(revealedNodes, (int) mouseX, (int) mouseY).ifPresent(this::selectDestination);
+            TeleportHelper.TeleportDestination destination = findDestinationAtPosition(getRevealedNodes(), (int) mouseX, (int) mouseY);
+            if (destination != null) {
+                selectDestination(destination);
+            }
             return true;
         }
         return super.mouseClicked(mouseX, mouseY, button);
@@ -423,6 +457,12 @@ public class TeleportMapScreen extends Screen {
     //endregion
 
     //region Utility & Helpers
+    private Set<BlockPos> getRevealedNodes() {
+        Set<BlockPos> revealedNodes = new HashSet<>(animatedNodes);
+        nodesToAnimate.forEach(node -> revealedNodes.add(node.position));
+        return revealedNodes;
+    }
+
     private void calculateBounds() {
         if (networkNodeMap.isEmpty()) {
             BlockPos playerPos = minecraft.player != null ? minecraft.player.blockPosition() : BlockPos.ZERO;
@@ -437,6 +477,43 @@ public class TeleportMapScreen extends Screen {
         this.minBounds = new BlockPos(xStats.getMin(), 0, zStats.getMin());
         this.maxBounds = new BlockPos(xStats.getMax(), 0, zStats.getMax());
     }
+
+    private void configureAnimationTiming() {
+        this.totalAnimationWaves = computeAnimationWaveCount();
+        float totalDurationSeconds = CommonConfig.spline_animation_time;
+        this.totalAnimationDurationMillis = Math.max(1L, (long) (totalDurationSeconds * 1000.0f));
+        this.completedAnimationWaves = 0;
+        this.animationProgress = 0.0f;
+        this.animationStartMillis = -1L;
+    }
+
+    private int computeAnimationWaveCount() {
+        if (sourceNodePos == null || !networkNodeMap.containsKey(sourceNodePos)) return 1;
+
+        Set<BlockPos> visited = new HashSet<>();
+        Queue<BlockPos> frontier = new ArrayDeque<>();
+        frontier.add(sourceNodePos);
+        visited.add(sourceNodePos);
+
+        int waves = 0;
+        while (!frontier.isEmpty()) {
+            int size = frontier.size();
+            waves++;
+            for (int i = 0; i < size; i++) {
+                BlockPos current = frontier.poll();
+                DestinationResponseS2C.NodeNetworkInfo node = networkNodeMap.get(current);
+                if (node == null) continue;
+                for (BlockPos neighbor : node.connections) {
+                    if (visited.add(neighbor)) {
+                        frontier.add(neighbor);
+                    }
+                }
+            }
+        }
+
+        return Math.max(1, waves);
+    }
+
 
     private Optional<Point> worldToScreen(BlockPos worldPos) {
         if (mapRenderer == null) return Optional.empty();
@@ -455,18 +532,18 @@ public class TeleportMapScreen extends Screen {
                 .orElse(false);
     }
 
-    private Optional<TeleportHelper.TeleportDestination> getDestinationAtPosition(Set<BlockPos> revealedNodes, int mouseX, int mouseY) {
+    private TeleportHelper.TeleportDestination findDestinationAtPosition(Set<BlockPos> revealedNodes, int mouseX, int mouseY) {
         for (TeleportHelper.TeleportDestination dest : destinations) {
             if (revealedNodes.contains(dest.position) && validatedNodes.contains(dest.position)) {
                 Optional<Point> screenPosOpt = worldToScreen(dest.position);
                 if (screenPosOpt.isPresent()) {
                     if (isMouseOver(screenPosOpt.get(), MARKER_SIZE, mouseX, mouseY)) {
-                        return Optional.of(dest);
+                        return dest;
                     }
                 }
             }
         }
-        return Optional.empty();
+        return null;
     }
 
     private void drawLine(GuiGraphics guiGraphics, Point start, Point end, int color, int thickness) {
