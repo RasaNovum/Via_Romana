@@ -2,6 +2,7 @@ package net.rasanovum.viaromana.client;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.core.BlockPos;
+import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.map.MapInfo;
 import net.rasanovum.viaromana.network.packets.MapRequestC2S;
 import net.rasanovum.viaromana.network.packets.MapResponseS2C;
@@ -104,7 +105,7 @@ public class MapClient {
 
             long totalTime = System.nanoTime() - startTime;
 
-            ViaRomana.LOGGER.debug("[PERF-CLIENT] Created raw map images for network {}: total={}ms, create={}ms, convert={}ms, dimensions={}x{}, pixels={}",
+            if (CommonConfig.logging_enum.ordinal() > 1) ViaRomana.LOGGER.info("MapClient: Created raw map images for network {}: total={}ms, create={}ms, convert={}ms, dimensions={}x{}, pixels={}",
                     mapInfo.networkId(), totalTime / 1_000_000.0, createImageTime / 1_000_000.0,
                     convertTime / 1_000_000.0, width, height, biomePixels.length);
 

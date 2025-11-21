@@ -46,7 +46,7 @@ public class PathSyncUtils {
     /**
      * Syncs the current PathGraph to a specific player.
      */
-    public static void syncPathGraphToPlayer(ServerPlayer player) {
+    public static boolean syncPathGraphToPlayer(ServerPlayer player) {
         try {
             ServerLevel level = player.serverLevel();
             PathGraph graph = PathGraph.getInstance(level);
@@ -54,10 +54,11 @@ public class PathSyncUtils {
             PathGraphSyncPacket packet = new PathGraphSyncPacket(graph, level.dimension());
             Dispatcher.sendToClient(packet, player);
             
-            ViaRomana.LOGGER.debug("Synced PathGraph with {} nodes to player {}", graph.size(), player.getName().getString());
-                
+            if (CommonConfig.logging_enum.ordinal() > 1) ViaRomana.LOGGER.info("Synced PathGraph with {} nodes to player {}", graph.size(), player.getName().getString());
+            return true;
         } catch (Exception e) {
             ViaRomana.LOGGER.error("Failed to sync PathGraph to player " + player.getName().getString(), e);
+            return false;
         }
     }
 

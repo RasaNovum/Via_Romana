@@ -15,20 +15,12 @@ If you have any questions that aren't [answered in our Wiki](https://github.com/
 
 ## Dependencies
 
-#### Bundled Dependencies
+- **[Fabric API](https://modrinth.com/mod/fabric-api)** - Core Fabric mod loader (Fabric Only)
 
-- **[Surveyor](https://github.com/sisby-folk/surveyor)** - Provides terrain mapping functionality
-- **[BRRP](https://github.com/SolidBlock-cn/BRRP)** - Enables runtime resource pack generation for dynamic tags
-- **[MidnightLib](https://modrinth.com/mod/midnightlib)** - Provides config API
-
-#### Required Dependencies (Fabric)
-
-- **[Fabric API](https://modrinth.com/mod/fabric-api)** - Core Fabric mod loader API
-
-#### Required Dependencies (NeoForge)
-
-- **[Sinytra Connector](https://modrinth.com/mod/connector)** - Allows Via Romana to run on NeoForge
-- **[Forgified Fabric API](https://modrinth.com/mod/forgified-fabric-api)** - Fabric API implementation for NeoForge
+- **[MidnightLib](https://modrinth.com/mod/midnightlib)** - Provides config
+- **[Data Anchor](https://modrinth.com/mod/data-anchor)** - Provides data saving/loading
+- **[Moonlight Lib](https://modrinth.com/mod/moonlight)** - Provides runtime resource pack modification
+- **[Common Network](https://modrinth.com/mod/common-network)** - Provides networking
 
 ## License
 

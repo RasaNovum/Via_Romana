@@ -186,5 +186,6 @@
   "command.via_romana.regenerating_chunks": "Regenerating chunk image data...",
   "command.via_romana.maps_regenerated": "Regenerated Via Romana maps",
   "command.via_romana.maps_cleared": "Cleared Via Romana maps",
-  "command.via_romana.maps_saved": "Saved Via Romana maps to disk"
+  "command.via_romana.maps_saved": "Saved Via Romana maps to disk",
+  "command.via_romana.sync_triggered": "Triggered sync for players in current dimension"
 }

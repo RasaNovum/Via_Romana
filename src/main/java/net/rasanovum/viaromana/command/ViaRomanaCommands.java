@@ -55,7 +55,9 @@ public class ViaRomanaCommands {
                         .then(Commands.literal("delete")
                                 .executes(ViaRomanaCommands::deleteMaps))
                         .then(Commands.literal("save")
-                                .executes(ViaRomanaCommands::saveMaps))));
+                                .executes(ViaRomanaCommands::saveMaps)))
+                .then(Commands.literal("sync")
+                        .executes(ViaRomanaCommands::syncDimension)));
     }
 
     /**
@@ -234,6 +236,17 @@ public class ViaRomanaCommands {
         CommandSourceStack source = context.getSource();
         ServerMapCache.saveAllToDisk(true);
         source.sendSuccess(() -> Component.translatable("command.via_romana.maps_saved"), true);
+        return 1;
+    }
+
+    /**
+     * Forces a PathGraph sync for the current dimension.
+     */
+    private static int syncDimension(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        CommandSourceStack source = context.getSource();
+        ServerLevel level = source.getLevel();
+        PathSyncUtils.syncPathGraphToAllPlayers(level);
+        source.sendSuccess(() -> Component.translatable("command.via_romana.sync_triggered"), true);
         return 1;
     }
 }

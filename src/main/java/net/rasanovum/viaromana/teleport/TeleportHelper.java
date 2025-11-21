@@ -43,8 +43,7 @@ public class TeleportHelper {
         if (!(entity instanceof Player player)) return;
         if (!(world instanceof ServerLevel serverLevel)) return;
         
-        // Simple particle effect at consistent level while teleporting
-        double fadeAmount = 10; // Mid-level particle intensity
+        double fadeAmount = 10;
         double particleRadius = 4;
         
         serverLevel.sendParticles(
