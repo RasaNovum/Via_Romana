@@ -25,29 +25,30 @@ public abstract class ServerLevelMixin {
             at = @At("HEAD")
     )
     private void onBlockStateChange(BlockPos pos, BlockState oldState, BlockState newState, CallbackInfo ci) {
-        ServerLevel world = (ServerLevel) (Object) this;
-        ChunkPos chunkPos = new ChunkPos(pos);
+        if (oldState == newState) return;
 
+        ServerLevel world = (ServerLevel) (Object) this;
+
+        if (oldState.getMapColor(world, pos).equals(newState.getMapColor(world, pos))) return;
+
+        ChunkPos chunkPos = new ChunkPos(pos);
         LevelChunk levelChunk = world.getChunkSource().getChunkNow(chunkPos.x, chunkPos.z);
+
         if (levelChunk == null) return;
+
+        int localX = pos.getX() & 15;
+        int localZ = pos.getZ() & 15;
+        int surfaceY = levelChunk.getHeight(Heightmap.Types.MOTION_BLOCKING, localX, localZ);
+
+        if (pos.getY() < surfaceY - 1) return; // TODO: Figure out a method to dirty chunk when changing blocks below a transparent motion blocking block (e.g. block below glass roof)
+
+        if (newState.getCollisionShape(world, pos).isEmpty() && oldState.getCollisionShape(world, pos).isEmpty()) return; // TODO: Figure out how to correctly handle snowfall (and similar) in a way that doesn't destroy TPS
 
         PathGraph graph = PathGraph.getInstance(world);
         if (graph == null) return;
 
         List<PathGraph.NetworkCache> networks = graph.findNetworksForChunk(chunkPos);
         if (networks.isEmpty()) return;
-
-        int localX = pos.getX() & 15;
-        int localZ = pos.getZ() & 15;
-        int surfaceY = levelChunk.getHeight(Heightmap.Types.MOTION_BLOCKING, localX, localZ);
-
-        if (pos.getY() < surfaceY) return;
-        // TODO: Figure out a method to dirty chunk when changing blocks below a transparent motion blocking block (e.g. block below glass roof)
-
-        if (newState.getCollisionShape(world, pos).isEmpty()) return;
-        // TODO: Figure out how to correctly handle snowfall (and similar) in a way that doesn't destroy TPS
-
-        if (oldState.getMapColor(world, pos).equals(newState.getMapColor(world, pos))) return;
 
 //        ViaRomana.LOGGER.info("Marking block at {} dirty.", pos);
 
