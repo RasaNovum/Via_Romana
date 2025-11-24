@@ -7,6 +7,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 //?}
+import net.rasanovum.viaromana.CommonConfig;
+import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.path.PathGraph;
 import net.rasanovum.viaromana.util.VersionUtils;
 import commonnetwork.networking.data.PacketContext;
@@ -56,6 +58,8 @@ public record SignValidationRequestC2S(BlockPos nodePos) implements CustomPacket
             
             PathGraph graph = PathGraph.getInstance(level);
             boolean isValid = graph.getNodeAt(nodePos).isPresent();
+
+            if (CommonConfig.logging_enum.ordinal() > 0 && !isValid) ViaRomana.LOGGER.info("Validation failed for destination at {}", nodePos);
             
             SignValidationResponseS2C response = new SignValidationResponseS2C(nodePos, isValid);
             Dispatcher.sendToClient(response, ctx.sender());

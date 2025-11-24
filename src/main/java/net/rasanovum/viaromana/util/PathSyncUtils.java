@@ -53,8 +53,11 @@ public class PathSyncUtils {
 
             PathGraphSyncPacket packet = new PathGraphSyncPacket(graph, level.dimension());
             Dispatcher.sendToClient(packet, player);
+
+            if (CommonConfig.logging_enum == null) CommonConfig.logging_enum = CommonConfig.LoggingEnum.NONE; // Resolves issue with users who were previously using LoggingEnum.VERBOSE
             
             if (CommonConfig.logging_enum.ordinal() > 1) ViaRomana.LOGGER.info("Synced PathGraph with {} nodes to player {}", graph.size(), player.getName().getString());
+
             return true;
         } catch (Exception e) {
             ViaRomana.LOGGER.error("Failed to sync PathGraph to player " + player.getName().getString(), e);

@@ -7,6 +7,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 //?}
+import net.rasanovum.viaromana.CommonConfig;
+import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.core.LinkHandler.LinkData;
 import net.rasanovum.viaromana.path.Node;
 import commonnetwork.networking.data.PacketContext;
@@ -102,7 +104,7 @@ public record SignLinkRequestC2S(LinkData linkData, boolean isTempNode) implemen
                 net.rasanovum.viaromana.ViaRomana.LOGGER.warn("Failed to link sign at {} to node at {} for player {}",
                     linkData.signPos(), linkData.nodePos(), ctx.sender().getName().getString());
             } else {
-                net.rasanovum.viaromana.ViaRomana.LOGGER.debug("Successfully linked sign at {} to node at {} for player {}",
+                if (CommonConfig.logging_enum.ordinal() > 0) ViaRomana.LOGGER.info("Successfully linked sign at {} to node at {} for player {}",
                     linkData.signPos(), linkData.nodePos(), ctx.sender().getName().getString());
             }
         }

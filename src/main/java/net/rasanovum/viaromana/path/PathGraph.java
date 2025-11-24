@@ -10,6 +10,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.ChunkPos;
+import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.client.data.ClientPathData;
 import net.rasanovum.viaromana.map.ServerMapCache;
@@ -477,6 +478,8 @@ public final class PathGraph {
         return getNodeBySignPos(signPos).map(node -> {
             node.unlink();
             signPosToIndex.remove(signPos.asLong());
+
+            if (CommonConfig.logging_enum.ordinal() > 0) ViaRomana.LOGGER.info("Successfully unlinked sign at {}", signPos);
 
             refreshNetworkDestinations(node);
             return true;

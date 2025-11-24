@@ -31,14 +31,6 @@ public class PathUtils {
         return blockState.is(TagGenerator.PATH_BLOCK_TAG);
     }
 
-    public static boolean isBlockLeaveBlock(LevelAccessor world, BlockPos targetBlock) {
-        if (world.isEmptyBlock(targetBlock)) return false;
-
-        BlockState blockState = world.getBlockState(targetBlock);
-
-        return blockState.is(TagGenerator.LEAVES_BLOCK_TAG);
-    }
-
     public static float calculateInfrastructureQuality(LevelAccessor world, Entity entity) {
         if (entity == null) return 0;
 

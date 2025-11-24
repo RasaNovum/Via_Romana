@@ -1,5 +1,6 @@
 package net.rasanovum.viaromana.core;
 
+import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.path.PathGraph;
 import net.rasanovum.viaromana.storage.path.PathDataManager;
 import net.rasanovum.viaromana.integration.IntegrationManager;

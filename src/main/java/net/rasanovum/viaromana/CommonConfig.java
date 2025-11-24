@@ -43,14 +43,14 @@ public class CommonConfig extends MidnightConfig {
     @Entry(category = MAP) public static boolean use_biome_fallback_for_lowres = true;
     @Entry(category = MAP) public static boolean enable_surveyor_landmark = false;
     @Entry(category = MAP) public static boolean enable_surveyor_landmark_coloring = false;
-    @Entry(category = MAP) public static LoggingEnum logging_enum = LoggingEnum.NONE;
-    public enum LoggingEnum { NONE, DEBUG, VERBOSE }
     @Comment(category = MAP) public static Comment map_footer;
 
     @Entry(category = VISUALS, min = 0f, max = 1f) public static float invalid_block_overlay_opacity = 0.4f;
     @Entry(category = VISUALS, min = 0f, max = 1f) public static float biome_map_opacity = 0.3f;
     @Entry(category = VISUALS, min = 0f, max = 1f) public static float node_vignette_opacity = 1.0f;
     @Entry(category = VISUALS) public static boolean enable_teleport_particles = true;
+    @Entry(category = VISUALS) public static LoggingEnum logging_enum = LoggingEnum.NONE;
+    public enum LoggingEnum { NONE, ADMIN, DEBUG }
 
     @Override
     public void writeChanges() {

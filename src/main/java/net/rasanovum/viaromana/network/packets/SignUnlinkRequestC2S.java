@@ -7,6 +7,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 //?}
+import net.rasanovum.viaromana.CommonConfig;
+import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.core.LinkHandler;
 import commonnetwork.networking.data.PacketContext;
 import commonnetwork.networking.data.Side;
@@ -51,6 +53,8 @@ public record SignUnlinkRequestC2S(BlockPos signPos) implements CustomPacketPayl
         if (Side.SERVER.equals(ctx.side())) {
             net.minecraft.server.level.ServerLevel level = ctx.sender().serverLevel();
             BlockPos signPos = ctx.message().signPos();
+
+            if (CommonConfig.logging_enum.ordinal() > 0) ViaRomana.LOGGER.info("{} requested sign unlink at {}", ctx.sender(), signPos);
             
             LinkHandler.unlinkSignFromNode(level, signPos);
         }
