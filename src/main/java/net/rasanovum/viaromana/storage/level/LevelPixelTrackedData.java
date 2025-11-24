@@ -47,6 +47,10 @@ public class LevelPixelTrackedData extends ServerLevelTrackedData {
         markDirty();
     }
 
+    public boolean isChunkTracked(ChunkPos pos) {
+        return pixelMap.containsKey(pos.x + "_" + pos.z);
+    }
+
     public Optional<byte[]> getPixelBytes(ChunkPos pos) {
         String key = pos.x + "_" + pos.z;
         byte[] bytes = pixelMap.get(key);

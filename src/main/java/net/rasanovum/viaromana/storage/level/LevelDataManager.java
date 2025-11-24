@@ -8,6 +8,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.init.DataInit;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 import java.util.Set;
@@ -15,44 +16,97 @@ import java.util.Set;
 import static net.rasanovum.viaromana.map.ChunkPixelRenderer.renderChunkPixels;
 
 public class LevelDataManager {
-    public static Optional<byte[]> getPixelBytes(ServerLevel level, ChunkPos pos) {
+    public static boolean isPixelChunkTracked(ServerLevel level, ChunkPos pos) {
         TrackedDataContainer<Level, LevelTrackedData> container = TrackedDataRegistries.LEVEL.getContainer(level);
-        if (container == null) return Optional.empty();
+        if (container == null) return false;
 
-        return container.dataAnchor$getTrackedData(DataInit.CHUNK_PIXEL_KEY)
-                .filter(data -> data instanceof LevelPixelTrackedData)
-                .flatMap(data -> data.getPixelBytes(pos));
+        var dataOpt = container.dataAnchor$getTrackedData(DataInit.CHUNK_PIXEL_KEY);
+
+        if (dataOpt.isPresent()) {
+            var data = dataOpt.get();
+            if (data instanceof LevelPixelTrackedData) {
+                return data.isChunkTracked(pos);
+            }
+        }
+
+        return false;
+    }
+
+    public static byte @Nullable [] getPixelBytes(ServerLevel level, ChunkPos pos) {
+        var container = TrackedDataRegistries.LEVEL.getContainer(level);
+        if (container == null) return null;
+
+        var dataOpt = container.dataAnchor$getTrackedData(DataInit.CHUNK_PIXEL_KEY);
+
+        if (dataOpt.isPresent()) {
+            Object dataObj = dataOpt.get();
+            if (dataObj instanceof LevelPixelTrackedData data) {
+                var bytesOpt = data.getPixelBytes(pos);
+                return bytesOpt.orElse(null);
+            }
+        }
+
+        return null;
     }
 
     public static void setPixelBytes(ServerLevel level, ChunkPos pos, byte[] bytes) {
-        TrackedDataContainer<Level, LevelTrackedData> container = TrackedDataRegistries.LEVEL.getContainer(level);
+        var container = TrackedDataRegistries.LEVEL.getContainer(level);
         if (container == null) return;
 
-        container.dataAnchor$createTrackedData();
+        var dataOpt = container.dataAnchor$getTrackedData(DataInit.CHUNK_PIXEL_KEY);
 
-        container.dataAnchor$getTrackedData(DataInit.CHUNK_PIXEL_KEY)
-                .filter(data -> data instanceof LevelPixelTrackedData)
-                .ifPresent(data -> data.setPixelBytes(pos, bytes));
+        if (dataOpt.isPresent() && dataOpt.get() instanceof LevelPixelTrackedData) {
+            LevelPixelTrackedData pixelData = dataOpt.get();
+            pixelData.setPixelBytes(pos, bytes);
+            return;
+        }
+
+        // Slow path
+        container.dataAnchor$createTrackedData();
+        var newDataOpt = container.dataAnchor$getTrackedData(DataInit.CHUNK_PIXEL_KEY);
+
+        if (newDataOpt.isPresent() && newDataOpt.get() instanceof LevelPixelTrackedData) {
+            LevelPixelTrackedData pixelData = newDataOpt.get();
+            pixelData.setPixelBytes(pos, bytes);
+        }
     }
 
-    public static Optional<byte[]> getCornerBytes(ServerLevel level, ChunkPos pos) {
-        TrackedDataContainer<Level, LevelTrackedData> container = TrackedDataRegistries.LEVEL.getContainer(level);
-        if (container == null) return Optional.empty();
+    public static byte @Nullable [] getCornerBytes(ServerLevel level, ChunkPos pos) {
+        var container = TrackedDataRegistries.LEVEL.getContainer(level);
+        if (container == null) return null;
 
-        return container.dataAnchor$getTrackedData(DataInit.CHUNK_CORNER_KEY)
-                .filter(data -> data instanceof LevelCornerTrackedData)
-                .flatMap(data -> data.getCornerBytes(pos));
+        var dataOpt = container.dataAnchor$getTrackedData(DataInit.CHUNK_CORNER_KEY);
+
+        if (dataOpt.isPresent()) {
+            var data = dataOpt.get();
+            if (data instanceof LevelCornerTrackedData) {
+                return data.getCornerBytes(pos).orElse(null);
+            }
+        }
+
+        return null;
     }
 
     public static void setCornerBytes(ServerLevel level, ChunkPos pos, byte[] bytes) {
-        TrackedDataContainer<Level, LevelTrackedData> container = TrackedDataRegistries.LEVEL.getContainer(level);
+        var container = TrackedDataRegistries.LEVEL.getContainer(level);
         if (container == null) return;
 
-        container.dataAnchor$createTrackedData();
+        var dataOpt = container.dataAnchor$getTrackedData(DataInit.CHUNK_CORNER_KEY);
 
-        container.dataAnchor$getTrackedData(DataInit.CHUNK_CORNER_KEY)
-                .filter(data -> data instanceof LevelCornerTrackedData)
-                .ifPresent(data -> data.setCornerBytes(pos, bytes));
+        if (dataOpt.isPresent() && dataOpt.get() instanceof LevelCornerTrackedData) {
+            LevelCornerTrackedData pixelData = dataOpt.get();
+            pixelData.setCornerBytes(pos, bytes);
+            return;
+        }
+
+        // Slow path
+        container.dataAnchor$createTrackedData();
+        var newDataOpt = container.dataAnchor$getTrackedData(DataInit.CHUNK_CORNER_KEY);
+
+        if (newDataOpt.isPresent() && newDataOpt.get() instanceof LevelCornerTrackedData) {
+            LevelCornerTrackedData pixelData = newDataOpt.get();
+            pixelData.setCornerBytes(pos, bytes);
+        }
     }
 
     public static void clearPixelBytes(ServerLevel level, ChunkPos pos) {

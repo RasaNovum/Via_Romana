@@ -18,6 +18,7 @@ import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.storage.level.LevelDataManager;
 import net.rasanovum.viaromana.util.VersionUtils;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -218,15 +219,14 @@ public class ChunkPixelRenderer {
      * @return A BiomePixelResult containing the pixel data and cache/render status.
      */
     public static MapPixelAssembler.BiomePixelResult getOrRenderBiomePixels(ServerLevel level, ChunkPos biomeChunk, BiomeSource biomeSource, Climate.Sampler climateSampler, int maxBuildHeight) {
-        Optional<byte[]> cachedCorners = LevelDataManager.getCornerBytes(level, biomeChunk);
+        byte @Nullable [] cachedCorners = LevelDataManager.getCornerBytes(level, biomeChunk);
         int[] cornerPackedIds = new int[4];
         int cacheIncrement = 0;
         int renderIncrement = 0;
 
-        if (cachedCorners.isPresent()) {
-            byte[] corners = cachedCorners.get();
+        if (cachedCorners != null) {
             for (int i = 0; i < 4; i++) {
-                cornerPackedIds[i] = corners[i] & 0xFF;
+                cornerPackedIds[i] = cachedCorners[i] & 0xFF;
             }
             cacheIncrement = 1;
         } else {
@@ -236,10 +236,9 @@ public class ChunkPixelRenderer {
             for (int c = 0; c < 4; c++) {
                 int blockX = biomeChunk.getMinBlockX() + corners[c][0] * 4;
                 int blockZ = biomeChunk.getMinBlockZ() + corners[c][1] * 4;
-                int blockY = maxBuildHeight;
 
                 int quartX = blockX >> 2;
-                int quartY = blockY >> 2;
+                int quartY = maxBuildHeight >> 2;
                 int quartZ = blockZ >> 2;
 
                 cornerBiomes[c] = biomeSource.getNoiseBiome(quartX, quartY, quartZ, climateSampler);

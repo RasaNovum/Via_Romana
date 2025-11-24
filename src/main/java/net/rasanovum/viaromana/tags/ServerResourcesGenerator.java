@@ -26,7 +26,7 @@ public class ServerResourcesGenerator extends DynServerResourcesGenerator {
     public void regenerateDynamicAssets(Consumer<ResourceGenTask> executor) {
         ResourceGenTask task = (manager, sink) -> {
             try {
-                MidnightConfig.configInstances.get("via_romana").loadValuesFromJson();
+                MidnightConfig.configInstances.get(ViaRomana.MODID).loadValuesFromJson();
                 TagGenerator.generateAllTags(this.getPack(), manager);
                 ViaRomana.LOGGER.info("Successfully regenerated dynamic server resources.");
 

@@ -5,6 +5,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.storage.level.LevelDataManager;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 import java.util.Set;
@@ -137,11 +138,10 @@ public class MapPixelAssembler {
      * If scaleFactor >= 4 and no chunkPixel exists in cache, uses biomePixels to avoid expensive chunk rendering.
      */
     private static ChunkPixelResult getOrRenderChunkPixels(ServerLevel level, ChunkPos chunkPos, int scaleFactor, byte[] biomePixels) {
-        Optional<byte[]> cached = LevelDataManager.getPixelBytes(level, chunkPos);
-        if (cached.isPresent()) {
-            byte[] pixels = cached.get();
-            if (pixels.length == 256) {
-                return new ChunkPixelResult(pixels, 1, 0);
+        byte @Nullable [] cached = LevelDataManager.getPixelBytes(level, chunkPos);
+        if (cached != null) {
+            if (cached.length == 256) {
+                return new ChunkPixelResult(cached, 1, 0);
             }
         }
 

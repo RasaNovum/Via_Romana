@@ -10,6 +10,7 @@ import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.map.ServerMapCache;
 import net.rasanovum.viaromana.path.PathGraph;
 
+import net.rasanovum.viaromana.storage.level.LevelDataManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -27,11 +28,13 @@ public abstract class ServerLevelMixin {
     private void onBlockStateChange(BlockPos pos, BlockState oldState, BlockState newState, CallbackInfo ci) {
         if (oldState == newState) return;
 
+        ChunkPos chunkPos = new ChunkPos(pos);
         ServerLevel world = (ServerLevel) (Object) this;
+
+        if (!LevelDataManager.isPixelChunkTracked(world, chunkPos)) return;
 
         if (oldState.getMapColor(world, pos).equals(newState.getMapColor(world, pos))) return;
 
-        ChunkPos chunkPos = new ChunkPos(pos);
         LevelChunk levelChunk = world.getChunkSource().getChunkNow(chunkPos.x, chunkPos.z);
 
         if (levelChunk == null) return;
