@@ -33,7 +33,7 @@
 		"fabric-api": ">=${fapi}",
 		"commonnetworking": "*",
 		"moonlight": "*",
-		"midnightlib": "*",
+		"midnightlib": ">=1.9.0",
 		"dataanchor": "*"
 	},
 	"mixins": [

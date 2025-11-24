@@ -46,7 +46,7 @@ side = "BOTH"
 [[dependencies.${modId}]]
 modId = "midnightlib"
 type = "required"
-versionRange = "*"
+versionRange = "[1.9.0,)"
 ordering = "NONE"
 side = "BOTH"
 
