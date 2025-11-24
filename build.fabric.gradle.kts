@@ -12,6 +12,7 @@ base.archivesName = property("mod.id") as String
 loom {
     mixin {
         defaultRefmapName = "${property("mod.id")}.refmap.json"
+        useLegacyMixinAp = true
     }
     accessWidenerPath = rootProject.file("src/main/resources/${property("mod.id")}.accesswidener")
 }
@@ -30,12 +31,7 @@ repositories {
 
 dependencies {
     minecraft("com.mojang:minecraft:${property("deps.minecraft")}")
-    mappings(loom.layered {
-        officialMojangMappings()
-        if (hasProperty("deps.parchment")) {
-            parchment("org.parchmentmc.data:parchment-${property("deps.minecraft")}:${property("deps.parchment")}@zip")
-        }
-    })
+    mappings(loom.officialMojangMappings())
 
     modImplementation("net.fabricmc:fabric-loader:${property("deps.fabric_loader")}")
     modImplementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")

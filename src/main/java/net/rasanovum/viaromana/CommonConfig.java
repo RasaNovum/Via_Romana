@@ -4,26 +4,8 @@ import eu.midnightdust.lib.config.MidnightConfig;
 import java.util.List;
 
 import com.google.common.collect.Lists;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.packs.PackResources;
 
 public class CommonConfig extends MidnightConfig {
-    //? if >1.21 {
-    @Override
-    public void writeChanges(String modid) {
-        System.out.println("Config save triggered for mod: " + modid);
-        super.writeChanges(modid);
-
-        MinecraftServer server = ViaRomana.getServer();
-        if (server == null) return;
-
-        server.execute(() -> {
-            ViaRomana.LOGGER.info("Reloading server resources due to config change...");
-            server.reloadResources(server.getResourceManager().listPacks().map(PackResources::packId).toList());
-        });
-    }
-    //?}
-
     public static final String CHARTING = "charting";
     public static final String MAP = "map";
     public static final String WARP = "warp";
@@ -69,4 +51,11 @@ public class CommonConfig extends MidnightConfig {
     @Entry(category = VISUALS, min = 0f, max = 1f) public static float biome_map_opacity = 0.3f;
     @Entry(category = VISUALS, min = 0f, max = 1f) public static float node_vignette_opacity = 1.0f;
     @Entry(category = VISUALS) public static boolean enable_teleport_particles = true;
+
+    @Override
+    public void writeChanges() {
+        super.writeChanges();
+        ViaRomana.LOGGER.info("Via Romana config saved. Use /reload to update state");
+        //TODO: Update relevant systems using a diff check (or similar)
+    }
 }

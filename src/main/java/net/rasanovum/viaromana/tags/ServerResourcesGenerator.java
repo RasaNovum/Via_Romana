@@ -1,17 +1,12 @@
 package net.rasanovum.viaromana.tags;
 
+import eu.midnightdust.lib.config.MidnightConfig;
 import net.mehvahdjukaar.moonlight.api.resources.pack.DynServerResourcesGenerator;
 import net.mehvahdjukaar.moonlight.api.resources.pack.DynamicDataPack;
 import net.mehvahdjukaar.moonlight.api.resources.pack.ResourceGenTask;
-import eu.midnightdust.lib.config.MidnightConfig;
-import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.ViaRomana;
 
 import org.apache.logging.log4j.Logger;
-import com.google.gson.Gson;
-import java.lang.reflect.Field;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.function.Consumer;
 
 @SuppressWarnings("removal")
@@ -31,20 +26,7 @@ public class ServerResourcesGenerator extends DynServerResourcesGenerator {
     public void regenerateDynamicAssets(Consumer<ResourceGenTask> executor) {
         ResourceGenTask task = (manager, sink) -> {
             try {
-                //? if <1.21 {
-                /*try {
-                    Field gsonField = MidnightConfig.class.getDeclaredField("gson");
-                    gsonField.setAccessible(true);
-                    Gson gson = (Gson) gsonField.get(null);
-                    Path configPath = eu.midnightdust.lib.util.PlatformFunctions.getConfigDirectory().resolve(ViaRomana.MODID + ".json");
-        
-                    gson.fromJson(Files.newBufferedReader(configPath), CommonConfig.class);
-                } catch (Exception e) {
-                    ViaRomana.LOGGER.error("Failed to reload config from file", e);
-                }
-                *///?} else {
-                MidnightConfig.loadValuesFromJson(ViaRomana.MODID);
-                //?}
+                MidnightConfig.configInstances.get("via_romana").loadValuesFromJson();
                 TagGenerator.generateAllTags(this.getPack(), manager);
                 ViaRomana.LOGGER.info("Successfully regenerated dynamic server resources.");
 

@@ -1,8 +1,8 @@
 plugins {
     id("dev.kikugie.stonecutter")
     id("co.uzzu.dotenv.gradle") version "4.0.0"
-    id("fabric-loom") version "1.10-SNAPSHOT" apply false
-    id("net.minecraftforge.gradle") version ("[6.0,6.2)") apply false
+    id("fabric-loom") version "1.13-SNAPSHOT" apply false
+    id("net.minecraftforge.gradle") version ("6.0.46") apply false
     id("org.parchmentmc.librarian.forgegradle") version "1.+" apply false
     id("net.neoforged.moddev") version "2.0.95" apply false
     id ("dev.kikugie.postprocess.jsonlang") version "2.1-beta.4" apply false
