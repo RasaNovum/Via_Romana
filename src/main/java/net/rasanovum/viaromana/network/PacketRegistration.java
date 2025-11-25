@@ -27,8 +27,6 @@ public class PacketRegistration {
         Object streamCodec,
         java.util.function.Consumer<PacketContext<T>> handler
     ) {
-        // Network.registerPacket expects BiConsumer<T, FriendlyByteBuf> (packet, buffer)
-        // but our encode methods are (buffer, packet), so we need to swap the parameters
         Network.registerPacket((net.minecraft.resources.ResourceLocation) type, packetClass, (pkt, buf) -> encoder.accept(buf, pkt), decoder, handler);
     }
     *///?} else {
