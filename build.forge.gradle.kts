@@ -152,37 +152,26 @@ publishMods {
         accessToken = providers.environmentVariable("MODRINTH_TOKEN")
         projectId = property("publish.modrinth") as String
         minecraftVersions.add(property("deps.minecraft") as String)
-        
-        requires {
-            slug = "common-network"
-        }
-        requires {
-            slug = "data-anchor"
-        }
-        requires {
-            slug = "midnightlib"
-        }
-        requires {
-            slug = "moonlight"
-        }
+
+        requires { slug = "fabric-api" }
+        requires { slug = "common-network" }
+        requires { slug = "data-anchor" }
+        requires { slug = "midnightlib" }
+        requires { slug = "moonlight" }
     }
     
     curseforge {
         accessToken = providers.environmentVariable("CURSEFORGE_TOKEN")
         projectId = property("publish.curseforge") as String
         minecraftVersions.add(property("deps.minecraft") as String)
-        
-        requires {
-            slug = "common-network"
-        }
-        requires {
-            slug = "data-anchor"
-        }
-        requires {
-            slug = "midnightlib"
-        }
-        requires {
-            slug = "selene"
-        }
+
+        clientRequired = true
+        serverRequired = true
+
+        requires { slug = "fabric-api" }
+        requires { slug = "common-network" }
+        requires { slug = "data-anchor" }
+        requires { slug = "midnightlib" }
+        requires { slug = "selene" }
     }
 }
