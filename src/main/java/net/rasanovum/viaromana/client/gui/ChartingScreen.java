@@ -1,6 +1,7 @@
 package net.rasanovum.viaromana.client.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import dev.corgitaco.dataanchor.network.broadcast.PacketBroadcaster;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.language.I18n;
@@ -9,13 +10,12 @@ import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
-// import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.client.core.PathRecord;
 import net.rasanovum.viaromana.client.data.ClientPathData;
 import net.rasanovum.viaromana.client.gui.elements.MapActionButton;
 import net.rasanovum.viaromana.client.gui.elements.MapSquareButton;
-import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.client.ClientConfigCache;
+import net.rasanovum.viaromana.network.packets.MeowC2S;
 import net.rasanovum.viaromana.network.packets.RoutedActionC2S;
 import net.rasanovum.viaromana.storage.player.PlayerData;
 import net.rasanovum.viaromana.util.PathUtils;
@@ -362,8 +362,7 @@ public class ChartingScreen extends Screen {
     }
 
     private void sendRoutedAction(RoutedActionC2S.Operation operation) {
-        RoutedActionC2S packet = new RoutedActionC2S(operation);
-        commonnetwork.api.Dispatcher.sendToServer(packet);
+        PacketBroadcaster.C2S.sendToServer(new RoutedActionC2S(operation));
         Objects.requireNonNull(minecraft).setScreen(null);
     }
     

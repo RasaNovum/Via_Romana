@@ -62,10 +62,4 @@ public class ClientPacketHandler {
             });
         }
     }
-
-    public static void handleMapResponse(PacketContext<MapResponseS2C> ctx) {
-        if (Side.CLIENT.equals(ctx.side())) {
-            MapClient.handleMapResponse(ctx.message());
-        }
-    }
 }

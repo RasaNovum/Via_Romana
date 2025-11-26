@@ -47,14 +47,12 @@ public class MapClient {
     }
     
     private static CompletableFuture<MapInfo> pendingRequest = null;
-
-    public static void handleMapResponse(MapResponseS2C packet) {
-        handleMapInfo(packet.getMapInfo());
-    }
     
-    public static void handleMapInfo(MapInfo mapInfo) {        
+    public static void handleMapInfo(MapResponseS2C packet) {
+        if (CommonConfig.logging_enum.ordinal() > 1) ViaRomana.LOGGER.info("Pending Request: {}", pendingRequest != null);
+
         if (pendingRequest != null) {
-            pendingRequest.complete(mapInfo);
+            pendingRequest.complete(packet.mapInfo());
             pendingRequest = null;
         }
     }

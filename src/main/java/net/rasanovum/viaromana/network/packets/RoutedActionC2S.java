@@ -1,83 +1,58 @@
 package net.rasanovum.viaromana.network.packets;
 
 import net.minecraft.network.FriendlyByteBuf;
-//? if >=1.21 {
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-//?}
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import net.rasanovum.viaromana.CommonConfig;
+import net.rasanovum.viaromana.ViaRomana;
+import net.rasanovum.viaromana.network.AbstractPacket;
+import net.rasanovum.viaromana.path.Node;
 import net.rasanovum.viaromana.path.PathGraph;
 import net.rasanovum.viaromana.storage.path.PathDataManager;
-import net.rasanovum.viaromana.util.VersionUtils;
-import net.minecraft.resources.ResourceLocation;
+import net.rasanovum.viaromana.util.PathSyncUtils;
+
+import java.util.Optional;
 
 /**
  * C2S action packet for path operations.
  */
-//? if <1.21 {
-/*public record RoutedActionC2S(Operation op) {
-*///?} else {
-public record RoutedActionC2S(Operation op) implements CustomPacketPayload {
-//?}
+public record RoutedActionC2S(Operation op) implements AbstractPacket {
     public enum Operation { SEVER_NEAREST_NODE, REMOVE_BRANCH }
 
-    //? if <1.21 {
-    /*public static final ResourceLocation TYPE = VersionUtils.getLocation("viaromana:action_request_c2s");
-    public static final Object STREAM_CODEC = null;
-    *///?} else {
-    public static final CustomPacketPayload.Type<RoutedActionC2S> TYPE = new CustomPacketPayload.Type<>(VersionUtils.getLocation("viaromana:action_request_c2s"));
-
-    public static final StreamCodec<FriendlyByteBuf, RoutedActionC2S> STREAM_CODEC = StreamCodec.composite(
-        ByteBufCodecs.VAR_INT.map(i -> Operation.values()[i], Operation::ordinal), RoutedActionC2S::op,
-        RoutedActionC2S::new
-    );
-    //?}
-
-    //? if >=1.21 {
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-    //?}
-
-    public static void encode(FriendlyByteBuf buf, RoutedActionC2S packet) {
-        buf.writeVarInt(packet.op.ordinal());
+    public RoutedActionC2S(FriendlyByteBuf buf) {
+        this(Operation.values()[buf.readVarInt()]);
     }
 
-    public static RoutedActionC2S decode(FriendlyByteBuf buf) {
-        int ordinal = buf.readVarInt();
-        return new RoutedActionC2S(Operation.values()[ordinal]);
+    public void write(FriendlyByteBuf buf) {
+        buf.writeVarInt(op.ordinal());
     }
 
-    public static void handle(commonnetwork.networking.data.PacketContext<RoutedActionC2S> ctx) {
-        if (commonnetwork.networking.data.Side.SERVER.equals(ctx.side())) {
-            ctx.sender().server.execute(() -> {
-                net.minecraft.server.level.ServerPlayer player = ctx.sender();
-                net.minecraft.server.level.ServerLevel level = player.serverLevel();
-                PathGraph graph = PathGraph.getInstance(level);
+    public void handle(Level level, Player player) {
+        if (level instanceof ServerLevel serverLevel && player instanceof ServerPlayer serverPlayer) {
+            PathGraph graph = PathGraph.getInstance(serverLevel);
 
-                java.util.Optional<net.rasanovum.viaromana.path.Node> nearestOpt = graph.getNearestNode(player.blockPosition(), CommonConfig.node_utility_distance, node -> true);
+            Optional<Node> nearestOpt = graph.getNearestNode(
+                    serverPlayer.blockPosition(),
+                    CommonConfig.node_utility_distance,
+                    node -> true
+            );
 
-                if (nearestOpt.isEmpty()) {
-                    net.rasanovum.viaromana.ViaRomana.LOGGER.warn("No nearby node found for action {} by player {}", ctx.message().op(), player.getName().getString());
-                    return;
-                }
+            if (nearestOpt.isEmpty()) {
+                ViaRomana.LOGGER.warn("No nearby node found for action {} by player {}", this.op, serverPlayer.getName().getString());
+                return;
+            }
 
-                net.rasanovum.viaromana.path.Node nearestNode = nearestOpt.get();
+            Node nearestNode = nearestOpt.get();
 
-                switch (ctx.message().op()) {
-                    case SEVER_NEAREST_NODE -> {
-                        graph.removeNode(nearestNode);
-                    }
-                    case REMOVE_BRANCH -> {
-                        graph.removeBranch(nearestNode);
-                    }
-                }
+            switch (this.op) {
+                case SEVER_NEAREST_NODE -> graph.removeNode(nearestNode);
+                case REMOVE_BRANCH -> graph.removeBranch(nearestNode);
+            }
 
-                PathDataManager.markDirty(level);
-                net.rasanovum.viaromana.util.PathSyncUtils.syncPathGraphToAllPlayers(level);
-            });
+            PathDataManager.markDirty(serverLevel);
+            PathSyncUtils.syncPathGraphToAllPlayers(serverLevel);
         }
     }
 }

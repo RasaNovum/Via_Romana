@@ -50,6 +50,8 @@ dependencies {
 }
 
 tasks.named<ProcessResources>("processResources") {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
     val props = mapOf(
         "version" to project.version,
         "mc" to project.property("deps.minecraft"),

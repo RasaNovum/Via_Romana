@@ -1,5 +1,6 @@
 package net.rasanovum.viaromana.network.packets;
 
+import dev.corgitaco.dataanchor.network.broadcast.PacketBroadcaster;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
@@ -61,11 +62,6 @@ public record MapRequestC2S(MapInfo mapInfo) implements CustomPacketPayload {
         return new MapRequestC2S(MapInfo.request(networkId, minBounds, maxBounds, networkNodes));
     }
 
-    // Getters
-    public UUID getNetworkId() { return mapInfo.networkId(); }
-    public List<NodeNetworkInfo> getNetworkNodes() { return mapInfo.networkNodes(); }
-    public MapInfo getMapInfo() { return mapInfo; }
-
     public static void handle(PacketContext<MapRequestC2S> ctx) {
         if (Side.SERVER.equals(ctx.side())) {
             net.minecraft.server.level.ServerLevel level = ctx.sender().serverLevel();
@@ -74,8 +70,7 @@ public record MapRequestC2S(MapInfo mapInfo) implements CustomPacketPayload {
             ServerMapCache.generateMapIfNeeded(networkId, level)
                 .thenAccept(mapInfo -> {
                     if (mapInfo != null) {
-                        MapResponseS2C response = new MapResponseS2C(mapInfo);
-                        Dispatcher.sendToClient(response, ctx.sender());
+                        PacketBroadcaster.S2C.sendToPlayer(new MapResponseS2C(mapInfo), ctx.sender());
                     }
                 });
         }

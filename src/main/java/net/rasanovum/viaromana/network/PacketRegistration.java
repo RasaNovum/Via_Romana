@@ -2,7 +2,9 @@ package net.rasanovum.viaromana.network;
 
 import commonnetwork.api.Network;
 import commonnetwork.networking.data.PacketContext;
-import commonnetwork.networking.data.Side;
+import dev.corgitaco.dataanchor.network.BiDirectionalNetworkContainer;
+import dev.corgitaco.dataanchor.network.C2SNetworkContainer;
+import dev.corgitaco.dataanchor.network.S2CNetworkContainer;
 import net.minecraft.network.FriendlyByteBuf;
 //? if >=1.21 {
 import net.minecraft.network.codec.StreamCodec;
@@ -17,6 +19,10 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 public class PacketRegistration {
+
+    public static final C2SNetworkContainer C2S_CONTAINER = C2SNetworkContainer.of(ViaRomana.MODID);
+    public static final S2CNetworkContainer S2C_CONTAINER = S2CNetworkContainer.of(ViaRomana.MODID);
+    public static final BiDirectionalNetworkContainer BI_CONTAINER = BiDirectionalNetworkContainer.of(ViaRomana.MODID);
     
     //? if <1.21 {
     /*private static <T> void registerPacket(
@@ -43,13 +49,16 @@ public class PacketRegistration {
     //?}
     
     public void initCommon() {
-        ViaRomana.LOGGER.info("Registering common network packets");
+        ViaRomana.LOGGER.info("Registering network packets");
+
+        PacketRegistrar.register(C2S_CONTAINER, "meow_c2s", MeowC2S.class, MeowC2S::write, MeowC2S::new, MeowC2S::handle);
+        PacketRegistrar.register(C2S_CONTAINER, "routed_action_c2s", RoutedActionC2S.class, RoutedActionC2S::write, RoutedActionC2S::new, RoutedActionC2S::handle);
+        PacketRegistrar.register(S2C_CONTAINER, "map_response_s2c", MapResponseS2C.class, MapResponseS2C::write, MapResponseS2C::new, MapResponseS2C::handle);
 
         registerPacket(PathGraphSyncPacket.TYPE, PathGraphSyncPacket.class, PathGraphSyncPacket::encode, PathGraphSyncPacket::decode, PathGraphSyncPacket.STREAM_CODEC, PathGraphSyncPacket::handle);
         registerPacket(ConfigSyncS2C.TYPE, ConfigSyncS2C.class, ConfigSyncS2C::encode, ConfigSyncS2C::decode, ConfigSyncS2C.STREAM_CODEC, ConfigSyncS2C::handle);
         registerPacket(PreProcessChunksC2S.TYPE, PreProcessChunksC2S.class, PreProcessChunksC2S::encode, PreProcessChunksC2S::decode, PreProcessChunksC2S.STREAM_CODEC, PreProcessChunksC2S::handle);
         registerPacket(ChartedPathC2S.TYPE, ChartedPathC2S.class, ChartedPathC2S::encode, ChartedPathC2S::decode, ChartedPathC2S.STREAM_CODEC, ChartedPathC2S::handle);
-        registerPacket(RoutedActionC2S.TYPE, RoutedActionC2S.class, RoutedActionC2S::encode, RoutedActionC2S::decode, RoutedActionC2S.STREAM_CODEC, RoutedActionC2S::handle);
         registerPacket(DestinationRequestC2S.TYPE, DestinationRequestC2S.class, DestinationRequestC2S::encode, DestinationRequestC2S::decode, DestinationRequestC2S.STREAM_CODEC, DestinationRequestC2S::handle);
         registerPacket(SignLinkRequestC2S.TYPE, SignLinkRequestC2S.class, SignLinkRequestC2S::encode, SignLinkRequestC2S::decode, SignLinkRequestC2S.STREAM_CODEC, SignLinkRequestC2S::handle);
         registerPacket(MapRequestC2S.TYPE, MapRequestC2S.class, MapRequestC2S::encode, MapRequestC2S::decode, MapRequestC2S.STREAM_CODEC, MapRequestC2S::handle);
@@ -67,7 +76,6 @@ public class PacketRegistration {
         registerPacket(TeleportFadeS2C.TYPE, TeleportFadeS2C.class, TeleportFadeS2C::encode, TeleportFadeS2C::decode, TeleportFadeS2C.STREAM_CODEC, ctx -> {});
         registerPacket(SignValidationResponseS2C.TYPE, SignValidationResponseS2C.class, SignValidationResponseS2C::encode, SignValidationResponseS2C::decode, SignValidationResponseS2C.STREAM_CODEC, ctx -> {});
         registerPacket(DestinationResponseS2C.TYPE, DestinationResponseS2C.class, DestinationResponseS2C::encode, DestinationResponseS2C::decode, DestinationResponseS2C.STREAM_CODEC, ctx -> {});
-        registerPacket(MapResponseS2C.TYPE, MapResponseS2C.class, MapResponseS2C::encode, MapResponseS2C::decode, MapResponseS2C.STREAM_CODEC, ctx -> {});
         //?} else {
         /*if (Platform.INSTANCE.isClientSide()) {
             registerPacket(OpenChartingScreenS2C.TYPE, OpenChartingScreenS2C.class, OpenChartingScreenS2C::encode, OpenChartingScreenS2C::decode, OpenChartingScreenS2C.STREAM_CODEC, ClientPacketHandler::handleOpenChartingScreen);
@@ -76,7 +84,6 @@ public class PacketRegistration {
             registerPacket(TeleportFadeS2C.TYPE, TeleportFadeS2C.class, TeleportFadeS2C::encode, TeleportFadeS2C::decode, TeleportFadeS2C.STREAM_CODEC, ClientPacketHandler::handleTeleportFade);
             registerPacket(SignValidationResponseS2C.TYPE, SignValidationResponseS2C.class, SignValidationResponseS2C::encode, SignValidationResponseS2C::decode, SignValidationResponseS2C.STREAM_CODEC, ClientPacketHandler::handleSignValidationResponse);
             registerPacket(DestinationResponseS2C.TYPE, DestinationResponseS2C.class, DestinationResponseS2C::encode, DestinationResponseS2C::decode, DestinationResponseS2C.STREAM_CODEC, ClientPacketHandler::handleDestinationResponse);
-            registerPacket(MapResponseS2C.TYPE, MapResponseS2C.class, MapResponseS2C::encode, MapResponseS2C::decode, MapResponseS2C.STREAM_CODEC, ClientPacketHandler::handleMapResponse);
         } else {
             registerPacket(OpenChartingScreenS2C.TYPE, OpenChartingScreenS2C.class, OpenChartingScreenS2C::encode, OpenChartingScreenS2C::decode, OpenChartingScreenS2C.STREAM_CODEC, ctx -> {});
             registerPacket(OpenLinkSignScreenS2C.TYPE, OpenLinkSignScreenS2C.class, OpenLinkSignScreenS2C::encode, OpenLinkSignScreenS2C::decode, OpenLinkSignScreenS2C.STREAM_CODEC, ctx -> {});
@@ -84,7 +91,6 @@ public class PacketRegistration {
             registerPacket(TeleportFadeS2C.TYPE, TeleportFadeS2C.class, TeleportFadeS2C::encode, TeleportFadeS2C::decode, TeleportFadeS2C.STREAM_CODEC, ctx -> {});
             registerPacket(SignValidationResponseS2C.TYPE, SignValidationResponseS2C.class, SignValidationResponseS2C::encode, SignValidationResponseS2C::decode, SignValidationResponseS2C.STREAM_CODEC, ctx -> {});
             registerPacket(DestinationResponseS2C.TYPE, DestinationResponseS2C.class, DestinationResponseS2C::encode, DestinationResponseS2C::decode, DestinationResponseS2C.STREAM_CODEC, ctx -> {});
-            registerPacket(MapResponseS2C.TYPE, MapResponseS2C.class, MapResponseS2C::encode, MapResponseS2C::decode, MapResponseS2C.STREAM_CODEC, ctx -> {});
         }
         *///?}
     }
@@ -99,7 +105,6 @@ public class PacketRegistration {
         registerPacket(TeleportFadeS2C.TYPE, TeleportFadeS2C.class, TeleportFadeS2C::encode, TeleportFadeS2C::decode, TeleportFadeS2C.STREAM_CODEC, ClientPacketHandler::handleTeleportFade);
         registerPacket(SignValidationResponseS2C.TYPE, SignValidationResponseS2C.class, SignValidationResponseS2C::encode, SignValidationResponseS2C::decode, SignValidationResponseS2C.STREAM_CODEC, ClientPacketHandler::handleSignValidationResponse);
         registerPacket(DestinationResponseS2C.TYPE, DestinationResponseS2C.class, DestinationResponseS2C::encode, DestinationResponseS2C::decode, DestinationResponseS2C.STREAM_CODEC, ClientPacketHandler::handleDestinationResponse);
-        registerPacket(MapResponseS2C.TYPE, MapResponseS2C.class, MapResponseS2C::encode, MapResponseS2C::decode, MapResponseS2C.STREAM_CODEC, ClientPacketHandler::handleMapResponse);
         //?}
     }
 }

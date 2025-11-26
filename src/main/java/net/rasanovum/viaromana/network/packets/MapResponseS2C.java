@@ -1,55 +1,26 @@
 package net.rasanovum.viaromana.network.packets;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-//? if >=1.21 {
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-//?}
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.map.MapInfo;
-import net.rasanovum.viaromana.util.VersionUtils;
+import net.rasanovum.viaromana.network.AbstractPacket;
 
-/*
- * Response from the server containing the generated map data for the requested area and network.
+/**
+ * Response from the server containing the generated map data.
  */
-//? if <1.21 {
-/*public record MapResponseS2C(MapInfo mapInfo) {
-*///?} else {
-public record MapResponseS2C(MapInfo mapInfo) implements CustomPacketPayload {
-//?}
-    //? if <1.21 {
-    /*public static final ResourceLocation TYPE = VersionUtils.getLocation("via_romana:map_response_s2c");
-    public static final Object STREAM_CODEC = null;
-    *///?} else {
-    public static final CustomPacketPayload.Type<MapResponseS2C> TYPE = new CustomPacketPayload.Type<>(VersionUtils.getLocation("via_romana:map_response_s2c"));
+public record MapResponseS2C(MapInfo mapInfo) implements AbstractPacket {
 
-    public static final StreamCodec<FriendlyByteBuf, MapResponseS2C> STREAM_CODEC = new StreamCodec<>() {
-        @Override
-        public MapResponseS2C decode(FriendlyByteBuf buffer) {
-            return new MapResponseS2C(MapInfo.readFromBuffer(buffer));
-        }
-
-        @Override
-        public void encode(FriendlyByteBuf buffer, MapResponseS2C packet) {
-            packet.mapInfo.writeToBuffer(buffer);
-        }
-    };
-    //?}
-
-    //? if >=1.21 {
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-    //?}
-
-    public static void encode(FriendlyByteBuf buf, MapResponseS2C packet) {
-        packet.mapInfo.writeToBuffer(buf);
+    public MapResponseS2C(FriendlyByteBuf buf) {
+        this(MapInfo.readFromBuffer(buf));
     }
 
-    public static MapResponseS2C decode(FriendlyByteBuf buf) {
-        return new MapResponseS2C(MapInfo.readFromBuffer(buf));
+    public void write(FriendlyByteBuf buf) {
+        this.mapInfo.writeToBuffer(buf);
     }
 
-    public MapInfo getMapInfo() { return mapInfo; }
+    public void handle(Level level, Player player) {
+        net.rasanovum.viaromana.client.MapClient.handleMapInfo(this);
+    }
 }
