@@ -1,5 +1,6 @@
 package net.rasanovum.viaromana.mixins.client;
 
+//? if <=1.21.1 {
 import net.mehvahdjukaar.supplementaries.client.screens.SignPostScreen;
 import net.mehvahdjukaar.supplementaries.client.screens.TextHolderEditScreen;
 import net.minecraft.client.gui.components.Button;
@@ -44,3 +45,4 @@ public abstract class TextHolderEditScreenMixin extends Screen {
         return false;
     }
 }
+//?}

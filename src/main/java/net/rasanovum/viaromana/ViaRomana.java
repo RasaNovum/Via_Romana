@@ -2,7 +2,10 @@ package net.rasanovum.viaromana;
 
 import com.mojang.brigadier.CommandDispatcher;
 import eu.midnightdust.lib.config.MidnightConfig;
+//? if <=1.21.1 {
 import net.mehvahdjukaar.moonlight.api.resources.pack.DynamicDataPack;
+import net.rasanovum.viaromana.tags.ServerResourcesGenerator;
+//?}
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
@@ -18,7 +21,6 @@ import net.rasanovum.viaromana.integration.IntegrationManager;
 import net.rasanovum.viaromana.map.ChunkPixelRenderer;
 import net.rasanovum.viaromana.map.ServerMapCache;
 import net.rasanovum.viaromana.storage.player.PlayerData;
-import net.rasanovum.viaromana.tags.ServerResourcesGenerator;
 import net.rasanovum.viaromana.teleport.ServerTeleportHandler;
 import net.rasanovum.viaromana.util.PathSyncUtils;
 import net.rasanovum.viaromana.util.VersionUtils;
@@ -34,8 +36,10 @@ import java.util.UUID;
 public class ViaRomana {
     public static final Logger LOGGER = LogManager.getLogger();
     public static final String MODID = "via_romana";
+    //? if <=1.21.1 {
     @SuppressWarnings("removal")
     public static final DynamicDataPack DYNAMIC_PACK = new DynamicDataPack(VersionUtils.getLocation(MODID, "dynamic_tags"));
+    //?}
     
     private static final int PATH_GRAPH_SYNC_DELAY = 40;
     private static final int PATH_GRAPH_SYNC_MAX_ATTEMPTS = 10;
@@ -51,8 +55,10 @@ public class ViaRomana {
 
         MidnightConfig.init(MODID, CommonConfig.class);
 
+        //? if <=1.21.1 {
         ServerResourcesGenerator generator = new ServerResourcesGenerator(DYNAMIC_PACK);
         generator.register();
+        //?}
 
         IntegrationManager.initialize();
     }

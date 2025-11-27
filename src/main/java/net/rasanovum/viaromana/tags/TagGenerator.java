@@ -1,29 +1,33 @@
 package net.rasanovum.viaromana.tags;
 
+
 import java.util.List;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
-import net.mehvahdjukaar.moonlight.api.resources.SimpleTagBuilder;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.CommonConfig;
-import net.mehvahdjukaar.moonlight.api.resources.pack.DynamicDataPack;
 import net.rasanovum.viaromana.loaders.Platform;
 import net.rasanovum.viaromana.util.VersionUtils;
+//? if <=1.21.1 {
+import net.mehvahdjukaar.moonlight.api.resources.SimpleTagBuilder;
+import net.mehvahdjukaar.moonlight.api.resources.pack.DynamicDataPack;
+//?}
 
-/**
+/*
  * Generates block tags to Moonlight's DynamicDataPack.
  * Called on init and on data pack reload.
- */
+*/
 public class TagGenerator {
     public static final TagKey<Block> PATH_BLOCK_TAG = TagKey.create(Registries.BLOCK, VersionUtils.getLocation("via_romana:path_block"));
     public static final TagKey<Block> WARP_BLOCK_TAG = TagKey.create(Registries.BLOCK, VersionUtils.getLocation("via_romana:warp_block"));
     public static final TagKey<Block> LEAVES_BLOCK_TAG = TagKey.create(Registries.BLOCK, VersionUtils.getLocation("minecraft:leaves"));
 
+    //? if <=1.21.1 {
     @SuppressWarnings("removal")
     public static void generateAllTags(DynamicDataPack pack, ResourceManager resourceManager) {
         try {
@@ -93,6 +97,8 @@ public class TagGenerator {
 
         return tagBuilder;
     }
+
+    //?}
 
     private static boolean isModLoadedForTag(String tagString) {
         try {

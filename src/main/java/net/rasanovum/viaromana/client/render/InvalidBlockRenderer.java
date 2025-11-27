@@ -41,7 +41,10 @@ public class InvalidBlockRenderer {
         Camera camera = Minecraft.getInstance().gameRenderer.getMainCamera();
         Vec3 cameraPos = camera.getPosition();
         MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
+        //? <=1.21.1
         VertexConsumer consumer = bufferSource.getBuffer(RenderType.entityTranslucentCull(BARRIER_TEXTURE));
+        //? >1.21.1
+        /*VertexConsumer consumer = bufferSource.getBuffer(RenderType.entityTranslucent(BARRIER_TEXTURE));*/
 
         poseStack.pushPose();
         poseStack.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z);
@@ -84,7 +87,10 @@ public class InvalidBlockRenderer {
         }
 
         poseStack.popPose();
+        //? <=1.21.1
         bufferSource.endBatch(RenderType.entityTranslucentCull(BARRIER_TEXTURE));
+        //? >1.21.1
+        /*bufferSource.endBatch(RenderType.entityTranslucent(BARRIER_TEXTURE));*/
     }
 
     private static void renderTopFace(PoseStack.Pose pose, VertexConsumer consumer, float minX, float maxX, float y, float minZ, float maxZ, float alpha) {

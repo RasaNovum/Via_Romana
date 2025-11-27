@@ -6,7 +6,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
 import java.util.IdentityHashMap;
 import java.util.Map;
-//? }
+//?}
 
 public interface AbstractPacket extends Packet {
     //? if >=1.21 {

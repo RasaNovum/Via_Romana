@@ -14,6 +14,9 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/versions/1.21.1-fabric/via-romana.1.21.1-fabric.test.iml" filepath="$PROJECT_DIR$/.idea/modules/versions/1.21.1-fabric/via-romana.1.21.1-fabric.test.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/versions/1.21.1-neoforge/via-romana.1.21.1-neoforge.main.iml" filepath="$PROJECT_DIR$/.idea/modules/versions/1.21.1-neoforge/via-romana.1.21.1-neoforge.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/versions/1.21.1-neoforge/via-romana.1.21.1-neoforge.test.iml" filepath="$PROJECT_DIR$/.idea/modules/versions/1.21.1-neoforge/via-romana.1.21.1-neoforge.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/versions/1.21.5-fabric/via-romana.1.21.5-fabric.main.iml" filepath="$PROJECT_DIR$/.idea/modules/versions/1.21.5-fabric/via-romana.1.21.5-fabric.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/versions/1.21.5-fabric/via-romana.1.21.5-fabric.test.iml" filepath="$PROJECT_DIR$/.idea/modules/versions/1.21.5-fabric/via-romana.1.21.5-fabric.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/versions/1.21.5-neoforge/via-romana.1.21.5-neoforge.main.iml" filepath="$PROJECT_DIR$/.idea/modules/versions/1.21.5-neoforge/via-romana.1.21.5-neoforge.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/via_romana.main.iml" filepath="$PROJECT_DIR$/.idea/modules/via_romana.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/via_romana.test.iml" filepath="$PROJECT_DIR$/.idea/modules/via_romana.test.iml" />
     </modules>

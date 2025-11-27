@@ -38,10 +38,14 @@ dependencies {
 
     modImplementation("maven.modrinth:data-anchor:${property("deps.data-anchor")}")
     modImplementation("maven.modrinth:midnightlib:${property("deps.midnightlib")}")
-    modImplementation("maven.modrinth:moonlight:${property("deps.moonlightlib")}")
 
-    modCompileOnly("maven.modrinth:supplementaries:${property("deps.supplementaries")}")
-    modCompileOnly("folk.sisby:surveyor:${property("deps.surveyor")}")
+    if ((property("deps.minecraft") as String) < "1.21.5") {
+        modImplementation("maven.modrinth:moonlight:${property("deps.moonlightlib")}")
+        modCompileOnly("maven.modrinth:supplementaries:${property("deps.supplementaries")}")
+        modCompileOnly("folk.sisby:surveyor:${property("deps.surveyor")}")
+    } else {
+        modImplementation("maven.modrinth:arrp-but-different:${property("deps.arrp")}")
+    }
 
     annotationProcessor("net.fabricmc:sponge-mixin:0.12.5+mixin.0.8.5")
     modImplementation("com.google.code.gson:gson:2.10.1")

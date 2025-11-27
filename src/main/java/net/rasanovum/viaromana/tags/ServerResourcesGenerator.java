@@ -1,5 +1,6 @@
 package net.rasanovum.viaromana.tags;
 
+//? if <=1.21.1 {
 import eu.midnightdust.lib.config.MidnightConfig;
 import net.mehvahdjukaar.moonlight.api.resources.pack.DynServerResourcesGenerator;
 import net.mehvahdjukaar.moonlight.api.resources.pack.DynamicDataPack;
@@ -38,3 +39,4 @@ public class ServerResourcesGenerator extends DynServerResourcesGenerator {
         executor.accept(task);
     }
 }
+//?}

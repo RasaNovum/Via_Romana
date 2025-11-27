@@ -16,7 +16,7 @@ public class IntegrationManager {
      * Initializes all available integrations during mod startup.
      */
     public static void initialize() {
-        //? if fabric {
+        //? if fabric && <=1.21.1 {
         if (Platform.INSTANCE.isModLoaded("surveyor")) {
             try {
                 net.rasanovum.viaromana.integration.surveyor.ViaRomanaLandmarkManager.initialize();
@@ -35,7 +35,7 @@ public class IntegrationManager {
      * @param node The node to add as a destination
      */
     public static void addDestination(ServerLevel level, Node node) {
-        //? if fabric {
+        //? if fabric && <=1.21.1 {
         if (Platform.INSTANCE.isModLoaded("surveyor")) {
             try {
                 net.rasanovum.viaromana.integration.surveyor.ViaRomanaLandmarkManager.addDestinationLandmark(level, node);
@@ -53,7 +53,7 @@ public class IntegrationManager {
      * @param node The node to remove as a destination
      */
     public static void removeDestination(ServerLevel level, Node node) {
-        //? if fabric {
+        //? if fabric && <=1.21.1 {
         if (Platform.INSTANCE.isModLoaded("surveyor")) {
             try {
                 net.rasanovum.viaromana.integration.surveyor.ViaRomanaLandmarkManager.removeDestinationLandmark(level, node);
@@ -71,7 +71,7 @@ public class IntegrationManager {
      * @param level The ServerLevel to update landmarks in
      */
     public static void updateAllNetworkColors(PathGraph graph, ServerLevel level) {
-        //? if fabric {
+        //? if fabric && <=1.21.1 {
         if (Platform.INSTANCE.isModLoaded("surveyor")) {
             try {
                 net.rasanovum.viaromana.integration.surveyor.ViaRomanaLandmarkManager.updateAllNetworkColors(graph, level);

@@ -25,9 +25,6 @@ neoForge {
         register("server") {
             server()
         }
-        register("data") {
-            data()
-        }
     }
 
     mods {
@@ -54,9 +51,13 @@ repositories {
 dependencies {
     implementation("maven.modrinth:data-anchor:${property("deps.data-anchor")}")
     implementation("maven.modrinth:midnightlib:${property("deps.midnightlib")}")
-    implementation("maven.modrinth:moonlight:${property("deps.moonlightlib")}")
 
-    compileOnly("maven.modrinth:supplementaries:${property("deps.supplementaries")}")
+    if ((property("deps.minecraft") as String) < "1.21.5") {
+        implementation("maven.modrinth:moonlight:${property("deps.moonlightlib")}")
+        compileOnly("maven.modrinth:supplementaries:${property("deps.supplementaries")}")
+    } else {
+        implementation("maven.modrinth:arrp-but-different:${property("deps.arrp")}")
+    }
 
     implementation("com.google.code.gson:gson:2.10.1")
 }

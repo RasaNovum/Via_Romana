@@ -1,5 +1,6 @@
 package net.rasanovum.viaromana.integration.surveyor;
 
+//? if fabric && <=1.21.1 {
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.DyeColor;
@@ -121,3 +122,4 @@ public class ViaRomanaLandmarkManager {
         }
     }
 }
+//?}

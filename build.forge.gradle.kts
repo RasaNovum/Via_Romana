@@ -75,9 +75,13 @@ dependencies {
 
     implementation(fg.deobf("maven.modrinth:data-anchor:${property("deps.data-anchor")}"))
     implementation(fg.deobf("maven.modrinth:midnightlib:${property("deps.midnightlib")}"))
-    implementation(fg.deobf("maven.modrinth:moonlight:${property("deps.moonlightlib")}"))
 
-    compileOnly(fg.deobf("maven.modrinth:supplementaries:${property("deps.supplementaries")}"))
+    if ((property("deps.minecraft") as String) < "1.21.5") {
+        implementation("maven.modrinth:moonlight:${property("deps.moonlightlib")}")
+        compileOnly("maven.modrinth:supplementaries:${property("deps.supplementaries")}")
+    } else {
+        implementation("maven.modrinth:arrp-but-different:${property("deps.arrp")}")
+    }
 
     implementation("com.google.code.gson:gson:2.10.1")
 
