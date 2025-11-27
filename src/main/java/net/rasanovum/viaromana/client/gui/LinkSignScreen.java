@@ -13,7 +13,7 @@ import net.rasanovum.viaromana.network.packets.SignLinkRequestC2S;
 import net.rasanovum.viaromana.network.packets.SignUnlinkRequestC2S;
 import net.rasanovum.viaromana.path.Node;
 import net.rasanovum.viaromana.util.VersionUtils;
-import commonnetwork.api.Dispatcher;
+import dev.corgitaco.dataanchor.network.broadcast.PacketBroadcaster;
 
 import java.util.Arrays;
 import java.util.List;
@@ -139,7 +139,7 @@ public class LinkSignScreen extends Screen {
             Component.translatable("gui.viaromana.unlink_button"),
             Component.translatable("gui.viaromana.unlink_tooltip"),
                 (value) -> {
-                    commonnetwork.api.Dispatcher.sendToServer(new SignUnlinkRequestC2S(this.signPos));
+                    PacketBroadcaster.C2S.sendToServer(new SignUnlinkRequestC2S(this.signPos));
                     this.onClose();
                 },
                 VersionUtils.getLocation("via_romana:textures/screens/element_unlink.png")
@@ -222,7 +222,7 @@ public class LinkSignScreen extends Screen {
         );
 
         SignLinkRequestC2S packet = new SignLinkRequestC2S(linkData, this.isTempNode);
-        Dispatcher.sendToServer(packet);
+        PacketBroadcaster.C2S.sendToServer(packet);
         
         ClientPathData clientPathData = ClientPathData.getInstance();
         boolean isTargetNodeTemp = clientPathData.isTemporaryNode(this.nodePos);

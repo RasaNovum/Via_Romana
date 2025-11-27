@@ -18,7 +18,7 @@ import net.rasanovum.viaromana.client.ClientConfigCache;
 import net.rasanovum.viaromana.core.LinkHandler.LinkData;
 import net.rasanovum.viaromana.network.packets.ChartedPathC2S;
 import net.rasanovum.viaromana.network.packets.PreProcessChunksC2S;
-import commonnetwork.api.Dispatcher;
+import dev.corgitaco.dataanchor.network.broadcast.PacketBroadcaster;
 import net.rasanovum.viaromana.path.Node;
 import net.rasanovum.viaromana.path.Node.NodeData;
 import net.rasanovum.viaromana.storage.player.PlayerData;
@@ -96,7 +96,7 @@ public final class ChartingHandler {
         List<NodeData> tempNodes = ClientPathData.getInstance().getTemporaryNodes();
         if (tempNodes.size() % PREPROCESS_INTERVAL == 0 && tempNodes.size() >= 2) {
             PreProcessChunksC2S packet = new PreProcessChunksC2S(tempNodes);
-            Dispatcher.sendToServer(packet);
+            PacketBroadcaster.C2S.sendToServer(packet);
         }
     }
 
@@ -111,12 +111,12 @@ public final class ChartingHandler {
         if (player == null || chartingNodes == null || chartingNodes.isEmpty()) return;
 
         ChartedPathC2S packet = new ChartedPathC2S(chartingNodes);
-        Dispatcher.sendToServer(packet);
+        PacketBroadcaster.C2S.sendToServer(packet);
 
         if (chartingLinks != null && !chartingLinks.isEmpty()) {
             for (LinkData link : chartingLinks) {
                 SignLinkRequestC2S linkPacket = new SignLinkRequestC2S(link, false);
-                Dispatcher.sendToServer(linkPacket);
+                PacketBroadcaster.C2S.sendToServer(linkPacket);
             }
         }
 

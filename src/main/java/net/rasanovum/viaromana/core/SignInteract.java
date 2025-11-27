@@ -1,6 +1,6 @@
 package net.rasanovum.viaromana.core;
 
-import commonnetwork.api.Dispatcher;
+import dev.corgitaco.dataanchor.network.broadcast.PacketBroadcaster;
 import net.rasanovum.viaromana.network.packets.DestinationRequestC2S;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.entity.Entity;
@@ -40,7 +40,7 @@ public class SignInteract {
                     
                     if (world.isClientSide() && entity instanceof Player) {
                         DestinationRequestC2S req = new DestinationRequestC2S(blockPos);
-                        Dispatcher.sendToServer(req);
+                        PacketBroadcaster.C2S.sendToServer(req);
                         return true;
                     }
                 }

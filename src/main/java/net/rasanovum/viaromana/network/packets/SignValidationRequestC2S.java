@@ -1,68 +1,40 @@
 package net.rasanovum.viaromana.network.packets;
 
+import dev.corgitaco.dataanchor.network.broadcast.PacketBroadcaster;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.BlockPos;
-//? if >=1.21 {
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-//?}
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.ViaRomana;
+import net.rasanovum.viaromana.network.AbstractPacket;
 import net.rasanovum.viaromana.path.PathGraph;
-import net.rasanovum.viaromana.util.VersionUtils;
-import commonnetwork.networking.data.PacketContext;
-import commonnetwork.networking.data.Side;
-import commonnetwork.api.Dispatcher;
 
-/*
+/**
  * Request the server to validate the sign at the given position.
  * The server will respond with a SignValidationResponseS2C packet.
  */
-//? if <1.21 {
-/*public record SignValidationRequestC2S(BlockPos nodePos) {
-*///?} else {
-public record SignValidationRequestC2S(BlockPos nodePos) implements CustomPacketPayload {
-//?}
-    //? if <1.21 {
-    /*public static final ResourceLocation TYPE = VersionUtils.getLocation("viaromana:sign_validation_c2s");
-    public static final Object STREAM_CODEC = null;
-    *///?} else {
-    public static final CustomPacketPayload.Type<SignValidationRequestC2S> TYPE = new CustomPacketPayload.Type<>(VersionUtils.getLocation("viaromana:sign_validation_c2s"));
+public record SignValidationRequestC2S(BlockPos nodePos) implements AbstractPacket {
 
-    public static final StreamCodec<FriendlyByteBuf, SignValidationRequestC2S> STREAM_CODEC = StreamCodec.composite(
-        BlockPos.STREAM_CODEC, SignValidationRequestC2S::nodePos,
-        SignValidationRequestC2S::new
-    );
-    //?}
-
-    //? if >=1.21 {
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-    //?}
-
-    public static void encode(FriendlyByteBuf buf, SignValidationRequestC2S packet) {
-        buf.writeBlockPos(packet.nodePos);
+    public SignValidationRequestC2S(FriendlyByteBuf buf) {
+        this(buf.readBlockPos());
     }
 
-    public static SignValidationRequestC2S decode(FriendlyByteBuf buf) {
-        return new SignValidationRequestC2S(buf.readBlockPos());
+    public void write(FriendlyByteBuf buf) {
+        buf.writeBlockPos(this.nodePos);
     }
     
-    public static void handle(PacketContext<SignValidationRequestC2S> ctx) {
-        if (Side.SERVER.equals(ctx.side())) {
-            net.minecraft.server.level.ServerLevel level = ctx.sender().serverLevel();
-            BlockPos nodePos = ctx.message().nodePos();
-            
-            PathGraph graph = PathGraph.getInstance(level);
-            boolean isValid = graph.getNodeAt(nodePos).isPresent();
+    public void handle(Level level, Player player) {
+        if (level instanceof ServerLevel serverLevel && player instanceof ServerPlayer serverPlayer) {
+            PathGraph graph = PathGraph.getInstance(serverLevel);
+            boolean isValid = graph.getNodeAt(this.nodePos).isPresent();
 
-            if (CommonConfig.logging_enum.ordinal() > 0 && !isValid) ViaRomana.LOGGER.info("Validation failed for destination at {}", nodePos);
+            if (CommonConfig.logging_enum.ordinal() > 0 && !isValid) ViaRomana.LOGGER.info("Validation failed for destination at {}", this.nodePos);
             
-            SignValidationResponseS2C response = new SignValidationResponseS2C(nodePos, isValid);
-            Dispatcher.sendToClient(response, ctx.sender());
+            SignValidationResponseS2C response = new SignValidationResponseS2C(this.nodePos, isValid);
+            PacketBroadcaster.S2C.sendToPlayer(response, serverPlayer);
         }
     }
 }

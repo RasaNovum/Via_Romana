@@ -128,7 +128,7 @@ public final class ServerMapCache {
      */
     public static void markAsPseudoNetwork(UUID networkId) {
         pseudoNetworkIds.add(networkId);
-        ViaRomana.LOGGER.debug("Marked network {} as pseudonetwork.", networkId);
+        if (CommonConfig.logging_enum.ordinal() > 1) ViaRomana.LOGGER.info("Marked network {} as pseudonetwork.", networkId);
     }
 
     /**
@@ -138,7 +138,7 @@ public final class ServerMapCache {
     public static void invalidatePseudoNetwork(UUID networkId) {
         if (pseudoNetworkIds.remove(networkId)) {
             invalidate(networkId);
-            ViaRomana.LOGGER.debug("Invalidated pseudonetwork {}.", networkId);
+            if (CommonConfig.logging_enum.ordinal() > 1) ViaRomana.LOGGER.info("Invalidated pseudonetwork {}.", networkId);
         }
     }
 

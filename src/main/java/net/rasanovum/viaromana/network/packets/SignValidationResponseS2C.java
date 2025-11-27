@@ -1,53 +1,36 @@
 package net.rasanovum.viaromana.network.packets;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
-//? if >=1.21 {
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-//?}
-import net.rasanovum.viaromana.util.VersionUtils;
-import commonnetwork.networking.data.PacketContext;
-import commonnetwork.networking.data.Side;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.rasanovum.viaromana.client.gui.TeleportMapScreen;
+import net.rasanovum.viaromana.network.AbstractPacket;
 
-/*
+/**
  * Response from the server indicating whether the sign at the given position is valid.
  */
-//? if <1.21 {
-/*public record SignValidationResponseS2C(BlockPos nodePos, boolean isValid) {
-*///?} else {
-public record SignValidationResponseS2C(BlockPos nodePos, boolean isValid) implements CustomPacketPayload {
-//?}
-    //? if <1.21 {
-    /*public static final ResourceLocation TYPE = VersionUtils.getLocation("viaromana:sign_validation_s2c");
-    public static final Object STREAM_CODEC = null;
-    *///?} else {
-    public static final CustomPacketPayload.Type<SignValidationResponseS2C> TYPE = new CustomPacketPayload.Type<>(VersionUtils.getLocation("viaromana:sign_validation_s2c"));
+public record SignValidationResponseS2C(BlockPos nodePos, boolean isValid) implements AbstractPacket {
 
-    public static final StreamCodec<FriendlyByteBuf, SignValidationResponseS2C> STREAM_CODEC = StreamCodec.composite(
-        BlockPos.STREAM_CODEC, SignValidationResponseS2C::nodePos,
-        ByteBufCodecs.BOOL, SignValidationResponseS2C::isValid,
-        SignValidationResponseS2C::new
-    );
-    //?}
-
-    //? if >=1.21 {
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-    //?}
-
-    public static void encode(FriendlyByteBuf buf, SignValidationResponseS2C packet) {
-        buf.writeBlockPos(packet.nodePos);
-        buf.writeBoolean(packet.isValid);
+    public SignValidationResponseS2C(FriendlyByteBuf buf) {
+        this(
+            buf.readBlockPos(),
+            buf.readBoolean()
+        );
     }
 
-    public static SignValidationResponseS2C decode(FriendlyByteBuf buf) {
-        BlockPos pos = buf.readBlockPos();
-        boolean valid = buf.readBoolean();
-        return new SignValidationResponseS2C(pos, valid);
+    public void write(FriendlyByteBuf buf) {
+        buf.writeBlockPos(this.nodePos);
+        buf.writeBoolean(this.isValid);
+    }
+
+    public void handle(Level level, Player player) {
+        if (level.isClientSide) {
+            Minecraft mc = Minecraft.getInstance();
+            if (mc.screen instanceof TeleportMapScreen screen) {
+                screen.handleSignValidation(this.nodePos, this.isValid);
+            }
+        }
     }
 }

@@ -1,110 +1,43 @@
 package net.rasanovum.viaromana.network;
 
-import commonnetwork.api.Network;
-import commonnetwork.networking.data.PacketContext;
 import dev.corgitaco.dataanchor.network.BiDirectionalNetworkContainer;
 import dev.corgitaco.dataanchor.network.C2SNetworkContainer;
 import dev.corgitaco.dataanchor.network.S2CNetworkContainer;
-import net.minecraft.network.FriendlyByteBuf;
-//? if >=1.21 {
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-//?}
 import net.rasanovum.viaromana.ViaRomana;
-import net.rasanovum.viaromana.client.network.ClientPacketHandler;
-import net.rasanovum.viaromana.loaders.Platform;
 import net.rasanovum.viaromana.network.packets.*;
-
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 
 public class PacketRegistration {
 
     public static final C2SNetworkContainer C2S_CONTAINER = C2SNetworkContainer.of(ViaRomana.MODID);
     public static final S2CNetworkContainer S2C_CONTAINER = S2CNetworkContainer.of(ViaRomana.MODID);
-    public static final BiDirectionalNetworkContainer BI_CONTAINER = BiDirectionalNetworkContainer.of(ViaRomana.MODID);
-    
-    //? if <1.21 {
-    /*private static <T> void registerPacket(
-        Object type,
-        Class<T> packetClass,
-        BiConsumer<FriendlyByteBuf, T> encoder,
-        Function<FriendlyByteBuf, T> decoder,
-        Object streamCodec,
-        java.util.function.Consumer<PacketContext<T>> handler
-    ) {
-        Network.registerPacket((net.minecraft.resources.ResourceLocation) type, packetClass, (pkt, buf) -> encoder.accept(buf, pkt), decoder, handler);
-    }
-    *///?} else {
-    private static <T extends CustomPacketPayload> void registerPacket(
-        Object type,
-        Class<T> packetClass,
-        BiConsumer<FriendlyByteBuf, T> encoder,
-        Function<FriendlyByteBuf, T> decoder,
-        Object streamCodec,
-        java.util.function.Consumer<PacketContext<T>> handler
-    ) {
-        Network.registerPacket((CustomPacketPayload.Type<T>) type, packetClass, (StreamCodec<FriendlyByteBuf, T>) streamCodec, handler);
-    }
-    //?}
     
     public void initCommon() {
         ViaRomana.LOGGER.info("Registering network packets");
 
         PacketRegistrar.register(C2S_CONTAINER, "meow_c2s", MeowC2S.class, MeowC2S::write, MeowC2S::new, MeowC2S::handle);
         PacketRegistrar.register(C2S_CONTAINER, "routed_action_c2s", RoutedActionC2S.class, RoutedActionC2S::write, RoutedActionC2S::new, RoutedActionC2S::handle);
+        PacketRegistrar.register(C2S_CONTAINER, "pre_process_chunks_c2s", PreProcessChunksC2S.class, PreProcessChunksC2S::write, PreProcessChunksC2S::new, PreProcessChunksC2S::handle);
+        PacketRegistrar.register(C2S_CONTAINER, "charted_path_c2s", ChartedPathC2S.class, ChartedPathC2S::write, ChartedPathC2S::new, ChartedPathC2S::handle);
+        PacketRegistrar.register(C2S_CONTAINER, "destination_request_c2s", DestinationRequestC2S.class, DestinationRequestC2S::write, DestinationRequestC2S::new, DestinationRequestC2S::handle);
+        PacketRegistrar.register(C2S_CONTAINER, "sign_link_request_c2s", SignLinkRequestC2S.class, SignLinkRequestC2S::write, SignLinkRequestC2S::new, SignLinkRequestC2S::handle);
+        PacketRegistrar.register(C2S_CONTAINER, "map_request_c2s", MapRequestC2S.class, MapRequestC2S::write, MapRequestC2S::new, MapRequestC2S::handle);
+        PacketRegistrar.register(C2S_CONTAINER, "sign_validation_request_c2s", SignValidationRequestC2S.class, SignValidationRequestC2S::write, SignValidationRequestC2S::new, SignValidationRequestC2S::handle);
+        PacketRegistrar.register(C2S_CONTAINER, "sync_player_data_c2s", SyncPlayerDataC2S.class, SyncPlayerDataC2S::write, SyncPlayerDataC2S::new, SyncPlayerDataC2S::handle);
+        PacketRegistrar.register(C2S_CONTAINER, "teleport_request_c2s", TeleportRequestC2S.class, TeleportRequestC2S::write, TeleportRequestC2S::new, TeleportRequestC2S::handle);
+        PacketRegistrar.register(C2S_CONTAINER, "sign_unlink_request_c2s", SignUnlinkRequestC2S.class, SignUnlinkRequestC2S::write, SignUnlinkRequestC2S::new, SignUnlinkRequestC2S::handle);
+
         PacketRegistrar.register(S2C_CONTAINER, "map_response_s2c", MapResponseS2C.class, MapResponseS2C::write, MapResponseS2C::new, MapResponseS2C::handle);
-
-        registerPacket(PathGraphSyncPacket.TYPE, PathGraphSyncPacket.class, PathGraphSyncPacket::encode, PathGraphSyncPacket::decode, PathGraphSyncPacket.STREAM_CODEC, PathGraphSyncPacket::handle);
-        registerPacket(ConfigSyncS2C.TYPE, ConfigSyncS2C.class, ConfigSyncS2C::encode, ConfigSyncS2C::decode, ConfigSyncS2C.STREAM_CODEC, ConfigSyncS2C::handle);
-        registerPacket(PreProcessChunksC2S.TYPE, PreProcessChunksC2S.class, PreProcessChunksC2S::encode, PreProcessChunksC2S::decode, PreProcessChunksC2S.STREAM_CODEC, PreProcessChunksC2S::handle);
-        registerPacket(ChartedPathC2S.TYPE, ChartedPathC2S.class, ChartedPathC2S::encode, ChartedPathC2S::decode, ChartedPathC2S.STREAM_CODEC, ChartedPathC2S::handle);
-        registerPacket(DestinationRequestC2S.TYPE, DestinationRequestC2S.class, DestinationRequestC2S::encode, DestinationRequestC2S::decode, DestinationRequestC2S.STREAM_CODEC, DestinationRequestC2S::handle);
-        registerPacket(SignLinkRequestC2S.TYPE, SignLinkRequestC2S.class, SignLinkRequestC2S::encode, SignLinkRequestC2S::decode, SignLinkRequestC2S.STREAM_CODEC, SignLinkRequestC2S::handle);
-        registerPacket(MapRequestC2S.TYPE, MapRequestC2S.class, MapRequestC2S::encode, MapRequestC2S::decode, MapRequestC2S.STREAM_CODEC, MapRequestC2S::handle);
-        registerPacket(SignValidationRequestC2S.TYPE, SignValidationRequestC2S.class, SignValidationRequestC2S::encode, SignValidationRequestC2S::decode, SignValidationRequestC2S.STREAM_CODEC, SignValidationRequestC2S::handle);
-        registerPacket(SyncPlayerDataC2S.TYPE, SyncPlayerDataC2S.class, SyncPlayerDataC2S::encode, SyncPlayerDataC2S::decode, SyncPlayerDataC2S.STREAM_CODEC, SyncPlayerDataC2S::handle);
-        registerPacket(TeleportRequestC2S.TYPE, TeleportRequestC2S.class, TeleportRequestC2S::encode, TeleportRequestC2S::decode, TeleportRequestC2S.STREAM_CODEC, TeleportRequestC2S::handle);
-        registerPacket(SignUnlinkRequestC2S.TYPE, SignUnlinkRequestC2S.class, SignUnlinkRequestC2S::encode, SignUnlinkRequestC2S::decode, SignUnlinkRequestC2S.STREAM_CODEC, SignUnlinkRequestC2S::handle);
-
-        //? if >=1.21 {
-        if (Platform.INSTANCE.isClientSide()) return;
-
-        registerPacket(OpenChartingScreenS2C.TYPE, OpenChartingScreenS2C.class, OpenChartingScreenS2C::encode, OpenChartingScreenS2C::decode, OpenChartingScreenS2C.STREAM_CODEC, ctx -> {});
-        registerPacket(OpenLinkSignScreenS2C.TYPE, OpenLinkSignScreenS2C.class, OpenLinkSignScreenS2C::encode, OpenLinkSignScreenS2C::decode, OpenLinkSignScreenS2C.STREAM_CODEC, ctx -> {});
-        registerPacket(OpenWarpBlockScreenS2C.TYPE, OpenWarpBlockScreenS2C.class, OpenWarpBlockScreenS2C::encode, OpenWarpBlockScreenS2C::decode, OpenWarpBlockScreenS2C.STREAM_CODEC, ctx -> {});
-        registerPacket(TeleportFadeS2C.TYPE, TeleportFadeS2C.class, TeleportFadeS2C::encode, TeleportFadeS2C::decode, TeleportFadeS2C.STREAM_CODEC, ctx -> {});
-        registerPacket(SignValidationResponseS2C.TYPE, SignValidationResponseS2C.class, SignValidationResponseS2C::encode, SignValidationResponseS2C::decode, SignValidationResponseS2C.STREAM_CODEC, ctx -> {});
-        registerPacket(DestinationResponseS2C.TYPE, DestinationResponseS2C.class, DestinationResponseS2C::encode, DestinationResponseS2C::decode, DestinationResponseS2C.STREAM_CODEC, ctx -> {});
-        //?} else {
-        /*if (Platform.INSTANCE.isClientSide()) {
-            registerPacket(OpenChartingScreenS2C.TYPE, OpenChartingScreenS2C.class, OpenChartingScreenS2C::encode, OpenChartingScreenS2C::decode, OpenChartingScreenS2C.STREAM_CODEC, ClientPacketHandler::handleOpenChartingScreen);
-            registerPacket(OpenLinkSignScreenS2C.TYPE, OpenLinkSignScreenS2C.class, OpenLinkSignScreenS2C::encode, OpenLinkSignScreenS2C::decode, OpenLinkSignScreenS2C.STREAM_CODEC, ClientPacketHandler::handleOpenLinkSignScreen);
-            registerPacket(OpenWarpBlockScreenS2C.TYPE, OpenWarpBlockScreenS2C.class, OpenWarpBlockScreenS2C::encode, OpenWarpBlockScreenS2C::decode, OpenWarpBlockScreenS2C.STREAM_CODEC, ClientPacketHandler::handleOpenWarpBlockScreen);
-            registerPacket(TeleportFadeS2C.TYPE, TeleportFadeS2C.class, TeleportFadeS2C::encode, TeleportFadeS2C::decode, TeleportFadeS2C.STREAM_CODEC, ClientPacketHandler::handleTeleportFade);
-            registerPacket(SignValidationResponseS2C.TYPE, SignValidationResponseS2C.class, SignValidationResponseS2C::encode, SignValidationResponseS2C::decode, SignValidationResponseS2C.STREAM_CODEC, ClientPacketHandler::handleSignValidationResponse);
-            registerPacket(DestinationResponseS2C.TYPE, DestinationResponseS2C.class, DestinationResponseS2C::encode, DestinationResponseS2C::decode, DestinationResponseS2C.STREAM_CODEC, ClientPacketHandler::handleDestinationResponse);
-        } else {
-            registerPacket(OpenChartingScreenS2C.TYPE, OpenChartingScreenS2C.class, OpenChartingScreenS2C::encode, OpenChartingScreenS2C::decode, OpenChartingScreenS2C.STREAM_CODEC, ctx -> {});
-            registerPacket(OpenLinkSignScreenS2C.TYPE, OpenLinkSignScreenS2C.class, OpenLinkSignScreenS2C::encode, OpenLinkSignScreenS2C::decode, OpenLinkSignScreenS2C.STREAM_CODEC, ctx -> {});
-            registerPacket(OpenWarpBlockScreenS2C.TYPE, OpenWarpBlockScreenS2C.class, OpenWarpBlockScreenS2C::encode, OpenWarpBlockScreenS2C::decode, OpenWarpBlockScreenS2C.STREAM_CODEC, ctx -> {});
-            registerPacket(TeleportFadeS2C.TYPE, TeleportFadeS2C.class, TeleportFadeS2C::encode, TeleportFadeS2C::decode, TeleportFadeS2C.STREAM_CODEC, ctx -> {});
-            registerPacket(SignValidationResponseS2C.TYPE, SignValidationResponseS2C.class, SignValidationResponseS2C::encode, SignValidationResponseS2C::decode, SignValidationResponseS2C.STREAM_CODEC, ctx -> {});
-            registerPacket(DestinationResponseS2C.TYPE, DestinationResponseS2C.class, DestinationResponseS2C::encode, DestinationResponseS2C::decode, DestinationResponseS2C.STREAM_CODEC, ctx -> {});
-        }
-        *///?}
+        PacketRegistrar.register(S2C_CONTAINER, "path_graph_sync_s2c", PathGraphSyncPacket.class, PathGraphSyncPacket::write, PathGraphSyncPacket::new, PathGraphSyncPacket::handle);
+        PacketRegistrar.register(S2C_CONTAINER, "config_sync_s2c", ConfigSyncS2C.class, ConfigSyncS2C::write, ConfigSyncS2C::new, ConfigSyncS2C::handle);
+        PacketRegistrar.register(S2C_CONTAINER, "open_charting_screen_s2c", OpenChartingScreenS2C.class, OpenChartingScreenS2C::write, OpenChartingScreenS2C::new, OpenChartingScreenS2C::handle);
+        PacketRegistrar.register(S2C_CONTAINER, "open_link_sign_screen_s2c", OpenLinkSignScreenS2C.class, OpenLinkSignScreenS2C::write, OpenLinkSignScreenS2C::new, OpenLinkSignScreenS2C::handle);
+        PacketRegistrar.register(S2C_CONTAINER, "open_warp_block_screen_s2c", OpenWarpBlockScreenS2C.class, OpenWarpBlockScreenS2C::write, OpenWarpBlockScreenS2C::new, OpenWarpBlockScreenS2C::handle);
+        PacketRegistrar.register(S2C_CONTAINER, "teleport_fade_s2c", TeleportFadeS2C.class, TeleportFadeS2C::write, TeleportFadeS2C::new, TeleportFadeS2C::handle);
+        PacketRegistrar.register(S2C_CONTAINER, "sign_validation_response_s2c", SignValidationResponseS2C.class, SignValidationResponseS2C::write, SignValidationResponseS2C::new, SignValidationResponseS2C::handle);
+        PacketRegistrar.register(S2C_CONTAINER, "destination_response_s2c", DestinationResponseS2C.class, DestinationResponseS2C::write, DestinationResponseS2C::new, DestinationResponseS2C::handle);
     }
 
     public void initClient() {
-        ViaRomana.LOGGER.info("Registering client network packets");
-
-        //? if >=1.21 {
-        registerPacket(OpenChartingScreenS2C.TYPE, OpenChartingScreenS2C.class, OpenChartingScreenS2C::encode, OpenChartingScreenS2C::decode, OpenChartingScreenS2C.STREAM_CODEC, ClientPacketHandler::handleOpenChartingScreen);
-        registerPacket(OpenLinkSignScreenS2C.TYPE, OpenLinkSignScreenS2C.class, OpenLinkSignScreenS2C::encode, OpenLinkSignScreenS2C::decode, OpenLinkSignScreenS2C.STREAM_CODEC, ClientPacketHandler::handleOpenLinkSignScreen);
-        registerPacket(OpenWarpBlockScreenS2C.TYPE, OpenWarpBlockScreenS2C.class, OpenWarpBlockScreenS2C::encode, OpenWarpBlockScreenS2C::decode, OpenWarpBlockScreenS2C.STREAM_CODEC, ClientPacketHandler::handleOpenWarpBlockScreen);
-        registerPacket(TeleportFadeS2C.TYPE, TeleportFadeS2C.class, TeleportFadeS2C::encode, TeleportFadeS2C::decode, TeleportFadeS2C.STREAM_CODEC, ClientPacketHandler::handleTeleportFade);
-        registerPacket(SignValidationResponseS2C.TYPE, SignValidationResponseS2C.class, SignValidationResponseS2C::encode, SignValidationResponseS2C::decode, SignValidationResponseS2C.STREAM_CODEC, ClientPacketHandler::handleSignValidationResponse);
-        registerPacket(DestinationResponseS2C.TYPE, DestinationResponseS2C.class, DestinationResponseS2C::encode, DestinationResponseS2C::decode, DestinationResponseS2C.STREAM_CODEC, ClientPacketHandler::handleDestinationResponse);
-        //?}
+//        ViaRomana.LOGGER.info("Registering client network packets");
     }
 }

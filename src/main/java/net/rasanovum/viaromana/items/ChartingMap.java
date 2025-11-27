@@ -1,5 +1,6 @@
 package net.rasanovum.viaromana.items;
 
+import dev.corgitaco.dataanchor.network.broadcast.PacketBroadcaster;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
@@ -8,7 +9,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 import net.minecraft.server.level.ServerPlayer;
 import net.rasanovum.viaromana.network.packets.OpenChartingScreenS2C;
-import commonnetwork.api.Dispatcher;
 
 public class ChartingMap extends Item {
     
@@ -21,9 +21,9 @@ public class ChartingMap extends Item {
         ItemStack itemStack = player.getItemInHand(hand);
         
         if (player.getCooldowns().isOnCooldown(this)) return InteractionResultHolder.pass(itemStack);
-        
-        if (!level.isClientSide) {
-            Dispatcher.sendToClient(new OpenChartingScreenS2C(), (ServerPlayer) player);
+
+        if (player instanceof ServerPlayer serverPlayer) {
+            PacketBroadcaster.S2C.sendToPlayer(new OpenChartingScreenS2C(), serverPlayer);
         }
         
         return InteractionResultHolder.sidedSuccess(itemStack, level.isClientSide);

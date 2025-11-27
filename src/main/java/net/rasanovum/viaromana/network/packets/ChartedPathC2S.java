@@ -1,16 +1,14 @@
 package net.rasanovum.viaromana.network.packets;
 
-import commonnetwork.networking.data.PacketContext;
-import commonnetwork.networking.data.Side;
 import net.minecraft.advancements.AdvancementProgress;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 //? if >=1.21 {
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.advancements.AdvancementHolder;
 //?} else {
 /*import net.minecraft.advancements.Advancement;
@@ -18,6 +16,7 @@ import net.minecraft.advancements.AdvancementHolder;
 
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.map.ServerMapCache;
+import net.rasanovum.viaromana.network.AbstractPacket;
 import net.rasanovum.viaromana.path.Node.NodeData;
 import net.rasanovum.viaromana.path.PathGraph;
 import net.rasanovum.viaromana.storage.path.PathDataManager;
@@ -33,88 +32,60 @@ import java.util.UUID;
  * Contains all the temporary nodes/links that should be made permanent
  * and be connected as a path on the server-side PathGraph.
  */
-//? if <1.21 {
-/*public record ChartedPathC2S(List<NodeData> chartedNodes) {
-*///?} else {
-public record ChartedPathC2S(List<NodeData> chartedNodes) implements CustomPacketPayload {
-//?}
-    //? if <1.21 {
-    /*public static final ResourceLocation TYPE = VersionUtils.getLocation("via_romana:charted_path_c2s");
-    public static final Object STREAM_CODEC = null;
-    *///?} else {
-    public static final CustomPacketPayload.Type<ChartedPathC2S> TYPE = new CustomPacketPayload.Type<>(VersionUtils.getLocation("via_romana:charted_path_c2s"));
-    
-    public static final StreamCodec<FriendlyByteBuf, ChartedPathC2S> STREAM_CODEC = new StreamCodec<>() {
-        @Override
-        public ChartedPathC2S decode(FriendlyByteBuf buffer) {
-            return ChartedPathC2S.decode(buffer);
-        }
-
-        @Override
-        public void encode(FriendlyByteBuf buffer, ChartedPathC2S packet) {
-            ChartedPathC2S.encode(buffer, packet);
-        }
-    };
-    //?}
+public record ChartedPathC2S(List<NodeData> chartedNodes) implements AbstractPacket {
 
     public ChartedPathC2S(List<NodeData> chartedNodes) {
         this.chartedNodes = chartedNodes != null ? List.copyOf(chartedNodes) : List.of();
     }
 
-    //? if >=1.21 {
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-    //?}
-
-    public static void encode(FriendlyByteBuf buffer, ChartedPathC2S packet) {
-        buffer.writeInt(packet.chartedNodes.size());
-        for (NodeData nodeData : packet.chartedNodes) {
-            buffer.writeBlockPos(nodeData.pos());
-            buffer.writeFloat(nodeData.quality());
-            buffer.writeFloat(nodeData.clearance());
-        }
+    public ChartedPathC2S(FriendlyByteBuf buf) {
+        this(readNodes(buf));
     }
 
-    public static ChartedPathC2S decode(FriendlyByteBuf buffer) {
-        int nodeCount = buffer.readInt();
+    private static List<NodeData> readNodes(FriendlyByteBuf buf) {
+        int nodeCount = buf.readInt();
         List<NodeData> nodes = new ArrayList<>(nodeCount);
         for (int i = 0; i < nodeCount; i++) {
-            BlockPos pos = buffer.readBlockPos();
-            float quality = buffer.readFloat();
-            float clearance = buffer.readFloat();
+            BlockPos pos = buf.readBlockPos();
+            float quality = buf.readFloat();
+            float clearance = buf.readFloat();
             nodes.add(new NodeData(pos, quality, clearance));
         }
-        return new ChartedPathC2S(nodes);
+        return nodes;
     }
 
-    public static void handle(PacketContext<ChartedPathC2S> ctx) {
-        if (Side.SERVER.equals(ctx.side())) {
-            ServerLevel level = ctx.sender().serverLevel();
-            PathGraph graph = PathGraph.getInstance(level);
-            UUID playerUUID = ctx.sender().getUUID();
+    public void write(FriendlyByteBuf buf) {
+        buf.writeInt(this.chartedNodes.size());
+        for (NodeData nodeData : this.chartedNodes) {
+            buf.writeBlockPos(nodeData.pos());
+            buf.writeFloat(nodeData.quality());
+            buf.writeFloat(nodeData.clearance());
+        }
+    }
 
-            List<NodeData> chartingNodes = ctx.message().chartedNodes();
+    public void handle(Level level, Player player) {
+        if (level instanceof ServerLevel serverLevel && player instanceof ServerPlayer serverPlayer) {
+            PathGraph graph = PathGraph.getInstance(serverLevel);
+            UUID playerUUID = serverPlayer.getUUID();
 
-            if (chartingNodes.isEmpty()) {
-                ViaRomana.LOGGER.warn("Received empty charted path from player {}", ctx.sender().getName().getString());
+            if (this.chartedNodes.isEmpty()) {
+                ViaRomana.LOGGER.warn("Received empty charted path from player {}", serverPlayer.getName().getString());
                 return;
             }
 
             try {
-                graph.createConnectedPath(chartingNodes);
-                PathDataManager.markDirty(level);
-                PathSyncUtils.syncPathGraphToAllPlayers(level);
-                awardAdvancementIfNeeded(ctx.sender());
+                graph.createConnectedPath(this.chartedNodes);
+                PathDataManager.markDirty(serverLevel);
+                PathSyncUtils.syncPathGraphToAllPlayers(serverLevel);
+                awardAdvancementIfNeeded(serverPlayer);
 
                 UUID pseudoNetworkId = ServerMapCache.getPseudoNetworkId(playerUUID);
                 ServerMapCache.invalidatePseudoNetwork(pseudoNetworkId);
 
                 ViaRomana.LOGGER.debug("Created charted path with {} nodes for player {}, cleaned up pseudonetwork {}",
-                    chartingNodes.size(), ctx.sender().getName().getString(), pseudoNetworkId);
+                    this.chartedNodes.size(), serverPlayer.getName().getString(), pseudoNetworkId);
             } catch (Exception e) {
-                ViaRomana.LOGGER.error("Failed to create charted path for player {}: {}", ctx.sender().getName().getString(), e.getMessage());
+                ViaRomana.LOGGER.error("Failed to create charted path for player {}: {}", serverPlayer.getName().getString(), e.getMessage());
             }
         }
     }

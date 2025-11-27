@@ -1,5 +1,6 @@
 package net.rasanovum.viaromana.util;
 
+import dev.corgitaco.dataanchor.network.broadcast.PacketBroadcaster;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.rasanovum.viaromana.integration.IntegrationManager;
@@ -8,7 +9,6 @@ import net.rasanovum.viaromana.network.packets.ConfigSyncS2C;
 import net.rasanovum.viaromana.path.PathGraph;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.CommonConfig;
-import commonnetwork.api.Dispatcher;
 
 /**
  * Utility class for synchronizing PathGraph data from server to clients.
@@ -33,7 +33,7 @@ public class PathSyncUtils {
             PathGraphSyncPacket packet = new PathGraphSyncPacket(graph, level.dimension());
 
             for (ServerPlayer player : level.getPlayers(player -> true)) {
-                Dispatcher.sendToClient(packet, player);
+                PacketBroadcaster.S2C.sendToPlayer(packet, player);
             }
 
             ViaRomana.LOGGER.debug("Synced PathGraph with {} nodes to {} players", graph.size(), level.getPlayers(player -> true).size());
@@ -52,7 +52,7 @@ public class PathSyncUtils {
             PathGraph graph = PathGraph.getInstance(level);
 
             PathGraphSyncPacket packet = new PathGraphSyncPacket(graph, level.dimension());
-            Dispatcher.sendToClient(packet, player);
+            PacketBroadcaster.S2C.sendToPlayer(packet, player);
 
             if (CommonConfig.logging_enum == null) CommonConfig.logging_enum = CommonConfig.LoggingEnum.NONE; // Resolves issue with users who were previously using LoggingEnum.VERBOSE
             
@@ -81,7 +81,7 @@ public class PathSyncUtils {
                 CommonConfig.node_utility_distance,
                 CommonConfig.infrastructure_check_radius
             );
-            Dispatcher.sendToClient(packet, player);
+            PacketBroadcaster.S2C.sendToPlayer(packet, player);
             
             ViaRomana.LOGGER.debug("Synced config to player {}", player.getName().getString());
         } catch (Exception e) {
@@ -103,7 +103,7 @@ public class PathSyncUtils {
             );
 
             for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-                Dispatcher.sendToClient(packet, player);
+                PacketBroadcaster.S2C.sendToPlayer(packet, player);
             }
 
             ViaRomana.LOGGER.debug("Synced config to {} players", server.getPlayerList().getPlayerCount());

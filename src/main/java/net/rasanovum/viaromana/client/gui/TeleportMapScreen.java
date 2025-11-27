@@ -1,6 +1,7 @@
 package net.rasanovum.viaromana.client.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import dev.corgitaco.dataanchor.network.broadcast.PacketBroadcaster;
 import net.minecraft.Util;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -436,7 +437,7 @@ public class TeleportMapScreen extends Screen {
         //TODO: Display text over map without closing screen
 
         TeleportRequestC2S packet = new TeleportRequestC2S(this.signPos, destination.position);
-        commonnetwork.api.Dispatcher.sendToServer(packet);
+        PacketBroadcaster.C2S.sendToServer(packet);
         this.onClose();
     }
     //endregion
@@ -445,7 +446,7 @@ public class TeleportMapScreen extends Screen {
     private void validateNodeSign(BlockPos nodePos) {
         if (!validatedNodes.contains(nodePos)) {
             SignValidationRequestC2S packet = new SignValidationRequestC2S(nodePos);
-            commonnetwork.api.Dispatcher.sendToServer(packet);
+            PacketBroadcaster.C2S.sendToServer(packet);
         }
     }
 

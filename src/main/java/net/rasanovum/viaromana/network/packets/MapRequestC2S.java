@@ -3,74 +3,44 @@ package net.rasanovum.viaromana.network.packets;
 import dev.corgitaco.dataanchor.network.broadcast.PacketBroadcaster;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-//? if >=1.21 {
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-//?}
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import net.rasanovum.viaromana.map.MapInfo;
 import net.rasanovum.viaromana.map.ServerMapCache;
+import net.rasanovum.viaromana.network.AbstractPacket;
 import net.rasanovum.viaromana.network.packets.DestinationResponseS2C.NodeNetworkInfo;
-import net.rasanovum.viaromana.util.VersionUtils;
-import commonnetwork.networking.data.PacketContext;
-import commonnetwork.networking.data.Side;
-import commonnetwork.api.Dispatcher;
 
 import java.util.List;
 import java.util.UUID;
 
-/*
+/**
  * Request the server to generate or update a map for the specified network and area.
  * The server will respond with a MapResponseS2C packet containing the map data.
  */
-//? if <1.21 {
-/*public record MapRequestC2S(MapInfo mapInfo) {
-*///?} else {
-public record MapRequestC2S(MapInfo mapInfo) implements CustomPacketPayload {
-//?}
-    //? if <1.21 {
-    /*public static final ResourceLocation TYPE = VersionUtils.getLocation("via_romana:map_request_c2s");
-    public static final Object STREAM_CODEC = null;
-    *///?} else {
-    public static final CustomPacketPayload.Type<MapRequestC2S> TYPE = new CustomPacketPayload.Type<>(VersionUtils.getLocation("via_romana:map_request_c2s"));
+public record MapRequestC2S(MapInfo mapInfo) implements AbstractPacket {
 
-    public static final StreamCodec<FriendlyByteBuf, MapRequestC2S> STREAM_CODEC = new StreamCodec<>() {
-        @Override
-        public void encode(FriendlyByteBuf buffer, MapRequestC2S packet) { packet.mapInfo.writeToBuffer(buffer); }
-
-        @Override
-        public MapRequestC2S decode(FriendlyByteBuf buffer) { return new MapRequestC2S(MapInfo.readFromBuffer(buffer)); }
-    };
-    //?}
-
-    //? if >=1.21 {
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-    //?}
-
-    public static void encode(FriendlyByteBuf buf, MapRequestC2S packet) {
-        packet.mapInfo.writeToBuffer(buf);
+    public MapRequestC2S(FriendlyByteBuf buf) {
+        this(MapInfo.readFromBuffer(buf));
     }
 
-    public static MapRequestC2S decode(FriendlyByteBuf buf) {
-        return new MapRequestC2S(MapInfo.readFromBuffer(buf));
+    public void write(FriendlyByteBuf buf) {
+        this.mapInfo.writeToBuffer(buf);
     }
 
     public static MapRequestC2S create(UUID networkId, BlockPos minBounds, BlockPos maxBounds, List<NodeNetworkInfo> networkNodes) {
         return new MapRequestC2S(MapInfo.request(networkId, minBounds, maxBounds, networkNodes));
     }
 
-    public static void handle(PacketContext<MapRequestC2S> ctx) {
-        if (Side.SERVER.equals(ctx.side())) {
-            net.minecraft.server.level.ServerLevel level = ctx.sender().serverLevel();
-            UUID networkId = ctx.message().mapInfo().networkId();
+    public void handle(Level level, Player player) {
+        if (level instanceof ServerLevel serverLevel && player instanceof ServerPlayer serverPlayer) {
+            UUID networkId = this.mapInfo.networkId();
             
-            ServerMapCache.generateMapIfNeeded(networkId, level)
+            ServerMapCache.generateMapIfNeeded(networkId, serverLevel)
                 .thenAccept(mapInfo -> {
                     if (mapInfo != null) {
-                        PacketBroadcaster.S2C.sendToPlayer(new MapResponseS2C(mapInfo), ctx.sender());
+                        PacketBroadcaster.S2C.sendToPlayer(new MapResponseS2C(mapInfo), serverPlayer);
                     }
                 });
         }

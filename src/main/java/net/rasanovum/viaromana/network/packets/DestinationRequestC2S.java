@@ -1,72 +1,48 @@
 package net.rasanovum.viaromana.network.packets;
 
+import dev.corgitaco.dataanchor.network.broadcast.PacketBroadcaster;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-//? if >=1.21 {
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-//?}
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.rasanovum.viaromana.ViaRomana;
+import net.rasanovum.viaromana.network.AbstractPacket;
 import net.rasanovum.viaromana.path.PathGraph;
-import net.rasanovum.viaromana.util.VersionUtils;
-import commonnetwork.networking.data.PacketContext;
-import commonnetwork.networking.data.Side;
-import commonnetwork.api.Dispatcher;
 
-/*
+import java.util.List;
+
+/**
  * Request the server to provide a list of available destinations for the network containing the sign at the given position.
  */
-//? if <1.21 {
-/*public record DestinationRequestC2S(BlockPos sourceSignPos) {
-*///?} else {
-public record DestinationRequestC2S(BlockPos sourceSignPos) implements CustomPacketPayload {
-//?}
-    //? if <1.21 {
-    /*public static final ResourceLocation TYPE = VersionUtils.getLocation("viaromana:destination_request_c2s");
-    public static final Object STREAM_CODEC = null;
-    *///?} else {
-    public static final CustomPacketPayload.Type<DestinationRequestC2S> TYPE = new CustomPacketPayload.Type<>(VersionUtils.getLocation("viaromana:destination_request_c2s"));
+public record DestinationRequestC2S(BlockPos sourceSignPos) implements AbstractPacket {
 
-    public static final StreamCodec<FriendlyByteBuf, DestinationRequestC2S> STREAM_CODEC = StreamCodec.composite(
-        BlockPos.STREAM_CODEC, DestinationRequestC2S::sourceSignPos,
-        DestinationRequestC2S::new
-    );
-    //?}
-
-    //? if >=1.21 {
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-    //?}
-
-    public static void encode(FriendlyByteBuf buf, DestinationRequestC2S packet) {
-        buf.writeBlockPos(packet.sourceSignPos);
+    public DestinationRequestC2S(FriendlyByteBuf buf) {
+        this(buf.readBlockPos());
     }
 
-    public static DestinationRequestC2S decode(FriendlyByteBuf buf) {
-        return new DestinationRequestC2S(buf.readBlockPos());
+    public void write(FriendlyByteBuf buf) {
+        buf.writeBlockPos(this.sourceSignPos);
     }
 
-    public static void handle(PacketContext<DestinationRequestC2S> ctx) {
-        if (Side.SERVER.equals(ctx.side())) {
-            net.minecraft.server.level.ServerLevel level = ctx.sender().serverLevel();
-            PathGraph graph = PathGraph.getInstance(level);
+    public void handle(Level level, Player player) {
+        if (level instanceof ServerLevel serverLevel && player instanceof ServerPlayer serverPlayer) {
+            PathGraph graph = PathGraph.getInstance(serverLevel);
 
-            BlockPos signPos = ctx.message().sourceSignPos();
-            java.util.Optional<net.rasanovum.viaromana.path.Node> sourceNodeOpt = graph.getNodeBySignPos(signPos);
+            var sourceNodeOpt = graph.getNodeBySignPos(this.sourceSignPos);
 
             if (sourceNodeOpt.isEmpty()) {
-                net.rasanovum.viaromana.ViaRomana.LOGGER.warn("Received destination request for unknown sign at {}", signPos);
+                ViaRomana.LOGGER.warn("Received destination request for unknown sign at {}", this.sourceSignPos);
                 return;
             }
 
-            net.rasanovum.viaromana.path.Node sourceNode = sourceNodeOpt.get();
-            java.util.List<net.rasanovum.viaromana.path.Node> destinations = graph.getCachedTeleportDestinationsFor(ctx.sender().getUUID(), sourceNode);
-            net.rasanovum.viaromana.path.PathGraph.NetworkCache cache = graph.getNetworkCache(sourceNode);
+            var sourceNode = sourceNodeOpt.get();
+            List<net.rasanovum.viaromana.path.Node> destinations = graph.getCachedTeleportDestinationsFor(serverPlayer.getUUID(), sourceNode);
+            PathGraph.NetworkCache cache = graph.getNetworkCache(sourceNode);
 
             // Create destination info
-            java.util.List<DestinationResponseS2C.DestinationInfo> destInfos = destinations.stream()
+            List<DestinationResponseS2C.DestinationInfo> destInfos = destinations.stream()
                 .map(dest -> {
                     double distance = Math.sqrt(sourceNode.getBlockPos().distSqr(dest.getBlockPos()));
                     return new DestinationResponseS2C.DestinationInfo(
@@ -79,17 +55,17 @@ public record DestinationRequestC2S(BlockPos sourceSignPos) implements CustomPac
                 .toList();
 
             // Create network node info
-            java.util.List<DestinationResponseS2C.NodeNetworkInfo> networkInfos = graph.getNodesAsInfo(cache);
+            List<DestinationResponseS2C.NodeNetworkInfo> networkInfos = graph.getNodesAsInfo(cache);
 
             DestinationResponseS2C response = new DestinationResponseS2C(
                 destInfos,
-                signPos,
+                this.sourceSignPos,
                 sourceNode.getBlockPos(),
                 networkInfos,
                 cache.id()
             );
 
-            Dispatcher.sendToClient(response, ctx.sender());
+            PacketBroadcaster.S2C.sendToPlayer(response, serverPlayer);
         }
     }
 }

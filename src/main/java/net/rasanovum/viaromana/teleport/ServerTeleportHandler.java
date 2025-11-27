@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import dev.corgitaco.dataanchor.network.broadcast.PacketBroadcaster;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -26,7 +27,6 @@ import net.rasanovum.viaromana.network.packets.TeleportRequestC2S;
 import net.rasanovum.viaromana.path.Node;
 import net.rasanovum.viaromana.path.PathGraph;
 import net.rasanovum.viaromana.util.EffectUtils;
-import net.rasanovum.viaromana.util.NetworkUtils;
 
 public class ServerTeleportHandler {
     private static final Map<UUID, Node> activeTeleports = new ConcurrentHashMap<>();
@@ -84,12 +84,12 @@ public class ServerTeleportHandler {
             activeTeleports.put(player.getUUID(), targetNode);
             teleportStartTimes.put(player.getUUID(), level.getGameTime());
             
-            NetworkUtils.sendToPlayer(player, new TeleportFadeS2C(
+            PacketBroadcaster.S2C.sendToPlayer(new TeleportFadeS2C(
                 FADE_UP_TICKS,
                 HOLD_TICKS,
                 FADE_DOWN_TICKS,
                 FOOTSTEP_INTERVAL
-            ));
+            ), player);
         });
     }
 

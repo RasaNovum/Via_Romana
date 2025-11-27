@@ -52,8 +52,6 @@ repositories {
 }
 
 dependencies {
-    implementation("mysticdrew:common-networking-common:${property("deps.commonnetworking")}")
-    implementation("mysticdrew:common-networking-neoforge:${property("deps.commonnetworking")}")
     implementation("maven.modrinth:data-anchor:${property("deps.data-anchor")}")
     implementation("maven.modrinth:midnightlib:${property("deps.midnightlib")}")
     implementation("maven.modrinth:moonlight:${property("deps.moonlightlib")}")

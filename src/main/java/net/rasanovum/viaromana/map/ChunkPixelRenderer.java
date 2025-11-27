@@ -152,7 +152,7 @@ public class ChunkPixelRenderer {
         }
 
         long totalTime = System.nanoTime() - startTime;
-        ViaRomana.LOGGER.debug("[PERF] Chunk {} render (raw pixels): total={}ms, size=256B", pos, totalTime / 1_000_000.0);
+//        ViaRomana.LOGGER.info("[PERF] Chunk {} render (raw pixels): total={}ms, size=256B", pos, totalTime / 1_000_000.0);
 
         return pixels;
     }

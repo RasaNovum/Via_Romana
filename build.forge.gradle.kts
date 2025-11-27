@@ -73,8 +73,6 @@ repositories {
 dependencies {
     minecraft("net.minecraftforge:forge:${property("deps.minecraft")}-${property("deps.forge_version")}")
 
-    implementation(fg.deobf("mysticdrew:common-networking-common:${property("deps.commonnetworking")}"))
-    implementation(fg.deobf("mysticdrew:common-networking-forge:${property("deps.commonnetworking")}"))
     implementation(fg.deobf("maven.modrinth:data-anchor:${property("deps.data-anchor")}"))
     implementation(fg.deobf("maven.modrinth:midnightlib:${property("deps.midnightlib")}"))
     implementation(fg.deobf("maven.modrinth:moonlight:${property("deps.moonlightlib")}"))

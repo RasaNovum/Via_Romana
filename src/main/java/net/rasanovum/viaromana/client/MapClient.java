@@ -8,7 +8,7 @@ import net.rasanovum.viaromana.network.packets.MapRequestC2S;
 import net.rasanovum.viaromana.network.packets.MapResponseS2C;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.network.packets.DestinationResponseS2C.NodeNetworkInfo;
-import commonnetwork.api.Dispatcher;
+import dev.corgitaco.dataanchor.network.broadcast.PacketBroadcaster;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -41,7 +41,7 @@ public class MapClient {
         pendingRequest = future;
         
         MapRequestC2S packet = MapRequestC2S.create(networkId, minBounds, maxBounds, networkNodes);
-        Dispatcher.sendToServer(packet);
+        PacketBroadcaster.C2S.sendToServer(packet);
         
         return future;
     }

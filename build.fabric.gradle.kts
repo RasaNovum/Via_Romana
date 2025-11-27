@@ -36,8 +36,6 @@ dependencies {
     modImplementation("net.fabricmc:fabric-loader:${property("deps.fabric_loader")}")
     modImplementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
 
-    modImplementation("mysticdrew:common-networking-fabric:${property("deps.commonnetworking")}")
-    modImplementation("mysticdrew:common-networking-common:${property("deps.commonnetworking")}")
     modImplementation("maven.modrinth:data-anchor:${property("deps.data-anchor")}")
     modImplementation("maven.modrinth:midnightlib:${property("deps.midnightlib")}")
     modImplementation("maven.modrinth:moonlight:${property("deps.moonlightlib")}")

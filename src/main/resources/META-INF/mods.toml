@@ -27,13 +27,6 @@ ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.${modId}]]
-modId = "commonnetworking"
-mandatory = true
-versionRange = "*"
-ordering = "NONE"
-side = "BOTH"
-
-[[dependencies.${modId}]]
 modId = "moonlight"
 mandatory = true
 versionRange = "*"

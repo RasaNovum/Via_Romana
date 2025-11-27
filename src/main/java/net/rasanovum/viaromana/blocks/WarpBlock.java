@@ -12,7 +12,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.rasanovum.viaromana.network.packets.OpenWarpBlockScreenS2C;
-import commonnetwork.api.Dispatcher;
+import dev.corgitaco.dataanchor.network.broadcast.PacketBroadcaster;
 
 /**
  * Custom warp block that opens a screen when right-clicked, made for modpack developers
@@ -30,7 +30,7 @@ public class WarpBlock extends Block {
     //?}
         if (!level.isClientSide() && player instanceof ServerPlayer serverPlayer) {
             OpenWarpBlockScreenS2C packet = new OpenWarpBlockScreenS2C(pos);
-            Dispatcher.sendToClient(packet, serverPlayer);
+            PacketBroadcaster.S2C.sendToPlayer(packet, serverPlayer);
             return InteractionResult.SUCCESS;
         }
         return InteractionResult.CONSUME;

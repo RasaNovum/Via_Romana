@@ -3,7 +3,7 @@ package net.rasanovum.viaromana.storage.player;
 import dev.corgitaco.dataanchor.data.registry.TrackedDataKey;
 import dev.corgitaco.dataanchor.data.type.entity.EntityTrackedData;
 import dev.corgitaco.dataanchor.data.type.entity.SyncedPlayerTrackedData;
-import commonnetwork.api.Dispatcher;
+import dev.corgitaco.dataanchor.network.broadcast.PacketBroadcaster;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -65,7 +65,7 @@ public class PlayerTrackedData extends SyncedPlayerTrackedData {
         }
         else if (this.entity.level() instanceof ClientLevel) {
             // ViaRomana.LOGGER.info("Sending SyncPlayerDataC2S packet to server for entity ID {}: {}", this.entity.getId(), this.writeToNetwork());
-            Dispatcher.sendToServer(new SyncPlayerDataC2S(this.entity.getId(), this.trackedDataKey.getId(), this.writeToNetwork()));
+            PacketBroadcaster.C2S.sendToServer(new SyncPlayerDataC2S(this.entity.getId(), this.trackedDataKey.getId(), this.writeToNetwork()));
         }
     }
 

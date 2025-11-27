@@ -30,13 +30,6 @@ ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.${modId}]]
-modId = "commonnetworking"
-type = "required"
-versionRange = "*"
-ordering = "NONE"
-side = "BOTH"
-
-[[dependencies.${modId}]]
 modId = "moonlight"
 type = "required"
 versionRange = "*"
