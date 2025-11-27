@@ -40,7 +40,7 @@ public class CommonConfig extends MidnightConfig {
     @Entry(category = MAP, min = 0) public static int map_refresh_threshold = 10;
     @Entry(category = MAP, min = 0) public static int map_save_interval = 5;
     @Entry(category = MAP) public static List<String> biomeColor = Lists.newArrayList();
-    @Entry(category = MAP) public static boolean use_biome_fallback_for_lowres = true;
+    @Entry(category = MAP) public static boolean use_biome_fallback_for_lowres = false;
     @Entry(category = MAP) public static boolean enable_surveyor_landmark = false;
     @Entry(category = MAP) public static boolean enable_surveyor_landmark_coloring = false;
     @Comment(category = MAP) public static Comment map_footer;

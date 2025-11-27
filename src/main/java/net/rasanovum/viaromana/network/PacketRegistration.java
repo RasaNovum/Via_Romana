@@ -1,6 +1,5 @@
 package net.rasanovum.viaromana.network;
 
-import dev.corgitaco.dataanchor.network.BiDirectionalNetworkContainer;
 import dev.corgitaco.dataanchor.network.C2SNetworkContainer;
 import dev.corgitaco.dataanchor.network.S2CNetworkContainer;
 import net.rasanovum.viaromana.ViaRomana;
@@ -14,7 +13,6 @@ public class PacketRegistration {
     public void initCommon() {
         ViaRomana.LOGGER.info("Registering network packets");
 
-        PacketRegistrar.register(C2S_CONTAINER, "meow_c2s", MeowC2S.class, MeowC2S::write, MeowC2S::new, MeowC2S::handle);
         PacketRegistrar.register(C2S_CONTAINER, "routed_action_c2s", RoutedActionC2S.class, RoutedActionC2S::write, RoutedActionC2S::new, RoutedActionC2S::handle);
         PacketRegistrar.register(C2S_CONTAINER, "pre_process_chunks_c2s", PreProcessChunksC2S.class, PreProcessChunksC2S::write, PreProcessChunksC2S::new, PreProcessChunksC2S::handle);
         PacketRegistrar.register(C2S_CONTAINER, "charted_path_c2s", ChartedPathC2S.class, ChartedPathC2S::write, ChartedPathC2S::new, ChartedPathC2S::handle);

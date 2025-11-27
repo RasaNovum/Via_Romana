@@ -28,7 +28,7 @@ public class PacketRegistrar {
             Function<FriendlyByteBuf, T> reader,
             PacketRunner<T> handler
     ) {
-        ViaRomana.LOGGER.info("PacketRegistrar: Registering '{}' (Class: {})", id, clazz.getSimpleName());
+//        ViaRomana.LOGGER.info("PacketRegistrar: Registering '{}' (Class: {})", id, clazz.getSimpleName());
 
         PacketRunner<T> safeHandler = (packet, level, player) -> {
             if (level.isClientSide()) {

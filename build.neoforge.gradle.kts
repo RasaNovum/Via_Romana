@@ -129,7 +129,6 @@ publishMods {
         minecraftVersions.add(property("deps.minecraft") as String)
 
         requires { slug = "fabric-api" }
-        requires { slug = "common-network" }
         requires { slug = "data-anchor" }
         requires { slug = "midnightlib" }
         requires { slug = "moonlight" }
@@ -144,7 +143,6 @@ publishMods {
         serverRequired = true
 
         requires { slug = "fabric-api" }
-        requires { slug = "common-network" }
         requires { slug = "data-anchor" }
         requires { slug = "midnightlib" }
         requires { slug = "selene" }
