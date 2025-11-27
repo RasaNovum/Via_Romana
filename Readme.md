@@ -15,12 +15,11 @@ If you have any questions that aren't [answered in our Wiki](https://github.com/
 
 ## Dependencies
 
-- **[Fabric API](https://modrinth.com/mod/fabric-api)** - Core Fabric mod loader (Fabric Only)
+- **[Fabric API](https://modrinth.com/mod/fabric-api)** - Core Fabric mod loader [Fabric Only]
 
-- **[MidnightLib](https://modrinth.com/mod/midnightlib)** - Provides config
-- **[Data Anchor](https://modrinth.com/mod/data-anchor)** - Provides data saving/loading
+- **[Data Anchor](https://modrinth.com/mod/data-anchor)** - Provides data saving/loading and networking
 - **[Moonlight Lib](https://modrinth.com/mod/moonlight)** - Provides runtime resource pack modification
-- **[Common Network](https://modrinth.com/mod/common-network)** - Provides networking
+- **[MidnightLib](https://modrinth.com/mod/midnightlib)** - Provides config
 
 ## License
 
