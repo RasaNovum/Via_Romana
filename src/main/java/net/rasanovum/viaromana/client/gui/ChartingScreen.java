@@ -15,7 +15,6 @@ import net.rasanovum.viaromana.client.data.ClientPathData;
 import net.rasanovum.viaromana.client.gui.elements.MapActionButton;
 import net.rasanovum.viaromana.client.gui.elements.MapSquareButton;
 import net.rasanovum.viaromana.client.ClientConfigCache;
-import net.rasanovum.viaromana.network.packets.MeowC2S;
 import net.rasanovum.viaromana.network.packets.RoutedActionC2S;
 import net.rasanovum.viaromana.storage.player.PlayerData;
 import net.rasanovum.viaromana.util.PathUtils;
