@@ -20,7 +20,6 @@ public class ForgeClientEvents {
     @SubscribeEvent
     public static void onClientSetup(final FMLClientSetupEvent event) {
         ViaRomana.LOGGER.info("Initializing Via Romana Client");
-        new PacketRegistration().initClient();
         ForgeRenderInit.load();
         
         MinecraftForge.EVENT_BUS.addListener(ForgeClientEvents::onPlayerLogin);

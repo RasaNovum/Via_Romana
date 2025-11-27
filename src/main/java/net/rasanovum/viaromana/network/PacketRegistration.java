@@ -34,8 +34,4 @@ public class PacketRegistration {
         PacketRegistrar.register(S2C_CONTAINER, "sign_validation_response_s2c", SignValidationResponseS2C.class, SignValidationResponseS2C::write, SignValidationResponseS2C::new, SignValidationResponseS2C::handle);
         PacketRegistrar.register(S2C_CONTAINER, "destination_response_s2c", DestinationResponseS2C.class, DestinationResponseS2C::write, DestinationResponseS2C::new, DestinationResponseS2C::handle);
     }
-
-    public void initClient() {
-//        ViaRomana.LOGGER.info("Registering client network packets");
-    }
 }

@@ -17,8 +17,6 @@ public class FabricClientEvents implements ClientModInitializer {
     public void onInitializeClient() {
         FabricRenderInit.load();
 
-        new PacketRegistration().initClient();
-
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
             PlayerData.resetVariables(client.player);
         });

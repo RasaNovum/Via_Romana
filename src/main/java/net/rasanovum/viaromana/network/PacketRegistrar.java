@@ -12,7 +12,6 @@ import java.util.function.Function;
 
 //? if >=1.21
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.rasanovum.viaromana.ViaRomana;
 
 public class PacketRegistrar {
     @FunctionalInterface
@@ -28,7 +27,7 @@ public class PacketRegistrar {
             Function<FriendlyByteBuf, T> reader,
             PacketRunner<T> handler
     ) {
-//        ViaRomana.LOGGER.info("PacketRegistrar: Registering '{}' (Class: {})", id, clazz.getSimpleName());
+//        net.rasanovum.viaromana.ViaRomana.LOGGER.info("PacketRegistrar: Registering '{}' (Class: {})", id, clazz.getSimpleName());
 
         PacketRunner<T> safeHandler = (packet, level, player) -> {
             if (level.isClientSide()) {
