@@ -90,13 +90,8 @@ public class NodeRenderer {
     public static int getLightLevel(BlockPos pos) { return dynamicLightSources.getOrDefault(pos, 0); }
     public static float getCurrentVignetteIntensity() { return currentVignetteIntensity * globalRenderAlpha; }
     public static int getCurrentNodeColor() { return currentVignetteNodeColor; }
-    public static float getBeamHeight() { return BEAM_HEIGHT; }
     public static float calculateDistanceAlpha(double distance, float baseAlpha) { return (float) calculateValueWithFade(distance, baseAlpha); }
     public static int calculateDistanceLightBrightness(double distance) { return (int) Math.round(calculateValueWithFade(distance, MAX_LIGHT_BRIGHTNESS)); }
-    public static double calculateDistanceToNodeBeam(Vec3 playerPos, BlockPos nodePos, ClientLevel level) {
-        double adjustedY = RenderUtil.findSuitableYPosition(level, nodePos, 0.25f);
-        return calculateDistanceToNodeBeamInternal(playerPos, nodePos, adjustedY);
-    }
 
     // Main Render Loop
     public static void renderNodeBeams(PoseStack poseStack, Level level, Player player, float partialTicks) {

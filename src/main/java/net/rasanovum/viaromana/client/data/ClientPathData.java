@@ -48,15 +48,6 @@ public class ClientPathData {
     public PathGraph getGraph(ResourceKey<Level> dimension) {
         return hasData ? graphByDimension.get(dimension) : null;
     }
-    
-    /**
-     * Gets the graph for the current dimension (backwards compatibility).
-     * @deprecated Use getGraph(ResourceKey<Level>) instead
-     */
-    @Deprecated
-    public PathGraph getGraph() {
-        return hasData && !graphByDimension.isEmpty() ? graphByDimension.values().iterator().next() : null;
-    }
 
     public boolean hasValidData() {
         return hasData && !graphByDimension.isEmpty();

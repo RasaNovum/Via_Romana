@@ -41,20 +41,7 @@ public record DestinationRequestC2S(BlockPos sourceSignPos) implements AbstractP
             List<net.rasanovum.viaromana.path.Node> destinations = graph.getCachedTeleportDestinationsFor(serverPlayer.getUUID(), sourceNode);
             PathGraph.NetworkCache cache = graph.getNetworkCache(sourceNode);
 
-            // Create destination info
-            List<DestinationResponseS2C.DestinationInfo> destInfos = destinations.stream()
-                .map(dest -> {
-                    double distance = Math.sqrt(sourceNode.getBlockPos().distSqr(dest.getBlockPos()));
-                    return new DestinationResponseS2C.DestinationInfo(
-                        dest.getBlockPos(),
-                        dest.getDestinationName().orElse("Unknown"),
-                        distance,
-                        dest.getDestinationIcon().orElse(net.rasanovum.viaromana.path.Node.Icon.SIGNPOST)
-                    );
-                })
-                .toList();
-
-            // Create network node info
+            List<DestinationResponseS2C.DestinationInfo> destInfos = graph.getNodesAsDestinationInfo(destinations, sourceNode.getBlockPos());
             List<DestinationResponseS2C.NodeNetworkInfo> networkInfos = graph.getNodesAsInfo(cache);
 
             DestinationResponseS2C response = new DestinationResponseS2C(

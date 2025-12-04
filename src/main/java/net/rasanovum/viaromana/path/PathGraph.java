@@ -1,9 +1,9 @@
 package net.rasanovum.viaromana.path;
 
-import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.SectionPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -12,29 +12,34 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.ChunkPos;
 import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.ViaRomana;
-import net.rasanovum.viaromana.client.data.ClientPathData;
 import net.rasanovum.viaromana.map.ServerMapCache;
 import net.rasanovum.viaromana.map.ServerMapUtils;
 import net.rasanovum.viaromana.network.packets.DestinationResponseS2C;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.ByteBuffer;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 public final class PathGraph {
+    // Core Data
     private final ObjectArrayList<Node> nodes = new ObjectArrayList<>();
     private final Long2IntOpenHashMap posToIndex = new Long2IntOpenHashMap();
     private final Long2IntOpenHashMap signPosToIndex = new Long2IntOpenHashMap();
-    private final ConcurrentMap<UUID, NetworkCache> networkCacheById = new ConcurrentHashMap<>();
+
+    // Spatial Index
+    private final Long2ObjectOpenHashMap<List<Node>> nodesByChunk = new Long2ObjectOpenHashMap<>();
+
+    // Network Caching
+    private final Map<UUID, NetworkCache> networkCacheById = new HashMap<>();
     private final Long2ObjectOpenHashMap<UUID> nodeToNetworkId = new Long2ObjectOpenHashMap<>();
-    private final ConcurrentMap<UUID, FoWCache> fowCacheById = new ConcurrentHashMap<>();
-    private final ConcurrentMap<ChunkPos, Set<UUID>> chunkToNetworkIds = new ConcurrentHashMap<>();
-    private final Set<Long> dirtyNodePositions = ConcurrentHashMap.newKeySet();
+    private final Map<UUID, FoWCache> fowCacheById = new HashMap<>();
+
+    // Key - Packed ChunkPos
+    private final Long2ObjectOpenHashMap<Set<UUID>> chunkToNetworkIds = new Long2ObjectOpenHashMap<>();
+
+    // Primitive Set for dirty nodes
+    private final LongOpenHashSet dirtyNodePositions = new LongOpenHashSet();
 
     private static final DyeColor[] NETWORK_COLORS = {
             DyeColor.BLUE, DyeColor.RED, DyeColor.GREEN, DyeColor.PURPLE, DyeColor.CYAN,
@@ -46,21 +51,21 @@ public final class PathGraph {
      */
     public record NetworkCache(
             UUID id,
-            Set<Long> nodePositions,
+            LongSet nodePositions,
             BoundingBox bounds,
             List<Node> destinationNodes
     ) {
-        public BlockPos getMin() {
-            return new BlockPos(bounds.minX, bounds.minY, bounds.minZ);
-        }
-
-        public BlockPos getMax() {
-            return new BlockPos(bounds.maxX, bounds.maxY, bounds.maxZ);
+        public NetworkCache {
+            if (nodePositions != null) {
+                nodePositions = LongSets.unmodifiable(nodePositions);
+            }
         }
 
         public List<DestinationResponseS2C.NodeNetworkInfo> getNodesAsInfo(Long2IntOpenHashMap posToIndex, ObjectArrayList<Node> allNodes) {
             List<DestinationResponseS2C.NodeNetworkInfo> list = new ArrayList<>(nodePositions.size());
-            for (long pos : nodePositions) {
+            LongIterator it = nodePositions.iterator();
+            while (it.hasNext()) {
+                long pos = it.nextLong();
                 int index = posToIndex.getOrDefault(pos, -1);
                 if (index != -1) {
                     Node node = allNodes.get(index);
@@ -77,9 +82,6 @@ public final class PathGraph {
         }
     }
 
-    /**
-     * A cached snapshot of a network's Fog-of-War data, including bounding box and allowed chunks.
-     */
     public record FoWCache(ChunkPos minChunk, ChunkPos maxChunk, BlockPos minBlock, BlockPos maxBlock, Set<ChunkPos> allowedChunks) { }
 
     public record BoundingBox(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
@@ -91,13 +93,7 @@ public final class PathGraph {
     }
 
     // region Network & Cache Management
-
-    /**
-     * Finds the network for a given node, computing and caching it if not already present.
-     * This is the primary entry point for accessing network-wide data.
-     */
-    @NotNull
-    private NetworkCache getNetworkCacheForNode(Node startNode) {
+    public NetworkCache getNetworkCacheForNode(Node startNode) {
         UUID networkId = nodeToNetworkId.get(startNode.getPos());
         if (networkId != null) {
             NetworkCache cached = networkCacheById.get(networkId);
@@ -109,20 +105,18 @@ public final class PathGraph {
         return discoverAndCacheNetwork(startNode);
     }
 
-    /**
-     * Traverses the graph from a starting node to discover a connected component (a "network"),
-     * calculates its properties, and caches the result for all nodes within that network.
-     */
-    @SuppressWarnings("deprecation")
     private NetworkCache discoverAndCacheNetwork(Node startNode) {
         List<Node> networkNodes = getNetwork(startNode);
-        Set<Long> positions = networkNodes.stream().map(Node::getPos).collect(Collectors.toSet());
-        UUID networkId = generateDeterministicUUID(positions);
 
-        // Check if another thread cached this network while we were working
+        long[] positionsArr = new long[networkNodes.size()];
+        for(int i = 0; i < networkNodes.size(); i++) {
+            positionsArr[i] = networkNodes.get(i).getPos();
+        }
+
+        UUID networkId = generateDeterministicUUID(positionsArr);
+
         NetworkCache existingCache = networkCacheById.get(networkId);
         if (existingCache != null) {
-            // Ensure this node's mapping is up-to-date
             nodeToNetworkId.put(startNode.getPos(), networkId);
             dirtyNodePositions.remove(startNode.getPos());
             return existingCache;
@@ -133,66 +127,50 @@ public final class PathGraph {
                 .filter(n -> n.getLinkType() == Node.LinkType.DESTINATION || n.getLinkType() == Node.LinkType.PRIVATE)
                 .toList();
 
-        NetworkCache newCache = new NetworkCache(networkId, positions, bounds, destinations);
+        LongOpenHashSet positionsSet = new LongOpenHashSet(positionsArr);
+        NetworkCache newCache = new NetworkCache(networkId, positionsSet, bounds, destinations);
 
-        // Update cache for all nodes in this newly discovered network
         networkCacheById.put(networkId, newCache);
-        for (Long pos : positions) {
+        for (long pos : positionsArr) {
             nodeToNetworkId.put(pos, networkId);
             dirtyNodePositions.remove(pos);
         }
 
-        // Force computation of FoW to populate the spatial index immediately
         fowCacheById.remove(networkId);
         getOrComputeFoWCache(newCache);
 
         return newCache;
     }
 
-    /**
-     * Invalidates all caches for the networks containing a given nodes.
-     */
-    private Set<NetworkCache> invalidateNetworksContaining(Node... nodesToInvalidate) {
-        Set<NetworkCache> invalidatedCaches = new HashSet<>();
+    private void invalidateNetworksContaining(Node... nodesToInvalidate) {
         for (Node node : nodesToInvalidate) {
-            // Traverse the graph to find the full component and its deterministic ID.
             List<Node> component = getNetwork(node);
             if (component.isEmpty()) continue;
 
-            Set<Long> positions = component.stream().map(Node::getPos).collect(Collectors.toSet());
-            UUID componentId = generateDeterministicUUID(positions);
+            long[] posArr = new long[component.size()];
+            for(int i = 0; i < component.size(); i++) posArr[i] = component.get(i).getPos();
 
-            // Clean up Spatial Index before removing the cache
+            UUID componentId = generateDeterministicUUID(posArr);
+
             FoWCache fow = fowCacheById.get(componentId);
             if (fow != null) {
                 removeNetworkFromChunkMap(componentId, fow);
             }
 
-            // Remove the primary network cache
             NetworkCache removedCache = networkCacheById.remove(componentId);
             if (removedCache != null) {
-                invalidatedCaches.add(removedCache);
                 dirtyNodePositions.addAll(removedCache.nodePositions());
             }
 
-            // Clean up all related cache entries
             fowCacheById.remove(componentId);
             for (Node n : component) {
                 nodeToNetworkId.remove(n.getPos());
             }
 
-            try {
-                ServerMapCache.invalidate(componentId);
-            } catch (Exception e) {
-                ViaRomana.LOGGER.warn("Failed to invalidate ServerMapCache for network {}: {}", componentId, e.getMessage());
-            }
+            ServerMapCache.invalidate(componentId);
         }
-        return invalidatedCaches;
     }
 
-    /**
-     * Performs a light cache refresh for a network after non-structural changes
-     */
     private void refreshNetworkDestinations(Node startNode) {
         NetworkCache existing = getNetworkCacheForNode(startNode);
 
@@ -204,12 +182,12 @@ public final class PathGraph {
         networkCacheById.put(updated.id(), updated);
     }
 
-    private UUID generateDeterministicUUID(Set<Long> nodePositions) {
-        if (nodePositions.isEmpty()) return UUID.randomUUID();
+    private UUID generateDeterministicUUID(long[] sortedPositions) {
+        if (sortedPositions.length == 0) return UUID.randomUUID();
 
-        long[] sortedPositions = nodePositions.stream().mapToLong(l -> l).sorted().toArray();
+        LongArrays.quickSort(sortedPositions);
+
         ByteBuffer bb = ByteBuffer.allocate(sortedPositions.length * Long.BYTES);
-
         for (long pos : sortedPositions) {
             bb.putLong(pos);
         }
@@ -225,7 +203,6 @@ public final class PathGraph {
     //endregion
 
     // region Basic Accessors & Mutators
-
     public List<Node> nodesView() {
         return Collections.unmodifiableList(nodes);
     }
@@ -234,20 +211,22 @@ public final class PathGraph {
         return nodes.size();
     }
 
-    public boolean contains(BlockPos pos) {
-        return posToIndex.containsKey(pos.asLong());
-    }
-
     public Optional<Node> getNodeAt(BlockPos pos) {
         int idx = posToIndex.getOrDefault(pos.asLong(), -1);
         return idx != -1 ? Optional.of(nodes.get(idx)) : Optional.empty();
     }
 
     public int getOrCreateNode(BlockPos pos, float quality, float clearance) {
-        return posToIndex.computeIfAbsent(pos.asLong(), nodePos -> {
+        long packedPos = pos.asLong();
+        return posToIndex.computeIfAbsent(packedPos, k -> {
             int newIndex = nodes.size();
-            nodes.add(new Node(nodePos, quality, clearance));
-            dirtyNodePositions.add(nodePos);
+            Node newNode = new Node(packedPos, quality, clearance);
+            nodes.add(newNode);
+
+            long chunkPos = ChunkPos.asLong(SectionPos.blockToSectionCoord(pos.getX()), SectionPos.blockToSectionCoord(pos.getZ()));
+            nodesByChunk.computeIfAbsent(chunkPos, c -> new ArrayList<>()).add(newNode);
+
+            dirtyNodePositions.add(packedPos);
             return newIndex;
         });
     }
@@ -255,14 +234,12 @@ public final class PathGraph {
     public void createConnectedPath(List<Node.NodeData> pathData) {
         if (pathData == null || pathData.size() < 2) return;
 
-        // Create all nodes and collect them
-        List<Node> pathNodes = new ArrayList<>();
+        List<Node> pathNodes = new ArrayList<>(pathData.size());
         for (Node.NodeData currentData : pathData) {
             Node currentNode = nodes.get(getOrCreateNode(currentData.pos(), currentData.quality(), currentData.clearance()));
             pathNodes.add(currentNode);
         }
 
-        // Collect unique networks affected by new
         Set<UUID> networksToInvalidate = new HashSet<>();
         for (Node node : pathNodes) {
             UUID networkId = nodeToNetworkId.get(node.getPos());
@@ -271,7 +248,6 @@ public final class PathGraph {
             }
         }
 
-        // Invalidate all affected networks once
         for (UUID networkId : networksToInvalidate) {
             FoWCache fow = fowCacheById.get(networkId);
             if (fow != null) {
@@ -285,11 +261,7 @@ public final class PathGraph {
                 for (Long pos : cache.nodePositions()) {
                     nodeToNetworkId.remove(pos.longValue());
                 }
-                try {
-                    ServerMapCache.invalidate(networkId);
-                } catch (Exception e) {
-                    ViaRomana.LOGGER.warn("Failed to invalidate ServerMapCache for network {}: {}", networkId, e.getMessage());
-                }
+                ServerMapCache.invalidate(networkId);
             }
         }
 
@@ -302,9 +274,6 @@ public final class PathGraph {
         }
     }
 
-    /**
-     * Creates or updates a pseudonetwork for temporary charting paths.
-     */
     public void createOrUpdatePseudoNetwork(UUID pseudoNetworkId, List<Node.NodeData> tempNodes) {
         if (tempNodes == null || tempNodes.size() < 2) return;
 
@@ -319,13 +288,13 @@ public final class PathGraph {
             fowCacheById.remove(pseudoNetworkId);
         }
 
-        Set<Long> nodePositions = tempNodes.stream()
-                .map(nodeData -> nodeData.pos().asLong())
-                .collect(Collectors.toSet());
+        LongOpenHashSet nodePositions = new LongOpenHashSet();
+        List<BlockPos> posList = new ArrayList<>(tempNodes.size());
 
-        List<BlockPos> posList = tempNodes.stream()
-                .map(Node.NodeData::pos)
-                .toList();
+        for (Node.NodeData data : tempNodes) {
+            nodePositions.add(data.pos().asLong());
+            posList.add(data.pos());
+        }
 
         int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE;
         int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE, maxZ = Integer.MIN_VALUE;
@@ -378,6 +347,8 @@ public final class PathGraph {
             getNodeAt(BlockPos.of(neighborPos)).ifPresent(neighbor -> neighbor.removeConnection(packedPos));
         }
 
+        removeNodeFromSpatialIndex(removedNode);
+
         int lastIdx = nodes.size() - 1;
         Node lastNode = nodes.get(lastIdx);
         nodes.set(idx, lastNode);
@@ -393,15 +364,13 @@ public final class PathGraph {
         }
     }
 
-    public Optional<NetworkCache> removeBranch(Node startNode) {
+    public void removeBranch(Node startNode) {
         Set<Node> branchNodes = findBranchNodes(startNode);
-        if (branchNodes.isEmpty()) {
-            return Optional.empty();
-        }
+        if (branchNodes.isEmpty()) return;
 
-        Set<NetworkCache> invalidatedCaches = invalidateNetworksContaining(startNode);
-
-        Set<Long> branchPositions = branchNodes.stream().map(Node::getPos).collect(Collectors.toSet());
+        invalidateNetworksContaining(startNode);
+        LongOpenHashSet branchPositions = new LongOpenHashSet();
+        for(Node n : branchNodes) branchPositions.add(n.getPos());
 
         for (Node node : branchNodes) {
             for (long neighborPos : node.getConnectedNodes()) {
@@ -409,20 +378,16 @@ public final class PathGraph {
                     getNodeAt(BlockPos.of(neighborPos)).ifPresent(neighbor -> neighbor.removeConnection(node.getPos()));
                 }
             }
-
             removeNodeWithoutNeighborUpdates(node);
         }
-
-        return invalidatedCaches.stream().findFirst();
     }
 
-    /**
-     * A removal method for use when connections are already handled.
-     */
     private void removeNodeWithoutNeighborUpdates(Node node) {
         long packedPos = node.getPos();
         int idx = posToIndex.getOrDefault(packedPos, -1);
         if (idx == -1) return;
+
+        removeNodeFromSpatialIndex(node);
 
         int lastIdx = nodes.size() - 1;
         Node lastNode = nodes.get(lastIdx);
@@ -439,6 +404,18 @@ public final class PathGraph {
         }
     }
 
+    private void removeNodeFromSpatialIndex(Node node) {
+        BlockPos p = node.getBlockPos();
+        long chunkPos = ChunkPos.asLong(SectionPos.blockToSectionCoord(p.getX()), SectionPos.blockToSectionCoord(p.getZ()));
+        List<Node> chunkNodes = nodesByChunk.get(chunkPos);
+        if (chunkNodes != null) {
+            chunkNodes.remove(node);
+            if (chunkNodes.isEmpty()) {
+                nodesByChunk.remove(chunkPos);
+            }
+        }
+    }
+
     public void removeAllNodes() {
         for (NetworkCache cache : networkCacheById.values()) {
             try {
@@ -450,6 +427,7 @@ public final class PathGraph {
         nodes.clear();
         posToIndex.clear();
         signPosToIndex.clear();
+        nodesByChunk.clear();
         networkCacheById.clear();
         nodeToNetworkId.clear();
         fowCacheById.clear();
@@ -459,8 +437,8 @@ public final class PathGraph {
 
     // region Sign Linking
 
-    public boolean linkSignToNode(BlockPos nodePos, BlockPos signPos, Node.LinkType linkType, UUID owner) {
-        return getNodeAt(nodePos).map(node -> {
+    public void linkSignToNode(BlockPos nodePos, BlockPos signPos, Node.LinkType linkType, UUID owner) {
+        getNodeAt(nodePos).map(node -> {
             node.setSignPos(signPos.asLong());
             node.setLinkType(linkType);
             if (linkType == Node.LinkType.PRIVATE && owner != null) {
@@ -471,19 +449,20 @@ public final class PathGraph {
 
             refreshNetworkDestinations(node);
             return true;
-        }).orElse(false);
+        });
     }
 
-    public boolean removeSignLink(BlockPos signPos) {
-        return getNodeBySignPos(signPos).map(node -> {
+    public void removeSignLink(BlockPos signPos) {
+        getNodeBySignPos(signPos).map(node -> {
             node.unlink();
             signPosToIndex.remove(signPos.asLong());
 
-            if (CommonConfig.logging_enum.ordinal() > 0) ViaRomana.LOGGER.info("Successfully unlinked sign at {}", signPos);
+            if (CommonConfig.logging_enum.ordinal() > 0)
+                ViaRomana.LOGGER.info("Successfully unlinked sign at {}", signPos);
 
             refreshNetworkDestinations(node);
             return true;
-        }).orElse(false);
+        });
     }
 
     public Optional<Node> getNodeBySignPos(BlockPos signPos) {
@@ -495,26 +474,78 @@ public final class PathGraph {
 
     // region Queries & Traversals
 
-    /*
-     * Finds the nearest node to a given position within a specified maximum distance that satisfies the provided filter.
-     */
+    public Optional<Node> getNearestNode(BlockPos origin, double maxDistance) {
+        return getNearestNode(origin, maxDistance, maxDistance, node -> true);
+    }
+
     public Optional<Node> getNearestNode(BlockPos origin, double maxDistance, Predicate<Node> filter) {
         return getNearestNode(origin, maxDistance, maxDistance, filter);
     }
 
-    /*
-     * Finds the nearest node to a given position within specified horizontal and vertical distance limits that satisfies the provided filter.
-     */
     public Optional<Node> getNearestNode(BlockPos origin, double maxDistance, double maxYDistance, Predicate<Node> filter) {
-        return nodes.stream()
-                .filter(filter)
-                .filter(node -> ClientPathData.calculateDistance(node.getBlockPos(), origin, false) <= maxDistance * maxDistance && Math.abs(node.getBlockPos().getY() - origin.getY()) <= maxYDistance)
-                .min(Comparator.comparingDouble(node -> ClientPathData.calculateDistance(node.getBlockPos(), origin, true)));
+        int originX = origin.getX();
+        int originY = origin.getY();
+        int originZ = origin.getZ();
+
+        double minDistanceSq = maxDistance * maxDistance;
+
+        int chunkRadius = (int) Math.ceil(maxDistance / 16.0);
+        int centerChunkX = SectionPos.blockToSectionCoord(originX);
+        int centerChunkZ = SectionPos.blockToSectionCoord(originZ);
+
+        Node bestNode = null;
+
+        for (int x = -chunkRadius; x <= chunkRadius; x++) { //TODO: This is kinda messy
+            for (int z = -chunkRadius; z <= chunkRadius; z++) {
+                int absChunkX = centerChunkX + x;
+                int absChunkZ = centerChunkZ + z;
+                long chunkKey = ChunkPos.asLong(absChunkX, absChunkZ);
+                List<Node> chunkNodes = nodesByChunk.get(chunkKey);
+
+                if (chunkNodes == null || chunkNodes.isEmpty()) continue;
+
+                int chunkMinX = absChunkX << 4;
+                int chunkMinZ = absChunkZ << 4;
+                int chunkMaxX = chunkMinX + 15;
+                int chunkMaxZ = chunkMinZ + 15;
+
+                double dX = 0;
+                if (originX < chunkMinX) dX = chunkMinX - originX;
+                else if (originX > chunkMaxX) dX = originX - chunkMaxX;
+
+                double dZ = 0;
+                if (originZ < chunkMinZ) dZ = chunkMinZ - originZ;
+                else if (originZ > chunkMaxZ) dZ = originZ - chunkMaxZ;
+
+                if (dX * dX + dZ * dZ > minDistanceSq) continue;
+
+                for (Node node : chunkNodes) {
+                    if (!filter.test(node)) continue;
+
+                    BlockPos nodePos = node.getBlockPos();
+                    int dy = Math.abs(nodePos.getY() - originY);
+                    if (dy > maxYDistance) continue;
+
+                    double dXCentered = (nodePos.getX() + 0.5) - (originX + 0.5);
+                    double dZCentered = (nodePos.getZ() + 0.5) - (originZ + 0.5);
+                    double dYCentered = (nodePos.getY() + 0.5) - (originY + 0.5);
+
+                    double distSq = dXCentered * dXCentered + dYCentered * dYCentered + dZCentered * dZCentered;
+
+                    if (distSq <= minDistanceSq) {
+                        minDistanceSq = distSq;
+                        bestNode = node;
+                    }
+                }
+            }
+        }
+
+        return Optional.ofNullable(bestNode);
     }
 
     public List<Node> getNetwork(Node start) {
         List<Node> network = new ArrayList<>();
-        Set<Long> visited = new HashSet<>();
+        LongOpenHashSet visited = new LongOpenHashSet();
         Queue<Node> queue = new ArrayDeque<>();
 
         visited.add(start.getPos());
@@ -595,14 +626,10 @@ public final class PathGraph {
         return getNetworkCacheForNode(startNode);
     }
 
-    /**
-     * Finds all networks whose Fog-of-War allowed chunks include the given chunk.
-     * Intended for cases where a chunk may belong to multiple network maps.
-     */
     public List<NetworkCache> findNetworksForChunk(ChunkPos chunkPos) {
         processDirtyNodes();
 
-        Set<UUID> networkIds = chunkToNetworkIds.get(chunkPos);
+        Set<UUID> networkIds = chunkToNetworkIds.get(chunkPos.toLong());
         if (networkIds == null || networkIds.isEmpty()) {
             return Collections.emptyList();
         }
@@ -620,34 +647,26 @@ public final class PathGraph {
     private void processDirtyNodes() {
         if (dirtyNodePositions.isEmpty()) return;
 
-        Iterator<Long> it = dirtyNodePositions.iterator();
-        while (it.hasNext()) {
-            Long pos = it.next();
-            if (!dirtyNodePositions.contains(pos)) continue;
+        long[] toProcess = dirtyNodePositions.toLongArray();
+        dirtyNodePositions.clear();
 
-            if (nodeToNetworkId.containsKey(pos.longValue())) {
-                it.remove();
+        for (long pos : toProcess) {
+            if (nodeToNetworkId.containsKey(pos)) {
                 continue;
             }
 
-            int idx = posToIndex.getOrDefault(pos.longValue(), -1);
+            int idx = posToIndex.getOrDefault(pos, -1);
             if (idx != -1) {
                 Node node = nodes.get(idx);
                 discoverAndCacheNetwork(node);
-            } else {
-                it.remove();
             }
         }
     }
 
-    /**
-     * Gets or computes the Fog-of-War cache for a given network, calculating it if not already present.
-     */
     public FoWCache getOrComputeFoWCache(NetworkCache network) {
         boolean isPseudo = ServerMapCache.isPseudoNetwork(network.id());
         return fowCacheById.computeIfAbsent(network.id(), id -> {
             FoWCache fow = calculateFoWData(network.nodePositions(), isPseudo);
-            // Update spatial index when FoW is computed
             if (fow != null) {
                 addNetworkToChunkMap(id, fow);
             }
@@ -657,26 +676,32 @@ public final class PathGraph {
 
     private void addNetworkToChunkMap(UUID networkId, FoWCache fow) {
         for (ChunkPos chunk : fow.allowedChunks()) {
-            chunkToNetworkIds.computeIfAbsent(chunk, c -> ConcurrentHashMap.newKeySet()).add(networkId);
+            chunkToNetworkIds.computeIfAbsent(chunk.toLong(), c -> new HashSet<>()).add(networkId);
         }
     }
 
     private void removeNetworkFromChunkMap(UUID networkId, FoWCache fow) {
         for (ChunkPos chunk : fow.allowedChunks()) {
-            Set<UUID> ids = chunkToNetworkIds.get(chunk);
+            Set<UUID> ids = chunkToNetworkIds.get(chunk.toLong());
             if (ids != null) {
                 ids.remove(networkId);
+                if (ids.isEmpty()) {
+                    chunkToNetworkIds.remove(chunk.toLong());
+                }
             }
         }
     }
 
-    public static FoWCache calculateFoWData(Set<Long> nodeLongs, boolean isPseudo) {
+    public static FoWCache calculateFoWData(LongSet nodeLongs, boolean isPseudo) {
         if (nodeLongs.isEmpty()) return null;
 
         int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE;
         int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE, maxZ = Integer.MIN_VALUE;
 
-        for (Long nodeLong : nodeLongs) {
+        LongIterator it = nodeLongs.iterator();
+
+        while (it.hasNext()) {
+            long nodeLong = it.nextLong();
             int x = BlockPos.getX(nodeLong);
             int y = BlockPos.getY(nodeLong);
             int z = BlockPos.getZ(nodeLong);
@@ -706,9 +731,27 @@ public final class PathGraph {
 
     public List<Node> queryNearby(BlockPos center, double radius) {
         double radiusSquared = radius * radius;
-        return nodes.stream()
-                .filter(node -> node.getBlockPos().distSqr(center) <= radiusSquared)
-                .collect(Collectors.toList());
+        List<Node> results = new ArrayList<>();
+
+        int chunkRadius = (int) Math.ceil(radius / 16.0);
+        int centerChunkX = SectionPos.blockToSectionCoord(center.getX());
+        int centerChunkZ = SectionPos.blockToSectionCoord(center.getZ());
+
+        for (int x = -chunkRadius; x <= chunkRadius; x++) {
+            for (int z = -chunkRadius; z <= chunkRadius; z++) {
+                long chunkKey = ChunkPos.asLong(centerChunkX + x, centerChunkZ + z);
+                List<Node> chunkNodes = nodesByChunk.get(chunkKey);
+
+                if (chunkNodes == null) continue;
+
+                for (Node node : chunkNodes) {
+                    if (node.getBlockPos().distSqr(center) <= radiusSquared) {
+                        results.add(node);
+                    }
+                }
+            }
+        }
+        return results;
     }
 
     //endregion
@@ -731,7 +774,7 @@ public final class PathGraph {
             CompoundTag nodeTag = (CompoundTag) raw;
             long pos = nodeTag.getLong("pos");
 
-            if (pos == BlockPos.ZERO.asLong()) continue; // Skip phantom nodes
+            if (pos == BlockPos.ZERO.asLong()) continue;
 
             nodes.add(new Node(nodeTag));
         }
@@ -743,6 +786,7 @@ public final class PathGraph {
         signPosToIndex.clear();
         dirtyNodePositions.clear();
         chunkToNetworkIds.clear();
+        nodesByChunk.clear();
 
         for (int i = 0; i < nodes.size(); i++) {
             Node node = nodes.get(i);
@@ -750,11 +794,29 @@ public final class PathGraph {
             final int finalI = i;
             node.getSignPos().ifPresent(sp -> signPosToIndex.put(sp.longValue(), finalI));
             dirtyNodePositions.add(node.getPos());
+
+            long chunkPos = ChunkPos.asLong(SectionPos.blockToSectionCoord(node.getBlockPos().getX()), SectionPos.blockToSectionCoord(node.getBlockPos().getZ()));
+            nodesByChunk.computeIfAbsent(chunkPos, k -> new ArrayList<>()).add(node);
         }
     }
     //endregion
 
     public List<DestinationResponseS2C.NodeNetworkInfo> getNodesAsInfo(NetworkCache cache) {
         return cache.getNodesAsInfo(this.posToIndex, this.nodes);
+    }
+
+    public List<DestinationResponseS2C.DestinationInfo> getNodesAsDestinationInfo(List<net.rasanovum.viaromana.path.Node> nodes, BlockPos origin) {
+        return nodes.stream()
+                .map(dest -> {
+                    double distance = Math.sqrt(origin.distSqr(dest.getBlockPos()));
+                    return new DestinationResponseS2C.DestinationInfo(
+                            dest.getBlockPos(),
+                            dest.getDestinationName().orElse("Unknown"),
+                            distance,
+                            dest.getDestinationIcon().orElse(net.rasanovum.viaromana.path.Node.Icon.SIGNPOST)
+                    );
+                })
+                .toList();
+
     }
 }

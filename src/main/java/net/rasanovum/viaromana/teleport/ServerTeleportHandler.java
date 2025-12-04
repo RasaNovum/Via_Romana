@@ -75,7 +75,7 @@ public class ServerTeleportHandler {
         ServerLevel level = player.serverLevel();
         PathGraph graph = PathGraph.getInstance(level);
 
-        if (graph == null || !validateOriginSign(level, packet.originSignPos())) {
+        if (graph == null || (packet.originSignPos() != null && !validateOriginSign(level, packet.originSignPos()))) {
             // ViaRomanaLandmarkManager.removeDestinationLandmark(level, packet.originSignPos().toLongPos()); //TODO: Add back
             return;
         }

@@ -15,17 +15,18 @@ public record TeleportRequestC2S(BlockPos originSignPos, BlockPos destinationPos
 
     public TeleportRequestC2S(FriendlyByteBuf buf) {
         this(
-            buf.readBlockPos(),
+            buf.readNullable(b -> b.readBlockPos()),
             buf.readBlockPos()
         );
     }
 
     public void write(FriendlyByteBuf buf) {
-        buf.writeBlockPos(this.originSignPos);
+        buf.writeNullable(this.originSignPos, (b, pos) -> b.writeBlockPos(pos));
         buf.writeBlockPos(this.destinationPos);
     }
 
     public void handle(Level level, Player player) {
+        assert level != null;
         if (!level.isClientSide && player instanceof ServerPlayer serverPlayer) {
             ServerTeleportHandler.handleTeleportRequest(this, serverPlayer);
         }

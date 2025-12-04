@@ -88,6 +88,7 @@ public record MapInfo(
             } else {
                 buffer.writeBoolean(false);
             }
+
             buffer.writeInt(pixelWidth);
             buffer.writeInt(pixelHeight);
             buffer.writeInt(scaleFactor);
@@ -132,20 +133,22 @@ public record MapInfo(
         Long createdAtMs = null;
 
         if (hasPixelData) {
-            // Read biome pixels
             boolean hasBiomePixels = buffer.readBoolean();
+
             if (hasBiomePixels) {
                 int biomeLength = buffer.readInt();
                 biomePixels = new byte[biomeLength];
                 buffer.readBytes(biomePixels);
             }
-            // Read chunk pixels
+
             boolean hasChunkPixels = buffer.readBoolean();
+
             if (hasChunkPixels) {
                 int chunkLength = buffer.readInt();
                 chunkPixels = new byte[chunkLength];
                 buffer.readBytes(chunkPixels);
             }
+
             pixelWidth = buffer.readInt();
             pixelHeight = buffer.readInt();
             scaleFactor = buffer.readInt();
@@ -153,7 +156,9 @@ public record MapInfo(
             worldMinZ = buffer.readInt();
             worldMaxX = buffer.readInt();
             worldMaxZ = buffer.readInt();
+
             long ts = buffer.readLong();
+
             createdAtMs = ts == 0L ? null : ts;
         }
 

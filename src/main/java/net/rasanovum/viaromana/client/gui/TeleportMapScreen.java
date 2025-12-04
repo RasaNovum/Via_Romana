@@ -3,11 +3,14 @@ package net.rasanovum.viaromana.client.gui;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.corgitaco.dataanchor.network.broadcast.PacketBroadcaster;
 import net.minecraft.Util;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Player;
 import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.ViaRomana;
@@ -77,15 +80,15 @@ public class TeleportMapScreen extends Screen {
         this.networkNodes = new ArrayList<>(packet.networkNodes());
 
         this.destinations = packet.destinations().stream()
-            .map(dest -> new TeleportHelper.TeleportDestination(dest.position, dest.name, dest.distance, dest.icon))
-            .collect(Collectors.toList());
+                .map(dest -> new TeleportHelper.TeleportDestination(dest.position, dest.name, dest.distance, dest.icon))
+                .collect(Collectors.toList());
 
         this.networkNodeMap = packet.networkNodes().stream()
-            .collect(Collectors.toMap(info -> info.position, info -> info));
+                .collect(Collectors.toMap(info -> info.position, info -> info));
 
         this.destinationPositions = this.destinations.stream()
-            .map(dest -> dest.position)
-            .collect(Collectors.toSet());
+                .map(dest -> dest.position)
+                .collect(Collectors.toSet());
 
         configureAnimationTiming();
         calculateBounds();
@@ -94,30 +97,31 @@ public class TeleportMapScreen extends Screen {
 
         requestMapAsync(this.minBounds, this.maxBounds);
     }
-    
+
     /**
      * Requests map from server and sets up texture when received.
      */
-    private void requestMapAsync(BlockPos paddedMin, BlockPos paddedMax) {        
+    private void requestMapAsync(BlockPos paddedMin, BlockPos paddedMax) {
         MapClient.requestMap(networkId, paddedMin, paddedMax, networkNodes)
-            .thenAccept(mapInfo -> {
-                if (mapInfo != null) {
-                    assert this.minecraft != null;
-                    this.minecraft.execute(() -> {
-                        if (this.mapTexture != null) {
-                            this.mapTexture.close();
-                        }
-                        this.mapTexture = MapClient.createTexture(mapInfo);
-                        if (this.mapRenderer != null) {
-                            this.mapRenderer.setMapTexture(this.mapTexture);
-                        }
-                    });
-                }
-            })
-            .exceptionally(ex -> {
-                ViaRomana.LOGGER.error("Failed to load map for network {}", networkId, ex);
-                return null;
-            });
+                .thenAccept(mapInfo -> {
+                    if (mapInfo != null) {
+                        assert this.minecraft != null;
+                        this.minecraft.execute(() -> {
+                            if (this.mapTexture != null) {
+                                this.mapTexture.close();
+                            }
+                            this.mapTexture = MapClient.createTexture(mapInfo);
+                            if (this.mapRenderer != null) {
+                                this.mapRenderer.setMapTexture(this.mapTexture);
+                                this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.BOOK_PAGE_TURN, 1.0F));
+                            }
+                        });
+                    }
+                })
+                .exceptionally(ex -> {
+                    ViaRomana.LOGGER.error("Failed to load map for network {}", networkId, ex);
+                    return null;
+                });
     }
 
     @Override
@@ -144,7 +148,7 @@ public class TeleportMapScreen extends Screen {
 
         //? if >1.21
         this.renderBlurredBackground(partialTicks);
-        
+
         this.mapRenderer.render(guiGraphics, this.width, this.height);
 
         renderNetwork(guiGraphics);
@@ -283,18 +287,20 @@ public class TeleportMapScreen extends Screen {
     private void renderDestinationMarkers(GuiGraphics guiGraphics, Set<BlockPos> revealedNodes, TeleportHelper.TeleportDestination hoveredDestination) {
         // Update fade-in progress for newly validated destinations that have been revealed
         revealedNodes.stream()
-            .filter(destinationPositions::contains)
-            .filter(validatedNodes::contains)
-            .forEach(pos -> {
-                float progress = destinationFadeProgress.getOrDefault(pos, 0.0f);
-                if (progress < 1.0f) {
-                    destinationFadeProgress.put(pos, Math.min(1.0f, progress + MARKER_FADE_SPEED));
-                }
-            });
+                .filter(destinationPositions::contains)
+                .filter(node -> sourceNodePos == null || validatedNodes.contains(node))
+                .forEach(pos -> {
+                    float progress = destinationFadeProgress.getOrDefault(pos, 0.0f);
+                    if (progress < 1.0f) {
+                        destinationFadeProgress.put(pos, Math.min(1.0f, progress + MARKER_FADE_SPEED));
+                    }
+                });
 
         // Render the markers that have begun fading in and are validated
         for (TeleportHelper.TeleportDestination dest : destinations) {
-            if (destinationFadeProgress.containsKey(dest.position) && validatedNodes.contains(dest.position)) {
+            boolean isValidated = validatedNodes.contains(dest.position) || sourceNodePos == null;
+
+            if (destinationFadeProgress.containsKey(dest.position) && isValidated) {
                 worldToScreen(dest.position).ifPresent(screenPos -> {
                     float alpha = destinationFadeProgress.get(dest.position);
 
@@ -333,7 +339,7 @@ public class TeleportMapScreen extends Screen {
             int y = screenPos.y - PLAYER_MARKER_SIZE / 2;
             //? if <1.21 {
             /*ResourceLocation skin = this.minecraft.getSkinManager().getInsecureSkinLocation(player.getGameProfile());
-            *///?} else {
+             *///?} else {
             ResourceLocation skin = this.minecraft.getSkinManager().getInsecureSkin(player.getGameProfile()).texture();
             //?}
 
@@ -390,8 +396,8 @@ public class TeleportMapScreen extends Screen {
             long dist = Math.round(hoveredDestination.distance);
             long displayDist = dist > 1000 ? dist / 1000 : dist;
             Component text = Component.translatable(
-                "gui.viaromana.distance_" + (dist > 1000 ? "kilometers" : "meters"),
-                hoveredDestination.name, displayDist
+                    "gui.viaromana.distance_" + (dist > 1000 ? "kilometers" : "meters"),
+                    hoveredDestination.name, displayDist
             );
             guiGraphics.renderTooltip(this.font, text, mouseX, mouseY);
         } else if (isMouseOverPlayer(mouseX, mouseY)) {
@@ -415,6 +421,11 @@ public class TeleportMapScreen extends Screen {
 
     public void selectDestination(TeleportHelper.TeleportDestination destination) {
         if (minecraft == null || minecraft.player == null) return;
+
+//        if (this.signPos == null) {
+//            HudMessageManager.queueMessage("message.viaromana.view_only_mode");
+//            return;
+//        }
 
         if (PlayerData.isChartingPath(minecraft.player)) {
             HudMessageManager.queueMessage("message.via_romana.cannot_warp_when_recording");
@@ -535,7 +546,8 @@ public class TeleportMapScreen extends Screen {
 
     private TeleportHelper.TeleportDestination findDestinationAtPosition(Set<BlockPos> revealedNodes, int mouseX, int mouseY) {
         for (TeleportHelper.TeleportDestination dest : destinations) {
-            if (revealedNodes.contains(dest.position) && validatedNodes.contains(dest.position)) {
+            boolean isValidated = validatedNodes.contains(dest.position) || sourceNodePos == null;
+            if (revealedNodes.contains(dest.position) && isValidated) {
                 Optional<Point> screenPosOpt = worldToScreen(dest.position);
                 if (screenPosOpt.isPresent()) {
                     if (isMouseOver(screenPosOpt.get(), MARKER_SIZE, mouseX, mouseY)) {
@@ -593,12 +605,12 @@ public class TeleportMapScreen extends Screen {
             this.mapTexture.close();
             this.mapTexture = null;
         }
-        
+
         if (this.mapRenderer != null) {
             this.mapRenderer.close();
             this.mapRenderer = null;
         }
-        
+
         super.onClose();
     }
 

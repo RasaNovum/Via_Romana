@@ -329,21 +329,26 @@ public final class ServerMapCache {
     }
 
     public static void invalidate(UUID networkId) {
-        dirtyNetworks.remove(networkId);
-        cache.remove(networkId);
-        modifiedForSaving.remove(networkId);
-
         try {
-            Path mapDir = getMapDirectory();
-            String base = "network-" + networkId;
-            boolean pngDeleted = Files.deleteIfExists(mapDir.resolve(base + ".png"));
-            boolean nbtDeleted = Files.deleteIfExists(mapDir.resolve(base + ".nbt"));
-            boolean pixelsDeleted = Files.deleteIfExists(mapDir.resolve(base + ".pixels"));
-            if (pngDeleted || nbtDeleted || pixelsDeleted) {
-                ViaRomana.LOGGER.debug("Deleted map files from disk for network {}", networkId);
+            dirtyNetworks.remove(networkId);
+            cache.remove(networkId);
+            modifiedForSaving.remove(networkId);
+
+            try {
+                Path mapDir = getMapDirectory();
+                String base = "network-" + networkId;
+                boolean pngDeleted = Files.deleteIfExists(mapDir.resolve(base + ".png"));
+                boolean nbtDeleted = Files.deleteIfExists(mapDir.resolve(base + ".nbt"));
+                boolean pixelsDeleted = Files.deleteIfExists(mapDir.resolve(base + ".pixels"));
+                if (pngDeleted || nbtDeleted || pixelsDeleted) {
+                    ViaRomana.LOGGER.debug("Deleted map files from disk for network {}", networkId);
+                }
+            } catch (IOException e) {
+                ViaRomana.LOGGER.error("Failed to delete map files from disk for network {}", networkId, e);
             }
-        } catch (IOException e) {
-            ViaRomana.LOGGER.error("Failed to delete map files from disk for network {}", networkId, e);
+        }
+        catch (Exception e) {
+            ViaRomana.LOGGER.warn("Failed to invalidate ServerMapCache for network {}: {}", networkId, e.getMessage());
         }
     }
 

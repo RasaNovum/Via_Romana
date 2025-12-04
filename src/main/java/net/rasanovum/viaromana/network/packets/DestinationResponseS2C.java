@@ -9,7 +9,6 @@ import net.rasanovum.viaromana.client.gui.TeleportMapScreen;
 import net.rasanovum.viaromana.network.AbstractPacket;
 import net.rasanovum.viaromana.path.Node;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -17,81 +16,32 @@ import java.util.UUID;
  * Response from the server containing the list of available destinations, sign position, source node position, network nodes, and network ID.
  */
 public record DestinationResponseS2C(
-    List<DestinationInfo> destinations,
-    BlockPos signPos,
-    BlockPos sourceNodePos,
-    List<NodeNetworkInfo> networkNodes,
-    UUID networkId
+        List<DestinationInfo> destinations,
+        BlockPos signPos,
+        BlockPos sourceNodePos,
+        List<NodeNetworkInfo> networkNodes,
+        UUID networkId
 ) implements AbstractPacket {
 
     public DestinationResponseS2C(FriendlyByteBuf buf) {
-        this(readFromBuffer(buf));
+        this(
+                buf.readList(DestinationInfo::new),
+                buf.readNullable(b -> b.readBlockPos()),
+                buf.readNullable(b -> b.readBlockPos()),
+                buf.readList(NodeNetworkInfo::new),
+                buf.readUUID()
+        );
     }
-
-    private DestinationResponseS2C(Data data) {
-        this(data.destinations, data.signPos, data.sourceNodePos, data.networkNodes, data.networkId);
-    }
-
-    private static Data readFromBuffer(FriendlyByteBuf buf) {
-        BlockPos signPos = buf.readBlockPos();
-        BlockPos sourceNodePos = buf.readBlockPos();
-        UUID networkId = buf.readUUID();
-        
-        int size = buf.readInt();
-        List<DestinationInfo> destinations = new ArrayList<>(size);
-        for (int i = 0; i < size; i++) {
-            destinations.add(new DestinationInfo(
-                buf.readBlockPos(),
-                buf.readUtf(),
-                buf.readDouble(),
-                Node.Icon.valueOf(buf.readUtf())
-            ));
-        }
-
-        int networkSize = buf.readInt();
-        List<NodeNetworkInfo> networkNodes = new ArrayList<>(networkSize);
-        for (int i = 0; i < networkSize; i++) {
-            BlockPos pos = buf.readBlockPos();
-            float clearance = buf.readFloat();
-
-            int connectionCount = buf.readInt();
-            List<BlockPos> connections = new ArrayList<>(connectionCount);
-            for (int j = 0; j < connectionCount; j++) {
-                connections.add(buf.readBlockPos());
-            }
-
-            networkNodes.add(new NodeNetworkInfo(pos, clearance, connections));
-        }
-        
-        return new Data(destinations, signPos, sourceNodePos, networkNodes, networkId);
-    }
-
-    private record Data(List<DestinationInfo> destinations, BlockPos signPos, BlockPos sourceNodePos, List<NodeNetworkInfo> networkNodes, UUID networkId) {}
 
     public void write(FriendlyByteBuf buf) {
-        buf.writeBlockPos(this.signPos);
-        buf.writeBlockPos(this.sourceNodePos);
+        buf.writeCollection(this.destinations, (b, dest) -> dest.write(b));
+        buf.writeNullable(this.signPos, (b, pos) -> b.writeBlockPos(pos));
+        buf.writeNullable(this.sourceNodePos, (b, pos) -> b.writeBlockPos(pos));
+        buf.writeCollection(this.networkNodes, (b, node) -> node.write(b));
         buf.writeUUID(this.networkId);
-
-        buf.writeInt(this.destinations.size());
-        for (DestinationInfo dest : this.destinations) {
-            buf.writeBlockPos(dest.position);
-            buf.writeUtf(dest.name);
-            buf.writeDouble(dest.distance);
-            buf.writeUtf(dest.icon.name());
-        }
-
-        buf.writeInt(this.networkNodes.size());
-        for (NodeNetworkInfo node : this.networkNodes) {
-            buf.writeBlockPos(node.position);
-            buf.writeFloat(node.clearance);
-            buf.writeInt(node.connections.size());
-            for (BlockPos connection : node.connections) {
-                buf.writeBlockPos(connection);
-            }
-        }
     }
 
+    @Override
     public void handle(Level level, Player player) {
         if (level != null && level.isClientSide) {
             DestinationResponseS2C.ClientHandler.handleClient(this);
@@ -103,21 +53,37 @@ public record DestinationResponseS2C(
             Minecraft.getInstance().setScreen(new TeleportMapScreen(response));
         }
     }
-    
+
     public static class DestinationInfo {
         public final BlockPos position;
         public final String name;
         public final double distance;
         public final Node.Icon icon;
-        
+
         public DestinationInfo(BlockPos position, String name, double distance, Node.Icon icon) {
             this.position = position;
             this.name = name;
             this.distance = distance;
             this.icon = icon;
         }
+
+        public DestinationInfo(FriendlyByteBuf buf) {
+            this(
+                    buf.readBlockPos(),
+                    buf.readUtf(),
+                    buf.readDouble(),
+                    Node.Icon.valueOf(buf.readUtf())
+            );
+        }
+
+        public void write(FriendlyByteBuf buf) {
+            buf.writeBlockPos(position);
+            buf.writeUtf(name);
+            buf.writeDouble(distance);
+            buf.writeUtf(icon.name());
+        }
     }
-    
+
     public static class NodeNetworkInfo {
         public final BlockPos position;
         public final float clearance;
@@ -127,6 +93,18 @@ public record DestinationResponseS2C(
             this.position = position;
             this.clearance = clearance;
             this.connections = connections;
+        }
+
+        public NodeNetworkInfo(FriendlyByteBuf buf) {
+            this.position = buf.readBlockPos();
+            this.clearance = buf.readFloat();
+            this.connections = buf.readList(b -> b.readBlockPos());
+        }
+
+        public void write(FriendlyByteBuf buf) {
+            buf.writeBlockPos(position);
+            buf.writeFloat(clearance);
+            buf.writeCollection(connections, (b, pos) -> b.writeBlockPos(pos));
         }
     }
 }

@@ -30,7 +30,7 @@ public class CommonConfig extends MidnightConfig {
     @Entry(category = WARP) public static List<String> invalid_entities = Lists.newArrayList();
     @Entry(category = WARP) public static List<String> warp_block_ids = Lists.newArrayList("via_romana:warp_block");
     @Entry(category = WARP) public static List<String> warp_block_tags = Lists.newArrayList("minecraft:all_signs");
-    @Entry(category = WARP, min = 0) public static int travel_fatigue_cooldown = 10;
+    @Entry(category = WARP, min = 0) public static int travel_fatigue_cooldown = 6;
     @Comment(category = WARP) public static Comment warp_footer;
 
     @Entry(category = MAP, min = 1) public static int fog_of_war_distance = 10;
