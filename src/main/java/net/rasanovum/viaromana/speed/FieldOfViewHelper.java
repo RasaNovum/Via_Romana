@@ -47,6 +47,7 @@ public class FieldOfViewHelper {
                         op -> Sets.newHashSet()
                 ));
 
+        //? if >=1.21 {
         for (AttributeModifier modifier : attribute.getModifiers()) {
             if (!modifier.id().equals(SpeedHandler.PROXIMITY_SPEED_ID)) {
                 operationToModifiers.get(modifier.operation()).add(modifier);
@@ -68,5 +69,28 @@ public class FieldOfViewHelper {
         }
 
         return attribute.getAttribute().value().sanitizeValue(value);
+        //?} else {
+        /*for (AttributeModifier modifier : attribute.getModifiers()) {
+            if (!modifier.getId().equals(SpeedHandler.PROXIMITY_SPEED_ID)) {
+                operationToModifiers.get(modifier.getOperation()).add(modifier);
+            }
+        }
+
+        for (AttributeModifier mod : operationToModifiers.get(AttributeModifier.Operation.ADDITION)) {
+            baseValue += mod.getAmount();
+        }
+
+        double value = baseValue;
+
+        for (AttributeModifier mod : operationToModifiers.get(AttributeModifier.Operation.MULTIPLY_BASE)) {
+            value += baseValue * mod.getAmount();
+        }
+
+        for (AttributeModifier mod : operationToModifiers.get(AttributeModifier.Operation.MULTIPLY_TOTAL)) {
+            value *= (1.0D + mod.getAmount());
+        }
+
+        return attribute.getAttribute().sanitizeValue(value);
+        *///?}
     }
 }
