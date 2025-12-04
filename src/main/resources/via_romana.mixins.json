@@ -4,12 +4,13 @@
   "package": "net.rasanovum.viaromana.mixins",
   "compatibilityLevel": "JAVA_17",
   "client": [
-    "client.BlockLightEngineMixin",
+    "client.AbstractClientPlayerMixin",
     "client.AbstractSignEditScreenAccessor",
-    "client.TextHolderEditScreenMixin",
+    "client.BlockLightEngineMixin",
+    "client.ClientPlayerInteractionManagerMixin",
     "client.SignEditScreenMixin",
-    "client.WarpBlockScreenMixin",
-    "client.ClientPlayerInteractionManagerMixin"
+    "client.TextHolderEditScreenMixin",
+    "client.WarpBlockScreenMixin"
   ],
   "mixins": [
     "BlockEntityMixin",

@@ -31,6 +31,7 @@ public class CommonConfig extends MidnightConfig {
     @Entry(category = WARP) public static List<String> warp_block_ids = Lists.newArrayList("via_romana:warp_block");
     @Entry(category = WARP) public static List<String> warp_block_tags = Lists.newArrayList("minecraft:all_signs");
     @Entry(category = WARP, min = 0) public static int travel_fatigue_cooldown = 6;
+    @Entry(category = WARP, min = 0f, max = 5f) public static double fast_movement_speed = 0.4D;
     @Comment(category = WARP) public static Comment warp_footer;
 
     @Entry(category = MAP, min = 1) public static int fog_of_war_distance = 10;
@@ -41,6 +42,7 @@ public class CommonConfig extends MidnightConfig {
     @Entry(category = MAP, min = 0) public static int map_save_interval = 5;
     @Entry(category = MAP) public static List<String> biomeColor = Lists.newArrayList();
     @Entry(category = MAP) public static boolean use_biome_fallback_for_lowres = false;
+    @Entry(category = MAP) public static boolean enable_remote_map_access = true;
     @Entry(category = MAP) public static boolean enable_surveyor_landmark = false;
     @Entry(category = MAP) public static boolean enable_surveyor_landmark_coloring = false;
     @Comment(category = MAP) public static Comment map_footer;

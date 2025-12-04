@@ -117,6 +117,9 @@
   "via_romana.midnightconfig.path_quality_threshold.tooltip": "Minimum percentage of valid infrastructure blocks required to place a node (eg. 0.3 = 30%% of a 2D slice of area check).\n • Server Managed",
   "via_romana.midnightconfig.travel_fatigue_cooldown": "Travel Fatigue Cooldown",
   "via_romana.midnightconfig.travel_fatigue_cooldown.tooltip": "Cooldown (in seconds) before a player can warp again.\n • Server Managed",
+  "via_romana.midnightconfig.fast_movement_speed": "Path Movement Speedup",
+  "via_romana.midnightconfig.fast_movement_speed.tooltip": "Speedup from default movement speed when walking along a charted path (eg. 0.4 = 40%% faster).\n • Server Managed",
+
   "via_romana.midnightconfig.charting_footer": "• Check the 'Visuals' tab for charting visuals.",
 
   "via_romana.midnightconfig.fog_of_war_distance": "Fog of War Distance",
@@ -144,6 +147,8 @@
   "via_romana.midnightconfig.biomeColor.tooltip": "Format: biome_id=map_color\n• biome_id: A valid Minecraft biome ID (e.g., minecraft:plains).\n• map_color: Integer index for a map color (0-61, check wiki).\n • Server Managed",
   "via_romana.midnightconfig.use_biome_fallback_for_lowres": "Use Biome Fallback for Low Resolution",
   "via_romana.midnightconfig.use_biome_fallback_for_lowres.tooltip": "When enabled, uses biome data instead of rendering chunks for low-resolution maps, improving performance with minimal quality loss.\n • Server Managed",
+  "via_romana.midnightconfig.enable_remote_map_access": "Enable Remote Map Access",
+  "via_romana.midnightconfig.enable_remote_map_access.tooltip": "When enabled, users may access a networks map anywhere along a charted path by sneak & right-clicking a Charting Map.\n • Server Managed",
   "via_romana.midnightconfig.map_footer": "• Check the 'Visuals' tab for map visuals.",
 
   "via_romana.midnightconfig.invalid_entities": "Invalid Entities",

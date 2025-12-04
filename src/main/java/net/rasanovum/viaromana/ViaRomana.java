@@ -17,6 +17,7 @@ import net.rasanovum.viaromana.init.*;
 import net.rasanovum.viaromana.integration.IntegrationManager;
 import net.rasanovum.viaromana.map.ChunkPixelRenderer;
 import net.rasanovum.viaromana.map.ServerMapCache;
+import net.rasanovum.viaromana.speed.SpeedHandler;
 import net.rasanovum.viaromana.storage.player.PlayerData;
 import net.rasanovum.viaromana.tags.ServerResourcesGenerator;
 import net.rasanovum.viaromana.teleport.ServerTeleportHandler;
@@ -76,6 +77,10 @@ public class ViaRomana {
         MinecraftServer server = level.getServer();
         if (level == server.overworld()) {
             tickPendingPathGraphSyncs(server);
+        }
+
+        for (ServerPlayer player : level.players()) {
+            SpeedHandler.onPlayerTick(player);
         }
     }
 

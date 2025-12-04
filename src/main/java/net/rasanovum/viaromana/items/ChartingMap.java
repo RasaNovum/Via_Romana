@@ -34,7 +34,7 @@ public class ChartingMap extends Item {
         if (player.getCooldowns().isOnCooldown(this)) return InteractionResultHolder.pass(itemStack);
 
         if (player instanceof ServerPlayer serverPlayer) {
-            if (!player.isCrouching()) {
+            if (!player.isCrouching() || !CommonConfig.enable_remote_map_access) {
                 PacketBroadcaster.S2C.sendToPlayer(new OpenChartingScreenS2C(), serverPlayer);
             }
             else {
