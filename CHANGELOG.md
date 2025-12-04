@@ -10,7 +10,6 @@
 ### Improvements:
 - Ported networking from `Common Network` to `Data Anchor` to remove a dependency
   - New packet registration system roughly halves the amount of code per-packet making maintenance much easier than before.
-  - TODO: Force Data Anchor version
 - Added `BOOK_PAGE_TURN` sound effect to map screen opening.
 - Performance improvements regarding finding the nearest node.
 

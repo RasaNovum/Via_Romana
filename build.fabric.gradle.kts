@@ -50,6 +50,9 @@ dependencies {
 tasks.named<ProcessResources>("processResources") {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
+    val fullDataAnchorVersion = project.properties["deps.data-anchor"] as String
+    val coreDataAnchorVersion = fullDataAnchorVersion.split('-')[0]
+
     val props = mapOf(
         "version" to project.version,
         "mc" to project.property("deps.minecraft"),
@@ -65,7 +68,9 @@ tasks.named<ProcessResources>("processResources") {
         "sources" to project.property("mod.sources"),
 
         "fl" to project.property("deps.fabric_loader"),
-        "fapi" to project.property("deps.fabric_api")
+        "fapi" to project.property("deps.fabric_api"),
+
+        "dataanchor" to coreDataAnchorVersion,
     )
 
     inputs.properties(props)

@@ -85,6 +85,9 @@ dependencies {
 }
 
 tasks.named<ProcessResources>("processResources") {
+    val fullDataAnchorVersion = project.properties["deps.data-anchor"] as String
+    val coreDataAnchorVersion = fullDataAnchorVersion.split('-')[0]
+
     val props = mapOf(
         "version" to project.version,
         "mc" to project.property("deps.minecraft"),
@@ -98,7 +101,9 @@ tasks.named<ProcessResources>("processResources") {
         "issues" to project.property("mod.issues"),
         "sources" to project.property("mod.sources"),
         "forge" to project.property("deps.forge_version"),
-        "forgeFapi" to project.property("deps.fabric_api")
+        "forgeFapi" to project.property("deps.fabric_api"),
+
+        "dataanchor" to coreDataAnchorVersion,
     )
 
     inputs.properties(props)

@@ -37,7 +37,7 @@ public class SpeedHandler {
             nearNode = nearestNode.isPresent();
         }
 
-        net.rasanovum.viaromana.ViaRomana.LOGGER.info("Near Node: {}", nearNode);
+//        net.rasanovum.viaromana.ViaRomana.LOGGER.info("Near Node: {}", nearNode);
 
         boolean hasModifier = speedAttribute.getModifier(PROXIMITY_SPEED_ID) != null;
 
