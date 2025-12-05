@@ -5,6 +5,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.ViaRomana;
+import net.rasanovum.viaromana.client.gui.TeleportMapScreen;
 import net.rasanovum.viaromana.util.VersionUtils;
 
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -15,6 +16,8 @@ public class VignetteRenderer {
     private static final ResourceLocation CHARTING_VIGNETTE_TEXTURE = VersionUtils.getLocation("via_romana:textures/screens/overlay_vignette_charting.png");
 
     public static void renderVignette(GuiGraphics guiGraphics) {
+        if (Minecraft.getInstance().screen instanceof TeleportMapScreen) return;
+
         try {
             float intensity = NodeRenderer.getCurrentVignetteIntensity();
             int color = NodeRenderer.getCurrentNodeColor();

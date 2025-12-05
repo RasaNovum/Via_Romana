@@ -1,6 +1,7 @@
 package net.rasanovum.viaromana.client.render;
 
 import net.rasanovum.viaromana.client.FadeManager;
+import net.rasanovum.viaromana.client.gui.TeleportMapScreen;
 import net.rasanovum.viaromana.util.VersionUtils;
 
 import net.minecraft.resources.ResourceLocation;
@@ -17,9 +18,11 @@ public class FadeRenderer {
         float alpha = FadeManager.getCurrentFadeAlpha();
         
         if (alpha <= 0) return;
+
+        Minecraft mc = Minecraft.getInstance();
         
-        int screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
-        int screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();
+        int screenWidth = mc.getWindow().getGuiScaledWidth();
+        int screenHeight = mc.getWindow().getGuiScaledHeight();
         
         RenderSystem.disableDepthTest();
         RenderSystem.depthMask(false);

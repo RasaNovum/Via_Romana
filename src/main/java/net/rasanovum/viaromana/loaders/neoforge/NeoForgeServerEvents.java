@@ -6,6 +6,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.TagsUpdatedEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
@@ -60,6 +61,15 @@ public final class NeoForgeServerEvents {
         if (event.getEntity() instanceof ServerPlayer player) {
             ServerLevel newLevel = player.serverLevel();
             ViaRomana.onDimensionChange(newLevel, player);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onBlockBreak(BlockEvent.BreakEvent event) {
+        if (event.getPlayer() instanceof ServerPlayer serverPlayer) {
+            boolean result = ViaRomana.onBlockBreak(event.getLevel(), event.getPos(), serverPlayer);
+
+            if (!result) event.setCanceled(true);
         }
     }
 

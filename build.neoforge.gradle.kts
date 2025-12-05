@@ -62,6 +62,8 @@ dependencies {
 }
 
 tasks.named<ProcessResources>("processResources") {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
     val fullDataAnchorVersion = project.properties["deps.data-anchor"] as String
     val coreDataAnchorVersion = fullDataAnchorVersion.split('-')[0]
 

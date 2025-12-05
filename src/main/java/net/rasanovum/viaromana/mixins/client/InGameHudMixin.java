@@ -14,6 +14,22 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(Gui.class)
 public class InGameHudMixin {
     //? >1.21 {
+    @Inject(method = "renderCrosshair", at = @At("HEAD"), cancellable = true)
+    private void viaRomana_cancelCrosshair(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
+        if (ClientLinkParticleHandler.getCrosshairAlpha() <= 0.01f) {
+            ci.cancel();
+        }
+    }
+    //?} else {
+    /*@Inject(method = "renderCrosshair", at = @At("HEAD"), cancellable = true)
+    private void viaRomana_cancelCrosshair(GuiGraphics guiGraphics, CallbackInfo ci) {
+        if (ClientLinkParticleHandler.getCrosshairAlpha() <= 0.01f) {
+            ci.cancel();
+        }
+    }
+    *///?}
+
+    //? >1.21 {
     @Inject(method = "renderCrosshair", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blitSprite(Lnet/minecraft/resources/ResourceLocation;IIII)V"))
     private void viaRomana_preDrawCrosshair(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
     //?} else {

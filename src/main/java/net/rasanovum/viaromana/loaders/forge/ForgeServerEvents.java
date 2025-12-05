@@ -2,6 +2,7 @@ package net.rasanovum.viaromana.loaders.forge;
 
 //? if forge {
 /*import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
@@ -63,6 +64,15 @@ public final class ForgeServerEvents {
         if (event.getEntity() instanceof ServerPlayer player) {
             ServerLevel newLevel = player.serverLevel();
             ViaRomana.onDimensionChange(newLevel, player);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onBlockBreak(BlockEvent.BreakEvent event) {
+        if (event.getPlayer() instanceof ServerPlayer serverPlayer) {
+            boolean result = ViaRomana.onBlockBreak(event.getLevel(), event.getPos(), serverPlayer);
+
+            if (!result) event.setCanceled(true);
         }
     }
 
