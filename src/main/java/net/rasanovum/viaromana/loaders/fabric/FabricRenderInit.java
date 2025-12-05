@@ -20,7 +20,7 @@ public class FabricRenderInit {
 			//?}
 			VignetteRenderer.renderVignette(matrices);
 			FadeRenderer.render(matrices, tickDelta);
-			ClientLinkParticleHandler.render(matrices, tickDelta);
+			LinkIndicationHandler.render(matrices, tickDelta);
 		});
 		
 		WorldRenderEvents.LAST.register((context) -> {

@@ -2,7 +2,7 @@ package net.rasanovum.viaromana.loaders.fabric;
 //? if fabric {
 import net.rasanovum.viaromana.client.HudMessageManager;
 import net.rasanovum.viaromana.client.FadeManager;
-import net.rasanovum.viaromana.client.render.ClientLinkParticleHandler;
+import net.rasanovum.viaromana.client.render.LinkIndicationHandler;
 import net.rasanovum.viaromana.client.triggers.OnClientPlayerTick;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
@@ -25,7 +25,7 @@ public class FabricClientEvents implements ClientModInitializer {
             HudMessageManager.onClientTick();
             OnClientPlayerTick.onClientTick();
             FadeManager.onClientTick();
-            ClientLinkParticleHandler.onClientTick();
+            LinkIndicationHandler.onClientTick();
         });
     }
 }

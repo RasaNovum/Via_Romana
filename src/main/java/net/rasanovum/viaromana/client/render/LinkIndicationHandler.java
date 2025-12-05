@@ -13,7 +13,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.rasanovum.viaromana.CommonConfig;
-import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.client.FadeManager;
 import net.rasanovum.viaromana.client.data.ClientPathData;
 import net.rasanovum.viaromana.path.Node;
@@ -24,7 +23,7 @@ import java.util.List;
 import java.util.Objects;
 
 @net.fabricmc.api.Environment(net.fabricmc.api.EnvType.CLIENT)
-public class ClientLinkParticleHandler {
+public class LinkIndicationHandler {
     private static int tickCounter = 0;
     private static final int SCAN_INTERVAL = 10;
     private static final double RENDER_RADIUS = 12.0;
@@ -34,7 +33,7 @@ public class ClientLinkParticleHandler {
     private static final Component TOOLTIP_TEXT = Component.translatable("gui.viaromana.left_click_hover_tip");
     private static final ResourceLocation CURSOR = VersionUtils.getLocation("via_romana:textures/screens/cursor.png");
 
-    private static final int ICON_SIZE = 20;
+    private static final int ICON_SIZE = 18;
     private static float currentOpacity = 0.0f;
     private static final float fadeSpeed = 0.25f;
     private static boolean isHovering = false;

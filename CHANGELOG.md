@@ -1,6 +1,10 @@
 # Via Romana 2.2.0 Changelog:
 
 ### Features:
+- Added `Linked Sign Particles` which indicate which signs are linked to the path network (no more clicking every sign you see in a server).
+  - Added `Enable Linked Sign Particles` config option allowing this to be disabled (client-side).
+- Added `Custom Cursor` which appears when hovering over a linked sign to better indicate left-clicking as the action required to access the Travel Map.
+  - Added `Enable Custom Cursor` config option allowing this to be disabled (client-side).
 - Added the ability to `sneak & right-click` anywhere along a charted path to open the `Map Screen` using the `Charting Map` item.
   - Added `Enable Remote Map Access` config option allowing users to disable this feature.
 - Added movement speed boost while walking on charted paths

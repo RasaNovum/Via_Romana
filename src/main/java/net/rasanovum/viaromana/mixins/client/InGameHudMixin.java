@@ -5,7 +5,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.Gui;
-import net.rasanovum.viaromana.client.render.ClientLinkParticleHandler;
+import net.rasanovum.viaromana.client.render.LinkIndicationHandler;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -16,7 +16,7 @@ public class InGameHudMixin {
     //? >1.21 {
     @Inject(method = "renderCrosshair", at = @At("HEAD"), cancellable = true)
     private void viaRomana_cancelCrosshair(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
-        if (ClientLinkParticleHandler.getCrosshairAlpha() <= 0.01f) {
+        if (LinkIndicationHandler.getCrosshairAlpha() <= 0.01f) {
             ci.cancel();
         }
     }
@@ -36,7 +36,7 @@ public class InGameHudMixin {
     /*@Inject(method = "renderCrosshair", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blit(Lnet/minecraft/resources/ResourceLocation;IIIIII)V"))
     private void viaRomana_preDrawCrosshair(GuiGraphics guiGraphics, CallbackInfo ci) {
     *///?}
-        float alpha = ClientLinkParticleHandler.getCrosshairAlpha();
+        float alpha = LinkIndicationHandler.getCrosshairAlpha();
         if (alpha < 1.0f) {
             RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, alpha);
             RenderSystem.enableBlend();
