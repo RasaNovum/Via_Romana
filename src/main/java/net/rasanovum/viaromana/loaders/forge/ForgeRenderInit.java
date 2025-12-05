@@ -9,10 +9,8 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.rasanovum.viaromana.ViaRomana;
-import net.rasanovum.viaromana.client.render.FadeRenderer;
-import net.rasanovum.viaromana.client.render.InvalidBlockRenderer;
-import net.rasanovum.viaromana.client.render.NodeRenderer;
-import net.rasanovum.viaromana.client.render.VignetteRenderer;
+
+import net.rasanovum.viaromana.client.render.*;
 
 @OnlyIn(Dist.CLIENT)
 public class ForgeRenderInit {
@@ -27,6 +25,7 @@ public class ForgeRenderInit {
 		
 		VignetteRenderer.renderVignette(matrices);
 		FadeRenderer.render(matrices, tickDelta);
+        ClientLinkParticleHandler.render(matrices, tickDelta);
 	}
 
 	public static void onRenderLevelStage(RenderLevelStageEvent event) {

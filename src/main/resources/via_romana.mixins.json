@@ -8,6 +8,7 @@
     "client.AbstractSignEditScreenAccessor",
     "client.BlockLightEngineMixin",
     "client.ClientPlayerInteractionManagerMixin",
+    "client.InGameHudMixin",
     "client.SignEditScreenMixin",
     "client.TextHolderEditScreenMixin",
     "client.WarpBlockScreenMixin"

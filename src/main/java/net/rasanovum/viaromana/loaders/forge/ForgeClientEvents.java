@@ -11,8 +11,8 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.client.HudMessageManager;
 import net.rasanovum.viaromana.client.FadeManager;
+import net.rasanovum.viaromana.client.render.ClientLinkParticleHandler;
 import net.rasanovum.viaromana.client.triggers.OnClientPlayerTick;
-import net.rasanovum.viaromana.network.PacketRegistration;
 import net.rasanovum.viaromana.storage.player.PlayerData;
 
 @Mod.EventBusSubscriber(modid = ViaRomana.MODID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
@@ -35,6 +35,7 @@ public class ForgeClientEvents {
             HudMessageManager.onClientTick();
             OnClientPlayerTick.onClientTick();
             FadeManager.onClientTick();
+            ClientLinkParticleHandler.onClientTick();
         }
     }
 }

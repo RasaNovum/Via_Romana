@@ -40,7 +40,7 @@ public class CommonConfig extends MidnightConfig {
     @Entry(category = MAP, min = 0) public static int map_refresh_interval = 10;
     @Entry(category = MAP, min = 0) public static int map_refresh_threshold = 10;
     @Entry(category = MAP, min = 0) public static int map_save_interval = 5;
-    @Entry(category = MAP) public static List<String> biomeColor = Lists.newArrayList();
+    @Entry(category = MAP) public static List<String> biome_color_pairs = Lists.newArrayList();
     @Entry(category = MAP) public static boolean use_biome_fallback_for_lowres = false;
     @Entry(category = MAP) public static boolean enable_remote_map_access = true;
     @Entry(category = MAP) public static boolean enable_surveyor_landmark = false;
@@ -51,6 +51,8 @@ public class CommonConfig extends MidnightConfig {
     @Entry(category = VISUALS, min = 0f, max = 1f) public static float biome_map_opacity = 0.3f;
     @Entry(category = VISUALS, min = 0f, max = 1f) public static float node_vignette_opacity = 1.0f;
     @Entry(category = VISUALS) public static boolean enable_teleport_particles = true;
+    @Entry(category = VISUALS) public static boolean enable_sign_particles = true;
+    @Entry(category = VISUALS) public static boolean enable_sign_tooltip = true;
     @Entry(category = VISUALS) public static LoggingEnum logging_enum = LoggingEnum.NONE;
     public enum LoggingEnum { NONE, ADMIN, DEBUG }
 

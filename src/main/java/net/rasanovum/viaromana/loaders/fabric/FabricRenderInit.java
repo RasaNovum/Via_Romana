@@ -1,10 +1,7 @@
 package net.rasanovum.viaromana.loaders.fabric;
 
 //? if fabric {
-import net.rasanovum.viaromana.client.render.FadeRenderer;
-import net.rasanovum.viaromana.client.render.InvalidBlockRenderer;
-import net.rasanovum.viaromana.client.render.NodeRenderer;
-import net.rasanovum.viaromana.client.render.VignetteRenderer;
+import net.rasanovum.viaromana.client.render.*;
 
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
@@ -23,6 +20,7 @@ public class FabricRenderInit {
 			//?}
 			VignetteRenderer.renderVignette(matrices);
 			FadeRenderer.render(matrices, tickDelta);
+			ClientLinkParticleHandler.render(matrices, tickDelta);
 		});
 		
 		WorldRenderEvents.LAST.register((context) -> {

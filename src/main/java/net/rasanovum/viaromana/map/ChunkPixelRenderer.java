@@ -55,7 +55,7 @@ public class ChunkPixelRenderer {
         biomeColorCache.clear();
 
         parsedBiomeColors = new HashMap<>();
-        for (String biomePair : CommonConfig.biomeColor) {
+        for (String biomePair : CommonConfig.biome_color_pairs) {
             if (biomePair.trim().isEmpty()) continue;
             try {
                 String[] parts = biomePair.split("=", 2);

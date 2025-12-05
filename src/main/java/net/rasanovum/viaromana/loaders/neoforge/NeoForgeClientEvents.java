@@ -10,8 +10,8 @@ import net.neoforged.api.distmarker.Dist;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.client.HudMessageManager;
 import net.rasanovum.viaromana.client.FadeManager;
+import net.rasanovum.viaromana.client.render.ClientLinkParticleHandler;
 import net.rasanovum.viaromana.client.triggers.OnClientPlayerTick;
-import net.rasanovum.viaromana.network.PacketRegistration;
 import net.rasanovum.viaromana.storage.player.PlayerData;
 
 @EventBusSubscriber(modid = ViaRomana.MODID, value = Dist.CLIENT)
@@ -32,6 +32,7 @@ public class NeoForgeClientEvents {
         HudMessageManager.onClientTick();
         OnClientPlayerTick.onClientTick();
         FadeManager.onClientTick();
+        ClientLinkParticleHandler.onClientTick();
     }
 }
 *///?}
