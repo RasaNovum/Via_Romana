@@ -12,6 +12,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.client.FadeManager;
 import net.rasanovum.viaromana.client.data.ClientPathData;
@@ -42,8 +43,14 @@ public class ClientLinkParticleHandler {
         Minecraft client = Minecraft.getInstance();
         if (client.level == null || client.player == null || client.isPaused()) return;
 
-        handleLookTarget(client);
-        updateOpacity();
+        if (CommonConfig.enable_custom_cursor) {
+            handleLookTarget(client);
+            updateOpacity();
+        }
+        else {
+            currentOpacity = 0.0f;
+            isHovering = false;
+        }
 
         tickCounter++;
         if (tickCounter % SCAN_INTERVAL != 0) return;
@@ -52,6 +59,7 @@ public class ClientLinkParticleHandler {
     }
 
     public static float getCrosshairAlpha() {
+        if (!CommonConfig.enable_custom_cursor) return 1.0f;
         float globalFade = 1.0f - FadeManager.getCurrentFadeAlpha();
         return (1.0f - currentOpacity) * globalFade;
     }
@@ -128,6 +136,7 @@ public class ClientLinkParticleHandler {
     }
 
     private static void spawnLinkParticles(Level level, BlockPos pos) {
+        if (!CommonConfig.enable_sign_particles) return;
         int count = 2 + RANDOM.nextInt(2);
         for (int i = 0; i < count; i++) {
             double offsetX = (RANDOM.nextDouble() - 0.5) * 1.2;

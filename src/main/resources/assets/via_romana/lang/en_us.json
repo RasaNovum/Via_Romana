@@ -180,9 +180,9 @@
   "via_romana.midnightconfig.enable_teleport_particles": "Enable Warp Particles",
   "via_romana.midnightconfig.enable_teleport_particles.tooltip": "Enables particle effects during player warping.",
   "via_romana.midnightconfig.enable_sign_particles": "Enable Linked Sign Particles",
-  "via_romana.midnightconfig.enable_sign_particles.tooltip": "Enables particle effects during player warping.",
-  "via_romana.midnightconfig.enable_sign_tooltip": "Enable Warp Particles",
-  "via_romana.midnightconfig.enable_sign_tooltip.tooltip": "Enables particle effects during player warping.",
+  "via_romana.midnightconfig.enable_sign_particles.tooltip": "Enables particle effects to indicate which signs are linked.",
+  "via_romana.midnightconfig.enable_custom_cursor": "Enable Custom Cursor",
+  "via_romana.midnightconfig.enable_custom_cursor.tooltip": "Enables a custom GUI cursor full of joy and whimsy.",
 
   "command.via_romana.nodes_cleared": "Cleared all nodes",
   "command.via_romana.cache_cleared": "Cleared all Via Romana caches",

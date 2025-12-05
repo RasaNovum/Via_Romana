@@ -52,7 +52,7 @@ public class CommonConfig extends MidnightConfig {
     @Entry(category = VISUALS, min = 0f, max = 1f) public static float node_vignette_opacity = 1.0f;
     @Entry(category = VISUALS) public static boolean enable_teleport_particles = true;
     @Entry(category = VISUALS) public static boolean enable_sign_particles = true;
-    @Entry(category = VISUALS) public static boolean enable_sign_tooltip = true;
+    @Entry(category = VISUALS) public static boolean enable_custom_cursor = true;
     @Entry(category = VISUALS) public static LoggingEnum logging_enum = LoggingEnum.NONE;
     public enum LoggingEnum { NONE, ADMIN, DEBUG }
 
