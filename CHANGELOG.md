@@ -15,7 +15,12 @@
 - Ported networking from `Common Network` to `Data Anchor` to remove a dependency
   - New packet registration system roughly halves the amount of code per-packet making maintenance much easier than before.
 - Added `BOOK_PAGE_TURN` sound effect to map screen opening.
+- Added teleportation destination randomness (±1 block in XZ & ±0.4 within a block) to prevent groups of people from stacking while still preventing clipping into neighboring blocks.
 - Performance improvements regarding finding the nearest node.
+
+### Fixes:
+- Resolved background of `Travel Map` screen from appearing black when standing inside a charting node (NeoForge)
+- Resolved linked signs not unlinking when broken by the player (Forge/NeoForge)
 
 ### Changes:
 - Set `Biome Fallback` config option to false by default

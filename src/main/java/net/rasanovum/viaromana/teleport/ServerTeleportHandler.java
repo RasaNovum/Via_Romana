@@ -16,6 +16,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -37,6 +38,11 @@ public class ServerTeleportHandler {
     private static final int HOLD_TICKS = 10;
     private static final int FADE_DOWN_TICKS = 20;
     private static final int FOOTSTEP_INTERVAL = 7;
+
+    private static final RandomSource RANDOM = RandomSource.create();
+
+    private static final double RANGE_WIDTH = 0.4;
+    private static final double RANGE_MIN = 0.3;
     
     /**
      * Check if a player has an active teleport in progress
@@ -97,7 +103,10 @@ public class ServerTeleportHandler {
         if (!player.isAlive()) return;
         
         ServerLevel level = player.serverLevel();
-        BlockPos safePos = findSafePosition(level, BlockPos.of(targetNode.getPos()));
+
+        BlockPos centerPos = BlockPos.of(targetNode.getPos());
+        BlockPos randomizedCenter = centerPos.offset(RANDOM.nextInt(3) - 1, 0, RANDOM.nextInt(3) - 1);
+        BlockPos safePos = findSafePosition(level, randomizedCenter);
 
         if (safePos == null) {
             player.displayClientMessage(Component.translatable("message.via_romana.unsafe"), true);
@@ -105,9 +114,9 @@ public class ServerTeleportHandler {
             return;
         }
 
-        double x = safePos.getX() + 0.5;
+        double x = safePos.getX() + (RANDOM.nextDouble() * RANGE_WIDTH) + RANGE_MIN;
         double y = getAccurateYPosition(level, safePos);
-        double z = safePos.getZ() + 0.5;
+        double z = safePos.getZ() + (RANDOM.nextDouble() * RANGE_WIDTH) + RANGE_MIN;
 
         Entity rootVehicle = player.getRootVehicle();
         if (rootVehicle != player && !isValidTeleportEntity(rootVehicle)) {

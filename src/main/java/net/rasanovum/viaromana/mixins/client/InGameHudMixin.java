@@ -23,7 +23,7 @@ public class InGameHudMixin {
     //?} else {
     /*@Inject(method = "renderCrosshair", at = @At("HEAD"), cancellable = true)
     private void viaRomana_cancelCrosshair(GuiGraphics guiGraphics, CallbackInfo ci) {
-        if (ClientLinkParticleHandler.getCrosshairAlpha() <= 0.01f) {
+        if (LinkIndicationHandler.getCrosshairAlpha() <= 0.01f) {
             ci.cancel();
         }
     }
