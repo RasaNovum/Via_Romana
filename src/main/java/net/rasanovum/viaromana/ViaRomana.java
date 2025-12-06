@@ -61,6 +61,7 @@ public class ViaRomana {
 
     public static void onJoin(ServerPlayer player) {
         PlayerData.resetVariables(player);
+        PlayerData.syncPlayerData(player);
         PathSyncUtils.syncConfigToPlayer(player);
 
         MinecraftServer server = player.getServer();

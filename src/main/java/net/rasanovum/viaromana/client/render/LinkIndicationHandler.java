@@ -16,7 +16,9 @@ import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.client.FadeManager;
 import net.rasanovum.viaromana.client.data.ClientPathData;
+import net.rasanovum.viaromana.client.gui.LinkedSignToast;
 import net.rasanovum.viaromana.path.Node;
+import net.rasanovum.viaromana.storage.player.PlayerData;
 import net.rasanovum.viaromana.util.VersionUtils;
 
 import java.util.ArrayList;
@@ -48,6 +50,16 @@ public class LinkIndicationHandler {
         if (CommonConfig.enable_custom_cursor) {
             handleLookTarget(client);
             updateOpacity();
+
+            if (isHovering && client.player != null) {
+                if (!PlayerData.hasSeenLinkedSignToast(client.player)) {
+                    client.getToasts().addToast(new LinkedSignToast(
+                        Component.translatable("toast.viaromana.linked_sign_hint.title"),
+                        Component.translatable("toast.viaromana.linked_sign_hint.description")
+                    ));
+                    PlayerData.setSeenLinkedSignToast(client.player, true);
+                }
+            }
         }
         else {
             currentOpacity = 0.0f;

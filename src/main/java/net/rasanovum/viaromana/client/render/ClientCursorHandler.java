@@ -9,6 +9,7 @@ import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.client.gui.ChartingScreen;
 import net.rasanovum.viaromana.client.gui.LinkSignScreen;
 import net.rasanovum.viaromana.client.gui.TeleportMapScreen;
+import net.rasanovum.viaromana.client.gui.WarpBlockScreen;
 import net.rasanovum.viaromana.util.VersionUtils;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWImage;
@@ -21,7 +22,6 @@ import java.nio.ByteBuffer;
 import java.util.Optional;
 
 public class ClientCursorHandler {
-
     private static long customCursorHandle = 0;
     private static boolean isCustomCursorActive = false;
     private static boolean hasInitialized = false;
@@ -31,6 +31,7 @@ public class ClientCursorHandler {
 
     private static void loadCursor(Minecraft mc) {
         if (customCursorHandle != 0 || hasInitialized) return;
+
         hasInitialized = true;
 
         try {
@@ -80,7 +81,7 @@ public class ClientCursorHandler {
 
         long windowHandle = mc.getWindow().getWindow();
 
-        boolean shouldBeCustom = CommonConfig.enable_custom_cursor && (mc.screen instanceof TeleportMapScreen || mc.screen instanceof LinkSignScreen || mc.screen instanceof ChartingScreen);
+        boolean shouldBeCustom = CommonConfig.enable_custom_cursor && (mc.screen instanceof TeleportMapScreen || mc.screen instanceof LinkSignScreen || mc.screen instanceof ChartingScreen || mc.screen instanceof WarpBlockScreen);
 
         if (shouldBeCustom && !isCustomCursorActive) {
             GLFW.glfwSetCursor(windowHandle, customCursorHandle);

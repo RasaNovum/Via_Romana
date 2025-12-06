@@ -66,7 +66,24 @@ public class PlayerData {
         setValue(player, data -> data.setReceivedTutorial(value));
     }
 
+    public static boolean hasSeenLinkedSignToast(Player player) {
+        return getValue(player, PlayerTrackedData::hasSeenLinkedSignToast, false);
+    }
+
+    public static void setSeenLinkedSignToast(Player player, boolean value) {
+        setValue(player, data -> data.setSeenLinkedSignToast(value));
+    }
+
     public static void resetVariables(Player player) {
         setValue(player, PlayerTrackedData::resetVariables);
+    }
+
+    public static void syncPlayerData(Player player) {
+        TrackedDataContainer<Entity, EntityTrackedData> container = TrackedDataRegistries.ENTITY.getContainer(player);
+        if (container == null) return;
+
+        container.dataAnchor$getTrackedData(DataInit.PLAYER_DATA_KEY)
+                .filter(data -> data instanceof PlayerTrackedData)
+                .ifPresent(PlayerTrackedData::sync);
     }
 }

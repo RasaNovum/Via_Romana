@@ -19,6 +19,7 @@ public class PlayerTrackedData extends SyncedPlayerTrackedData {
     private boolean chartingPath = false;
     private BlockPos lastNodePos = BlockPos.ZERO;
     private boolean receivedTutorial = false;
+    private boolean seenLinkedSignToast = false;
 
     public PlayerTrackedData(TrackedDataKey<? extends EntityTrackedData> key, Player player) {
         super((TrackedDataKey<? extends SyncedPlayerTrackedData>) key, player);
@@ -26,11 +27,12 @@ public class PlayerTrackedData extends SyncedPlayerTrackedData {
 
     @Override
     public CompoundTag save() {
-        // ViaRomana.LOGGER.info("Saving PlayerTrackedData for entity ID {}: chartingPath={}, lastNodePos={}, receivedTutorial={}", this.entity.getId(), this.chartingPath, this.lastNodePos, this.receivedTutorial);
+        // ViaRomana.LOGGER.info("Saving PlayerTrackedData for entity ID {}: chartingPath={}, lastNodePos={}, receivedTutorial={}, seenLinkedSignToast={}", this.entity.getId(), this.chartingPath, this.lastNodePos, this.receivedTutorial, this.seenLinkedSignToast);
         CompoundTag tag = new CompoundTag();
         tag.putBoolean("ChartingPath", this.chartingPath);
         tag.putLong("LastNodePos", this.lastNodePos.asLong());
         tag.putBoolean("ReceivedTutorial", this.receivedTutorial);
+        tag.putBoolean("SeenLinkedSignToast", this.seenLinkedSignToast);
         return tag;
     }
 
@@ -45,6 +47,9 @@ public class PlayerTrackedData extends SyncedPlayerTrackedData {
         }
         if (tag.contains("ReceivedTutorial")) {
             this.receivedTutorial = tag.getBoolean("ReceivedTutorial");
+        }
+        if (tag.contains("SeenLinkedSignToast")) {
+            this.seenLinkedSignToast = tag.getBoolean("SeenLinkedSignToast");
         }
     }
 
@@ -81,6 +86,10 @@ public class PlayerTrackedData extends SyncedPlayerTrackedData {
     public boolean hasReceivedTutorial() { 
         return receivedTutorial; 
     }
+    
+    public boolean hasSeenLinkedSignToast() {
+        return seenLinkedSignToast;
+    }
 
     // Setters
     public void setChartingPath(boolean value) {
@@ -100,6 +109,13 @@ public class PlayerTrackedData extends SyncedPlayerTrackedData {
     public void setReceivedTutorial(boolean value) {
         if (this.receivedTutorial != value) {
             this.receivedTutorial = value;
+            sync();
+        }
+    }
+
+    public void setSeenLinkedSignToast(boolean value) {
+        if (this.seenLinkedSignToast != value) {
+            this.seenLinkedSignToast = value;
             sync();
         }
     }
