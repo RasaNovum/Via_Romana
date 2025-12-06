@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
+import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.client.gui.ChartingScreen;
 import net.rasanovum.viaromana.client.gui.LinkSignScreen;
@@ -79,7 +80,7 @@ public class ClientCursorHandler {
 
         long windowHandle = mc.getWindow().getWindow();
 
-        boolean shouldBeCustom = (mc.screen instanceof TeleportMapScreen || mc.screen instanceof LinkSignScreen || mc.screen instanceof ChartingScreen);
+        boolean shouldBeCustom = CommonConfig.enable_custom_cursor && (mc.screen instanceof TeleportMapScreen || mc.screen instanceof LinkSignScreen || mc.screen instanceof ChartingScreen);
 
         if (shouldBeCustom && !isCustomCursorActive) {
             GLFW.glfwSetCursor(windowHandle, customCursorHandle);
