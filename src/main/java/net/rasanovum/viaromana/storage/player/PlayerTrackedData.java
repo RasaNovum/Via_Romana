@@ -20,6 +20,8 @@ public class PlayerTrackedData extends SyncedPlayerTrackedData {
     private BlockPos lastNodePos = BlockPos.ZERO;
     private boolean receivedTutorial = false;
     private boolean seenLinkedSignToast = false;
+    private double distanceWalkedOnPath = 0.0;
+    private transient BlockPos lastPathWalkPosition = null;
 
     public PlayerTrackedData(TrackedDataKey<? extends EntityTrackedData> key, Player player) {
         super((TrackedDataKey<? extends SyncedPlayerTrackedData>) key, player);
@@ -33,6 +35,7 @@ public class PlayerTrackedData extends SyncedPlayerTrackedData {
         tag.putLong("LastNodePos", this.lastNodePos.asLong());
         tag.putBoolean("ReceivedTutorial", this.receivedTutorial);
         tag.putBoolean("SeenLinkedSignToast", this.seenLinkedSignToast);
+        tag.putDouble("DistanceWalkedOnPath", this.distanceWalkedOnPath);
         return tag;
     }
 
@@ -50,6 +53,9 @@ public class PlayerTrackedData extends SyncedPlayerTrackedData {
         }
         if (tag.contains("SeenLinkedSignToast")) {
             this.seenLinkedSignToast = tag.getBoolean("SeenLinkedSignToast");
+        }
+        if (tag.contains("DistanceWalkedOnPath")) {
+            this.distanceWalkedOnPath = tag.getDouble("DistanceWalkedOnPath");
         }
     }
 
@@ -90,6 +96,14 @@ public class PlayerTrackedData extends SyncedPlayerTrackedData {
     public boolean hasSeenLinkedSignToast() {
         return seenLinkedSignToast;
     }
+    
+    public double getDistanceWalkedOnPath() {
+        return distanceWalkedOnPath;
+    }
+    
+    public BlockPos getLastPathWalkPosition() {
+        return lastPathWalkPosition;
+    }
 
     // Setters
     public void setChartingPath(boolean value) {
@@ -118,6 +132,16 @@ public class PlayerTrackedData extends SyncedPlayerTrackedData {
             this.seenLinkedSignToast = value;
             sync();
         }
+    }
+
+    public void addDistanceWalkedOnPath(double distance) {
+        if (distance > 0) {
+            this.distanceWalkedOnPath += distance;
+        }
+    }
+    
+    public void setLastPathWalkPosition(BlockPos pos) {
+        this.lastPathWalkPosition = pos;
     }
 
     public void resetVariables() {

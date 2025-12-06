@@ -78,6 +78,22 @@ public class PlayerData {
         setValue(player, PlayerTrackedData::resetVariables);
     }
 
+    public static double getDistanceWalkedOnPath(Player player) {
+        return getValue(player, PlayerTrackedData::getDistanceWalkedOnPath, 0.0);
+    }
+
+    public static void addDistanceWalkedOnPath(Player player, double distance) {
+        setValue(player, data -> data.addDistanceWalkedOnPath(distance));
+    }
+
+    public static BlockPos getLastPathWalkPosition(Player player) {
+        return getValue(player, PlayerTrackedData::getLastPathWalkPosition, null);
+    }
+
+    public static void setLastPathWalkPosition(Player player, BlockPos pos) {
+        setValue(player, data -> data.setLastPathWalkPosition(pos));
+    }
+
     public static void syncPlayerData(Player player) {
         TrackedDataContainer<Entity, EntityTrackedData> container = TrackedDataRegistries.ENTITY.getContainer(player);
         if (container == null) return;

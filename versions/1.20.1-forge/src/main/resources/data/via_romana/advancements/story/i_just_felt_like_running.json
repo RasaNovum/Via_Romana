@@ -1,0 +1,24 @@
+{
+  "parent": "via_romana:story/a_strand_type_game",
+  "display": {
+    "icon": {
+      "item": "minecraft:leather_boots"
+    },
+    "title": {
+      "translate": "advancements.via_romana.i_just_felt_like_running.title"
+    },
+    "description": {
+      "translate": "advancements.via_romana.i_just_felt_like_running.descr"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "i_just_felt_like_running": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}
+

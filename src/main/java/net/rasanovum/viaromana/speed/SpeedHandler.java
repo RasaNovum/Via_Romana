@@ -1,5 +1,7 @@
 package net.rasanovum.viaromana.speed;
 
+import net.minecraft.advancements.AdvancementProgress;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -7,9 +9,16 @@ import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.rasanovum.viaromana.CommonConfig;
+import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.path.Node;
 import net.rasanovum.viaromana.path.PathGraph;
+import net.rasanovum.viaromana.storage.player.PlayerData;
 import net.rasanovum.viaromana.util.VersionUtils;
+//? if >=1.21 {
+import net.minecraft.advancements.AdvancementHolder;
+//?} else {
+/*import net.minecraft.advancements.Advancement;
+*///?}
 
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
@@ -22,6 +31,8 @@ public class SpeedHandler {
     /*public static final UUID PROXIMITY_SPEED_ID = UUID.nameUUIDFromBytes("viaromana:node_proximity_speed".getBytes(StandardCharsets.UTF_8));
     public static final String PROXIMITY_SPEED_NAME = "node_proximity_speed";
     *///?}
+    
+    private static final double DISTANCE_THRESHOLD = 5000.0;
 
     public static void onPlayerTick(ServerPlayer player) {
         if (player.level().isClientSide) return;
@@ -57,8 +68,60 @@ public class SpeedHandler {
             );
             *///?}
             speedAttribute.addPermanentModifier(modifier);
+
+            PlayerData.setLastPathWalkPosition(player, player.blockPosition());
         } else if (!nearNode && hasModifier) {
             speedAttribute.removeModifier(PROXIMITY_SPEED_ID);
+
+            PlayerData.syncPlayerData(player);
+            PlayerData.setLastPathWalkPosition(player, null);
+        } else if (nearNode && hasModifier) {
+            BlockPos lastPos = PlayerData.getLastPathWalkPosition(player);
+            BlockPos currentPos = player.blockPosition();
+            
+            if (lastPos != null && !lastPos.equals(currentPos)) {
+                double distance = Math.sqrt(lastPos.distSqr(currentPos));
+                PlayerData.addDistanceWalkedOnPath(player, distance);
+                PlayerData.setLastPathWalkPosition(player, currentPos);
+
+                double totalDistance = PlayerData.getDistanceWalkedOnPath(player);
+                if (totalDistance >= DISTANCE_THRESHOLD) {
+                    awardRunningAdvancement(player);
+                }
+            }
+        }
+    }
+    
+    private static void awardRunningAdvancement(ServerPlayer player) {
+        try {
+            //? if <1.21 {
+            /*Advancement advancement = player.server.getAdvancements().getAdvancement(new ResourceLocation("via_romana:story/i_just_felt_like_running"));
+            if (advancement != null) {
+                AdvancementProgress advancementProgress = player.getAdvancements().getOrStartProgress(advancement);
+                if (!advancementProgress.isDone()) {
+                    for (String c : advancementProgress.getRemainingCriteria()) {
+                        player.getAdvancements().award(advancement, c);
+                    }
+                }
+            }
+            *///?} else {
+            ResourceLocation advancementId = VersionUtils.getLocation("via_romana:story/i_just_felt_like_running");
+            AdvancementHolder advancement = player.server.getAdvancements().get(advancementId);
+            if (advancement != null) {
+                AdvancementProgress advancementProgress = player.getAdvancements().getOrStartProgress(advancement);
+                if (!advancementProgress.isDone()) {
+                    boolean grantedAny = false;
+                    for (String criterion : advancementProgress.getRemainingCriteria()) {
+                        boolean granted = player.getAdvancements().award(advancement, criterion);
+                        if (granted) grantedAny = true;
+                    }
+
+                    if (grantedAny) player.getAdvancements().flushDirty(player);
+                }
+            }
+            //?}
+        } catch (Exception e) {
+            ViaRomana.LOGGER.warn("Failed to award advancement {} to player {}: {}", "via_romana:story/i_just_felt_like_running", player.getName().getString(), e.getMessage());
         }
     }
 }
