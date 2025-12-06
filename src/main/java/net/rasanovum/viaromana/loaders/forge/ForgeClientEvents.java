@@ -3,6 +3,7 @@ package net.rasanovum.viaromana.loaders.forge;
 //? if forge {
 /*import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.GameShuttingDownEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
@@ -11,8 +12,9 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.client.HudMessageManager;
 import net.rasanovum.viaromana.client.FadeManager;
-import net.rasanovum.viaromana.client.render.ClientLinkParticleHandler;
+import net.rasanovum.viaromana.client.render.LinkIndicationHandler;
 import net.rasanovum.viaromana.client.triggers.OnClientPlayerTick;
+import net.rasanovum.viaromana.client.render.ClientCursorHandler;
 import net.rasanovum.viaromana.storage.player.PlayerData;
 
 @Mod.EventBusSubscriber(modid = ViaRomana.MODID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
@@ -24,6 +26,7 @@ public class ForgeClientEvents {
         
         MinecraftForge.EVENT_BUS.addListener(ForgeClientEvents::onPlayerLogin);
         MinecraftForge.EVENT_BUS.addListener(ForgeClientEvents::onClientTick);
+        MinecraftForge.EVENT_BUS.addListener(ForgeClientEvents::onGameShuttingDown);
     }
 
     public static void onPlayerLogin(final ClientPlayerNetworkEvent.LoggingIn event) {
@@ -35,8 +38,13 @@ public class ForgeClientEvents {
             HudMessageManager.onClientTick();
             OnClientPlayerTick.onClientTick();
             FadeManager.onClientTick();
-            ClientLinkParticleHandler.onClientTick();
+            LinkIndicationHandler.onClientTick();
+            ClientCursorHandler.onClientTick();
         }
+    }
+
+    public static void onGameShuttingDown(final GameShuttingDownEvent event) {
+        ClientCursorHandler.destroy();
     }
 }
 *///?}

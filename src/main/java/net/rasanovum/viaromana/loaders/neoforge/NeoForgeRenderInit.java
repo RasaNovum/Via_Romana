@@ -25,7 +25,7 @@ public class NeoForgeRenderInit {
 		
 		VignetteRenderer.renderVignette(matrices);
 		FadeRenderer.render(matrices, tickDelta);
-        ClientLinkParticleHandler.render(matrices, tickDelta);
+        LinkIndicationHandler.render(matrices, tickDelta);
 	}
 
 	public static void onRenderLevelStage(RenderLevelStageEvent event) {

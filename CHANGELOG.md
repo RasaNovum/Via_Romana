@@ -3,9 +3,9 @@
 ### Features:
 - Added `Linked Sign Particles` which indicate which signs are linked to the path network (no more clicking every sign you see in a server).
   - Added `Enable Linked Sign Particles` config option allowing this to be disabled (client-side).
-- Added `Custom Cursor` which appears when hovering over a linked sign to better indicate left-clicking as the action required to access the Travel Map.
+- Added `Custom Cursor` which appears in Via Romana GUI screens as well as when hovering over a linked sign to better indicate left-clicking as the action required to access the `Travel Map` screen.
   - Added `Enable Custom Cursor` config option allowing this to be disabled (client-side).
-- Added the ability to `sneak & right-click` anywhere along a charted path to open the `Map Screen` using the `Charting Map` item.
+- Added the ability to `sneak & right-click` anywhere along a charted path to open the `Travel Map` screen using the `Charting Map` item.
   - Added `Enable Remote Map Access` config option allowing users to disable this feature.
 - Added movement speed boost while walking on charted paths
   - Added `Path Movement Speedup` config option allowing users to customize (or disable) the speedup.
@@ -17,10 +17,12 @@
 - Added `BOOK_PAGE_TURN` sound effect to map screen opening.
 - Added teleportation destination randomness (±1 block in XZ & ±0.4 within a block) to prevent groups of people from stacking while still preventing clipping into neighboring blocks.
 - Performance improvements regarding finding the nearest node.
+- Added fade-in to `Travel Map` screen.
 
 ### Fixes:
-- Resolved background of `Travel Map` screen from appearing black when standing inside a charting node (NeoForge)
-- Resolved linked signs not unlinking when broken by the player (Forge/NeoForge)
+- Resolved background of any GUI screen from appearing black when standing inside a charting node (NeoForge).
+- Resolved vignette overlay from darkening when in pause screen (NeoForge).
+- Resolved linked signs not unlinking when broken by the player (Forge/NeoForge).
 
 ### Changes:
 - Set `Biome Fallback` config option to false by default

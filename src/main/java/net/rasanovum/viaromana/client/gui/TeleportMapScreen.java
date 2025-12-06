@@ -3,7 +3,6 @@ package net.rasanovum.viaromana.client.gui;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.corgitaco.dataanchor.network.broadcast.PacketBroadcaster;
 import net.minecraft.Util;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
@@ -58,6 +57,9 @@ public class TeleportMapScreen extends Screen {
     private final Map<BlockPos, Float> destinationFadeProgress = new HashMap<>();
     private final Set<BlockPos> validatedNodes = new HashSet<>();
     private final Set<BlockPos> destinationPositions;
+
+    private static final float SCREEN_FADE_IN_SPEED = 0.05f;
+    private float screenAlpha = 0.0f;
 
     // Constants
     private static final int MARKER_SIZE = 16;
@@ -146,10 +148,16 @@ public class TeleportMapScreen extends Screen {
 
         if (this.mapTexture == null || this.minecraft == null || this.minecraft.player == null || this.mapRenderer == null) return;
 
+        if (this.screenAlpha < 1.0f) {
+            this.screenAlpha = Math.min(1.0f, this.screenAlpha + SCREEN_FADE_IN_SPEED);
+        }
+
         //? if >1.21
         this.renderBlurredBackground(partialTicks);
 
+        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, this.screenAlpha);
         this.mapRenderer.render(guiGraphics, this.width, this.height);
+        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f); // Reset for safety
 
         renderNetwork(guiGraphics);
 
@@ -161,6 +169,13 @@ public class TeleportMapScreen extends Screen {
         renderTooltip(guiGraphics, hoveredDestination, mouseX, mouseY);
 
         super.render(guiGraphics, mouseX, mouseY, partialTicks);
+    }
+
+    private int applyGlobalFade(int color) {
+        if (this.screenAlpha >= 1.0f) return color;
+        int alpha = (color >> 24) & 0xFF;
+        int newAlpha = (int)(alpha * this.screenAlpha);
+        return (newAlpha << 24) | (color & 0x00FFFFFF);
     }
     //endregion
 
@@ -191,21 +206,26 @@ public class TeleportMapScreen extends Screen {
                     boolean bothUnderground = nodeInfo.clearance > 0 && nodeInfo.clearance < 24 && endNodeInfo != null && endNodeInfo.clearance > 0 && endNodeInfo.clearance < 24;
                     int lineColor = bothUnderground ? 0xFFAAAAAA : 0xFFFFFFFF;
 
+                    lineColor = applyGlobalFade(lineColor);
+
                     // Case 1: Connection between two fully completed nodes. Drawn once.
                     if (isStartCompleted && isEndCompleted) {
                         if (startPos.hashCode() < endPos.hashCode()) {
-                            worldToScreen(endPos).ifPresent(endScreenPos -> drawLine(guiGraphics, startScreenPos, endScreenPos, lineColor, THICKNESS));
+                            int finalLineColor = lineColor;
+                            worldToScreen(endPos).ifPresent(endScreenPos -> drawLine(guiGraphics, startScreenPos, endScreenPos, finalLineColor, THICKNESS));
                         }
                     }
                     // Case 2: Bridge connection from a completed node to the current animating wave.
                     else if (isStartCompleted && isEndAnimating) {
-                        worldToScreen(endPos).ifPresent(endScreenPos -> drawLine(guiGraphics, startScreenPos, endScreenPos, lineColor, THICKNESS));
+                        int finalLineColor1 = lineColor;
+                        worldToScreen(endPos).ifPresent(endScreenPos -> drawLine(guiGraphics, startScreenPos, endScreenPos, finalLineColor1, THICKNESS));
                     }
                     // Case 3: The actively growing spline from the current wave to un-animated nodes.
                     else if (isStartAnimating && !isEndCompleted) {
+                        int finalLineColor2 = lineColor;
                         worldToScreen(endPos).ifPresent(endScreenPos -> {
                             Point animatedEndPoint = getAnimatedPoint(startScreenPos, endScreenPos, animationProgress);
-                            drawLine(guiGraphics, startScreenPos, animatedEndPoint, lineColor, THICKNESS);
+                            drawLine(guiGraphics, startScreenPos, animatedEndPoint, finalLineColor2, THICKNESS);
                         });
                     }
                 }
@@ -302,7 +322,7 @@ public class TeleportMapScreen extends Screen {
 
             if (destinationFadeProgress.containsKey(dest.position) && isValidated) {
                 worldToScreen(dest.position).ifPresent(screenPos -> {
-                    float alpha = destinationFadeProgress.get(dest.position);
+                    float alpha = destinationFadeProgress.get(dest.position) * this.screenAlpha;
 
                     boolean isHovered = hoveredDestination != null && hoveredDestination.position.equals(dest.position);
 
@@ -347,11 +367,11 @@ public class TeleportMapScreen extends Screen {
             RenderSystem.enableBlend();
 
             // Shadow
-            RenderSystem.setShaderColor(0.0f, 0.0f, 0.0f, 0.5f);
+            RenderSystem.setShaderColor(0.0f, 0.0f, 0.0f, 0.5f * this.screenAlpha);
             guiGraphics.blit(skin, x + 1, y + 1, 8, 8, PLAYER_MARKER_SIZE, PLAYER_MARKER_SIZE, 64, 64);
 
             // Head
-            RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
+            RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, this.screenAlpha);
             guiGraphics.blit(skin, x, y, 8, 8, PLAYER_MARKER_SIZE, PLAYER_MARKER_SIZE, 64, 64);
             guiGraphics.blit(skin, x, y, 40, 8, PLAYER_MARKER_SIZE, PLAYER_MARKER_SIZE, 64, 64);
 
@@ -386,12 +406,15 @@ public class TeleportMapScreen extends Screen {
             float pixelAngle = getPixelAngle(center, new Point(x, y));
             if (isWithinAngleRange(pixelAngle, facingAngle, DIRECTION_ANGLE_RANGE)) {
                 int fadedColor = getFadedColor(baseColor, pixelAngle, facingAngle, DIRECTION_ANGLE_RANGE);
+                fadedColor = applyGlobalFade(fadedColor);
                 guiGraphics.fill(x, y, x + 1, y + 1, fadedColor);
             }
         }
     }
 
     private void renderTooltip(GuiGraphics guiGraphics, TeleportHelper.TeleportDestination hoveredDestination, int mouseX, int mouseY) {
+        if (this.screenAlpha < 0.8f) return;
+
         if (hoveredDestination != null) {
             long dist = Math.round(hoveredDestination.distance);
             long displayDist = dist > 1000 ? dist / 1000 : dist;
@@ -409,6 +432,8 @@ public class TeleportMapScreen extends Screen {
     //region Input & Interaction
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (this.screenAlpha < 0.5f) return false; // Prevent clicking while fading in
+
         if (button == 0) { // Left Click
             TeleportHelper.TeleportDestination destination = findDestinationAtPosition(getRevealedNodes(), (int) mouseX, (int) mouseY);
             if (destination != null) {

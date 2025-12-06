@@ -2,6 +2,7 @@ package net.rasanovum.viaromana.client.render;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.resources.ResourceLocation;
 import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.ViaRomana;
@@ -16,7 +17,8 @@ public class VignetteRenderer {
     private static final ResourceLocation CHARTING_VIGNETTE_TEXTURE = VersionUtils.getLocation("via_romana:textures/screens/overlay_vignette_charting.png");
 
     public static void renderVignette(GuiGraphics guiGraphics) {
-        if (Minecraft.getInstance().screen instanceof TeleportMapScreen) return;
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.screen instanceof Screen || mc.isPaused()) return;
 
         try {
             float intensity = NodeRenderer.getCurrentVignetteIntensity();
