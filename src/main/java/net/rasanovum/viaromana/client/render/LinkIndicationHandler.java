@@ -13,6 +13,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.rasanovum.viaromana.CommonConfig;
+import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.client.FadeManager;
 import net.rasanovum.viaromana.client.data.ClientPathData;
 import net.rasanovum.viaromana.path.Node;
@@ -37,6 +38,8 @@ public class LinkIndicationHandler {
     private static float currentOpacity = 0.0f;
     private static final float fadeSpeed = 0.25f;
     private static boolean isHovering = false;
+
+    final static double driftRange = 0.5;
 
     public static void onClientTick() {
         Minecraft client = Minecraft.getInstance();
@@ -136,14 +139,19 @@ public class LinkIndicationHandler {
 
     private static void spawnLinkParticles(Level level, BlockPos pos) {
         if (!CommonConfig.enable_sign_particles) return;
-        int count = 2 + RANDOM.nextInt(2);
-        for (int i = 0; i < count; i++) {
-            double offsetX = (RANDOM.nextDouble() - 0.5) * 1.2;
-            double offsetY = RANDOM.nextDouble();
-            double offsetZ = (RANDOM.nextDouble() - 0.5) * 1.2;
-            level.addParticle(ParticleTypes.ENCHANT,
-                    pos.getX() + 0.5 + offsetX, pos.getY() + 0.5 + offsetY, pos.getZ() + 0.5 + offsetZ,
-                    (RANDOM.nextDouble() - 0.5) * 0.02, 0.01 + RANDOM.nextDouble() * 0.02, (RANDOM.nextDouble() - 0.5) * 0.02);
+        for (int i = 0; i < 1; i++) {
+            double startX = pos.getX() + 0.5 + (RANDOM.nextDouble() - 0.5) * 1.5;
+            double startY = pos.getY() + 0.5 + RANDOM.nextDouble() * 0.8;
+            double startZ = pos.getZ() + 0.5 + (RANDOM.nextDouble() - 0.5) * 1.5;
+
+            double endX = startX + (RANDOM.nextDouble() - 0.5) * driftRange;
+            double endZ = startZ + (RANDOM.nextDouble() - 0.5) * driftRange;
+
+            level.addParticle(
+                    ParticleTypes.ENCHANT,
+                    endX, startY, endZ,
+                    startX - endX, 0, startZ - endZ
+            );
         }
     }
 }
