@@ -155,6 +155,9 @@ public class TeleportMapScreen extends Screen {
 
         if (this.mapTexture == null || this.minecraft == null || this.minecraft.player == null || this.mapRenderer == null) return;
 
+        //? if neoforge
+        /*screenAlpha = 1.0f;*/
+
         if (this.screenAlpha < 1.0f) {
             this.screenAlpha = Math.min(1.0f, this.screenAlpha + SCREEN_FADE_IN_SPEED);
         }

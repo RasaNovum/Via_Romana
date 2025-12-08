@@ -46,6 +46,6 @@ side = "BOTH"
 [[dependencies.${modId}]]
 modId = "dataanchor"
 type = "required"
-versionRange = "${dataanchor}"
+versionRange = "[${dataanchor}]"
 ordering = "NONE"
 side = "BOTH"
