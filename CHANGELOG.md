@@ -14,7 +14,7 @@
 - Added player stats `Distance Walked on Charted Path` and `Distance of Paths Charted`
   - These stats use the vanilla statistics system, so can be viewed in the statistics window or via scoreboard commands. 
   - Added `/viaromana stats get <player> <stat>` and `/viaromana stats set <player> <stat> <value>` for getting and setting of stats.
-- Added advancements for each of the above two player stats (each granted at 5 kilometers).
+- Added `two advancements` for each of the respective player stats (each granted at 5 kilometers).
 
 ### Improvements:
 - Ported networking from `Common Network` to `Data Anchor` to remove a dependency
