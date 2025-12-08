@@ -7,8 +7,10 @@
 
   "advancements.via_romana.a_strand_type_game.title": "A Strand Type Game",
   "advancements.via_romana.a_strand_type_game.descr": "Use strands to connect the world",
-  "advancements.via_romana.i_just_felt_like_running.title": "I just felt like running.",
-  "advancements.via_romana.i_just_felt_like_running.descr": "Walk 5000 blocks on charted paths",
+  "advancements.via_romana.i_just_felt_like_running.title": "I Just Felt Like Running",
+  "advancements.via_romana.i_just_felt_like_running.descr": "Travel 5 km on charted paths",
+  "advancements.via_romana.straight_up_pathing_it.title": "Straight Up Pathing It",
+  "advancements.via_romana.straight_up_pathing_it.descr": "Chart 5 km of paths",
   
   "message.via_romana.start_charting": "Started charting",
   "message.via_romana.finish_charting": "Path Charted",
@@ -203,5 +205,8 @@
   "command.via_romana.maps_regenerated": "Regenerated Via Romana maps",
   "command.via_romana.maps_cleared": "Cleared Via Romana maps",
   "command.via_romana.maps_saved": "Saved Via Romana maps to disk",
-  "command.via_romana.sync_triggered": "Triggered sync for players in current dimension"
+  "command.via_romana.sync_triggered": "Triggered sync for players in current dimension",
+
+  "stat.via_romana.distance_charted": "Distance of Paths Charted",
+  "stat.via_romana.distance_walked": "Distance Walked on Charted Paths"
 }

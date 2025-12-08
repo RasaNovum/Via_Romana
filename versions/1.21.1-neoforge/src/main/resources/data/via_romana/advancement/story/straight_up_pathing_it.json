@@ -2,13 +2,13 @@
   "parent": "via_romana:story/a_strand_type_game",
   "display": {
     "icon": {
-      "id": "minecraft:leather_boots"
+      "id": "minecraft:iron_shovel"
     },
     "title": {
-      "translate": "advancements.via_romana.i_just_felt_like_running.title"
+      "translate": "advancements.via_romana.straight_up_pathing_it.title"
     },
     "description": {
-      "translate": "advancements.via_romana.i_just_felt_like_running.descr"
+      "translate": "advancements.via_romana.straight_up_pathing_it.descr"
     },
     "frame": "goal",
     "show_toast": true,
@@ -16,7 +16,7 @@
     "hidden": false
   },
   "criteria": {
-    "i_just_felt_like_running": {
+    "straight_up_pathing_it": {
       "trigger": "minecraft:impossible"
     }
   }

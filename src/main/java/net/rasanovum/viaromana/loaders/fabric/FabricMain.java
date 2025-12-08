@@ -13,6 +13,7 @@ import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.init.EffectInit;
 import net.rasanovum.viaromana.init.BlockInit;
 import net.rasanovum.viaromana.init.ItemInit;
+import net.rasanovum.viaromana.init.StatInit;
 import net.rasanovum.viaromana.network.PacketRegistration;
 
 public class FabricMain implements ModInitializer {
@@ -23,6 +24,7 @@ public class FabricMain implements ModInitializer {
         EffectInit.load();
         BlockInit.load();
         ItemInit.load();
+        StatInit.register();
         registerServerLifecycleEvents();
     }
 

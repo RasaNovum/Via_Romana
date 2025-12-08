@@ -5,14 +5,15 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.stats.Stats;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.ViaRomana;
+import net.rasanovum.viaromana.init.StatInit;
 import net.rasanovum.viaromana.path.Node;
 import net.rasanovum.viaromana.path.PathGraph;
-import net.rasanovum.viaromana.storage.player.PlayerData;
 import net.rasanovum.viaromana.util.VersionUtils;
 //? if >=1.21 {
 import net.minecraft.advancements.AdvancementHolder;
@@ -21,6 +22,8 @@ import net.minecraft.advancements.AdvancementHolder;
 *///?}
 
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -32,7 +35,9 @@ public class SpeedHandler {
     public static final String PROXIMITY_SPEED_NAME = "node_proximity_speed";
     *///?}
     
-    private static final double DISTANCE_THRESHOLD = 5000.0;
+    private static final double DISTANCE_THRESHOLD = 5000.0 * 100; // Units in cm
+
+    private static final Map<UUID, BlockPos> lastPathWalkPositions = new HashMap<>();
 
     public static void onPlayerTick(ServerPlayer player) {
         if (player.level().isClientSide) return;
@@ -69,22 +74,23 @@ public class SpeedHandler {
             *///?}
             speedAttribute.addPermanentModifier(modifier);
 
-            PlayerData.setLastPathWalkPosition(player, player.blockPosition());
+            lastPathWalkPositions.put(player.getUUID(), player.blockPosition());
         } else if (!nearNode && hasModifier) {
             speedAttribute.removeModifier(PROXIMITY_SPEED_ID);
 
-            PlayerData.syncPlayerData(player);
-            PlayerData.setLastPathWalkPosition(player, null);
+            lastPathWalkPositions.remove(player.getUUID());
         } else if (nearNode && hasModifier) {
-            BlockPos lastPos = PlayerData.getLastPathWalkPosition(player);
+            BlockPos lastPos = lastPathWalkPositions.get(player.getUUID());
             BlockPos currentPos = player.blockPosition();
             
-            if (lastPos != null && !lastPos.equals(currentPos)) {
+            if (lastPos == null) {
+                lastPathWalkPositions.put(player.getUUID(), currentPos);
+            } else if (!lastPos.equals(currentPos)) {
                 double distance = Math.sqrt(lastPos.distSqr(currentPos));
-                PlayerData.addDistanceWalkedOnPath(player, distance);
-                PlayerData.setLastPathWalkPosition(player, currentPos);
+                player.awardStat(Stats.CUSTOM.get(StatInit.DISTANCE_WALKED), (int) (distance * 100));
+                lastPathWalkPositions.put(player.getUUID(), currentPos);
 
-                double totalDistance = PlayerData.getDistanceWalkedOnPath(player);
+                int totalDistance = player.getStats().getValue(Stats.CUSTOM.get(StatInit.DISTANCE_WALKED));
                 if (totalDistance >= DISTANCE_THRESHOLD) {
                     awardRunningAdvancement(player);
                 }

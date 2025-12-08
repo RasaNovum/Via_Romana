@@ -7,6 +7,7 @@ import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.init.BlockInit;
 import net.rasanovum.viaromana.init.EffectInit;
 import net.rasanovum.viaromana.init.ItemInit;
+import net.rasanovum.viaromana.init.StatInit;
 import net.rasanovum.viaromana.network.PacketRegistration;
 
 @Mod(ViaRomana.MODID)
@@ -18,7 +19,9 @@ public class NeoForgeMain {
         BlockInit.BLOCKS.register(modEventBus);
         BlockInit.ITEMS.register(modEventBus);
         ItemInit.ITEMS.register(modEventBus);
+        StatInit.register(modEventBus);
         modEventBus.addListener(ItemInit::onBuildContents);
+        modEventBus.addListener(StatInit::onCommonSetup);
     }
 }
 *///?}

@@ -15,14 +15,21 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 import eu.midnightdust.lib.config.MidnightConfig;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.stats.Stat;
+import net.minecraft.stats.Stats;
 import net.minecraft.world.entity.player.Player;
+import net.rasanovum.viaromana.init.StatInit;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -57,7 +64,22 @@ public class ViaRomanaCommands {
                         .then(Commands.literal("save")
                                 .executes(ViaRomanaCommands::saveMaps)))
                 .then(Commands.literal("sync")
-                        .executes(ViaRomanaCommands::syncDimension)));
+                        .executes(ViaRomanaCommands::syncDimension))
+                .then(Commands.literal("stats")
+                        .then(Commands.literal("get")
+                                .then(Commands.argument("player", EntityArgument.player())
+                                        .then(Commands.literal("distance_charted")
+                                                .executes(ctx -> getStat(ctx, "distance_charted")))
+                                        .then(Commands.literal("distance_walked")
+                                                .executes(ctx -> getStat(ctx, "distance_walked")))))
+                        .then(Commands.literal("set")
+                                .then(Commands.argument("player", EntityArgument.player())
+                                        .then(Commands.literal("distance_charted")
+                                                .then(Commands.argument("value", IntegerArgumentType.integer(0))
+                                                        .executes(ctx -> setStat(ctx, "distance_charted"))))
+                                        .then(Commands.literal("distance_walked")
+                                                .then(Commands.argument("value", IntegerArgumentType.integer(0))
+                                                        .executes(ctx -> setStat(ctx, "distance_walked"))))))));
     }
 
     /**
@@ -248,5 +270,72 @@ public class ViaRomanaCommands {
         PathSyncUtils.syncPathGraphToAllPlayers(level);
         source.sendSuccess(() -> Component.translatable("command.via_romana.sync_triggered"), true);
         return 1;
+    }
+
+    /**
+     * Gets a stat value for a player
+     */
+    private static int getStat(CommandContext<CommandSourceStack> context, String statType) throws CommandSyntaxException {
+        CommandSourceStack source = context.getSource();
+        ServerPlayer player = EntityArgument.getPlayer(context, "player");
+        
+        Stat<ResourceLocation> stat = getStatFromType(statType);
+        int value = player.getStats().getValue(Stats.CUSTOM.get(stat.getValue()));
+        
+        String formattedDistance = formatDistance(value);
+        source.sendSuccess(() -> Component.literal(String.format("%s's %s: %s", 
+            player.getName().getString(), 
+            statType.replace("_", " "),
+            formattedDistance)), false);
+        
+        return value;
+    }
+
+    /**
+     * Sets a stat value for a player
+     */
+    private static int setStat(CommandContext<CommandSourceStack> context, String statType) throws CommandSyntaxException {
+        CommandSourceStack source = context.getSource();
+        ServerPlayer player = EntityArgument.getPlayer(context, "player");
+        int value = IntegerArgumentType.getInteger(context, "value");
+        
+        Stat<ResourceLocation> stat = getStatFromType(statType);
+
+        int currentValue = player.getStats().getValue(Stats.CUSTOM.get(stat.getValue()));
+        player.resetStat(Stats.CUSTOM.get(stat.getValue()));
+        player.awardStat(Stats.CUSTOM.get(stat.getValue()), value);
+        
+        String formattedDistance = formatDistance(value);
+        source.sendSuccess(() -> Component.literal(String.format("Set %s's %s to %s", 
+            player.getName().getString(),
+            statType.replace("_", " "),
+            formattedDistance)), true);
+        
+        return value;
+    }
+
+    /**
+     * Helper method to get the stat from the type string
+     */
+    private static Stat<ResourceLocation> getStatFromType(String statType) {
+        return switch (statType) {
+            case "distance_charted" -> Stats.CUSTOM.get(StatInit.DISTANCE_CHARTED);
+            case "distance_walked" -> Stats.CUSTOM.get(StatInit.DISTANCE_WALKED);
+            default -> throw new IllegalArgumentException("Unknown stat type: " + statType);
+        };
+    }
+
+    /**
+     * Formats distance value (in cm) to human-readable string with m/km units
+     */
+    private static String formatDistance(int centimeters) {
+        double meters = centimeters / 100.0;
+        
+        if (meters > 1000.0) {
+            double kilometers = meters / 1000.0;
+            return String.format("%.2f km", kilometers);
+        } else {
+            return String.format("%.2f m", meters);
+        }
     }
 }

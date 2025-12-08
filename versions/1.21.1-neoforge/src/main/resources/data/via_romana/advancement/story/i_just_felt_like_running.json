@@ -10,7 +10,7 @@
     "description": {
       "translate": "advancements.via_romana.i_just_felt_like_running.descr"
     },
-    "frame": "challenge",
+    "frame": "goal",
     "show_toast": true,
     "announce_to_chat": true,
     "hidden": false

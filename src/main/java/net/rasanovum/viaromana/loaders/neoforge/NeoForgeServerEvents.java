@@ -1,7 +1,8 @@
 package net.rasanovum.viaromana.loaders.neoforge;
 
 //? if neoforge {
-/*import net.neoforged.bus.api.SubscribeEvent;
+/*import net.minecraft.core.registries.BuiltInRegistries;
+import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.TagsUpdatedEvent;
@@ -17,6 +18,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.rasanovum.viaromana.ViaRomana;
+import net.rasanovum.viaromana.init.StatInit;
 
 @EventBusSubscriber(modid = ViaRomana.MODID)
 public final class NeoForgeServerEvents {

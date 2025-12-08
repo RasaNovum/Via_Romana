@@ -7,10 +7,14 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.rasanovum.viaromana.util.VersionUtils;
 import org.jetbrains.annotations.NotNull;
 
 public class LinkedSignToast implements Toast {
-    private static final ResourceLocation BACKGROUND_SPRITE = ResourceLocation.withDefaultNamespace("toast/recipe");
+//? if >1.21
+private static final ResourceLocation BACKGROUND_SPRITE = VersionUtils.getLocation("minecraft", "toast/recipe");
+//? if <1.21
+/*private static final ResourceLocation BACKGROUND_SPRITE = VersionUtils.getLocation("minecraft", "textures/gui/toasts.png");*/
     
     private final Component title;
     private final Component description;
@@ -24,7 +28,10 @@ public class LinkedSignToast implements Toast {
 
     @Override
     public @NotNull Visibility render(GuiGraphics guiGraphics, ToastComponent toastComponent, long timeSinceLastVisible) {
+        //? if >1.21
         guiGraphics.blitSprite(BACKGROUND_SPRITE, 0, 0, 160, 32);
+        //? if <1.21
+        /*guiGraphics.blit(BACKGROUND_SPRITE, 0, 0, 0, 32, 160, 32);*/
         guiGraphics.drawString(toastComponent.getMinecraft().font, this.description, 30, 18, -16777216, false);
         guiGraphics.drawString(toastComponent.getMinecraft().font, this.title, 30, 7, -11534256, false);
         guiGraphics.renderFakeItem(this.icon, 8, 8);

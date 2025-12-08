@@ -6,6 +6,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.stats.Stats;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 //? if >=1.21 {
@@ -15,6 +16,7 @@ import net.minecraft.advancements.AdvancementHolder;
 *///?}
 
 import net.rasanovum.viaromana.ViaRomana;
+import net.rasanovum.viaromana.init.StatInit;
 import net.rasanovum.viaromana.map.ServerMapCache;
 import net.rasanovum.viaromana.network.AbstractPacket;
 import net.rasanovum.viaromana.path.Node.NodeData;
@@ -74,26 +76,45 @@ public record ChartedPathC2S(List<NodeData> chartedNodes) implements AbstractPac
             }
 
             try {
+                double totalDistance = 0.0;
+                for (int i = 1; i < this.chartedNodes.size(); i++) {
+                    BlockPos prev = this.chartedNodes.get(i - 1).pos();
+                    BlockPos curr = this.chartedNodes.get(i).pos();
+                    totalDistance += Math.sqrt(prev.distSqr(curr));
+                }
+
+                serverPlayer.awardStat(Stats.CUSTOM.get(StatInit.DISTANCE_CHARTED), (int) (totalDistance * 100));
+                
                 graph.createConnectedPath(this.chartedNodes);
                 PathDataManager.markDirty(serverLevel);
                 PathSyncUtils.syncPathGraphToAllPlayers(serverLevel);
-                awardAdvancementIfNeeded(serverPlayer);
+                awardChartingAdvancements(serverPlayer);
 
                 UUID pseudoNetworkId = ServerMapCache.getPseudoNetworkId(playerUUID);
                 ServerMapCache.invalidatePseudoNetwork(pseudoNetworkId);
 
-                ViaRomana.LOGGER.debug("Created charted path with {} nodes for player {}, cleaned up pseudonetwork {}",
-                    this.chartedNodes.size(), serverPlayer.getName().getString(), pseudoNetworkId);
+                int totalCharted = serverPlayer.getStats().getValue(Stats.CUSTOM.get(StatInit.DISTANCE_CHARTED));
+                ViaRomana.LOGGER.debug("Created charted path with {} nodes for player {} ({}m charted, {}m total), cleaned up pseudonetwork {}",
+                    this.chartedNodes.size(), serverPlayer.getName().getString(), (int)totalDistance, totalCharted, pseudoNetworkId);
             } catch (Exception e) {
                 ViaRomana.LOGGER.error("Failed to create charted path for player {}: {}", serverPlayer.getName().getString(), e.getMessage());
             }
         }
     }
 
-    private static void awardAdvancementIfNeeded(ServerPlayer player) {
+    private static void awardChartingAdvancements(ServerPlayer player) {
+        awardAdvancement(player, "via_romana:story/a_strand_type_game");
+
+        int totalCharted = player.getStats().getValue(Stats.CUSTOM.get(StatInit.DISTANCE_CHARTED));
+        if (totalCharted >= 5000 * 100) { // Units in cm
+            awardAdvancement(player, "via_romana:story/straight_up_pathing_it");
+        }
+    }
+
+    private static void awardAdvancement(ServerPlayer player, String advancementId) {
         try {
             //? if <1.21 {
-            /*Advancement advancement = player.server.getAdvancements().getAdvancement(new ResourceLocation("via_romana:story/a_strand_type_game"));
+            /*Advancement advancement = player.server.getAdvancements().getAdvancement(new ResourceLocation(advancementId));
             if (advancement != null) {
                 AdvancementProgress advancementProgress = player.getAdvancements().getOrStartProgress(advancement);
                 if (!advancementProgress.isDone()) {
@@ -103,8 +124,8 @@ public record ChartedPathC2S(List<NodeData> chartedNodes) implements AbstractPac
                 }
             }
             *///?} else {
-            ResourceLocation advancementId = VersionUtils.getLocation("via_romana:story/a_strand_type_game");
-            AdvancementHolder advancement = player.server.getAdvancements().get(advancementId);
+            ResourceLocation id = VersionUtils.getLocation(advancementId);
+            AdvancementHolder advancement = player.server.getAdvancements().get(id);
             if (advancement != null) {
                 AdvancementProgress advancementProgress = player.getAdvancements().getOrStartProgress(advancement);
                 if (!advancementProgress.isDone()) {
@@ -119,7 +140,7 @@ public record ChartedPathC2S(List<NodeData> chartedNodes) implements AbstractPac
             }
             //?}
         } catch (Exception e) {
-            ViaRomana.LOGGER.warn("Failed to award advancement {} to player {}: {}", "via_romana:story/a_strand_type_game", player.getName().getString(), e.getMessage());
+            ViaRomana.LOGGER.warn("Failed to award advancement {} to player {}: {}", advancementId, player.getName().getString(), e.getMessage());
         }
     }
 }
