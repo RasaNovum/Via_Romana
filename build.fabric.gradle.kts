@@ -43,6 +43,8 @@ dependencies {
     modCompileOnly("maven.modrinth:supplementaries:${property("deps.supplementaries")}")
     modCompileOnly("folk.sisby:surveyor:${property("deps.surveyor")}")
 
+//    modImplementation("maven.modrinth:fabric-permissions-api:0.3.1")
+
     annotationProcessor("net.fabricmc:sponge-mixin:0.12.5+mixin.0.8.5")
     modImplementation("com.google.code.gson:gson:2.10.1")
 }

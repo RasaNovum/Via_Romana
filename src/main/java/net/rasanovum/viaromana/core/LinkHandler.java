@@ -5,6 +5,7 @@ import net.rasanovum.viaromana.path.PathGraph;
 import net.rasanovum.viaromana.storage.path.PathDataManager;
 import net.rasanovum.viaromana.integration.IntegrationManager;
 import net.rasanovum.viaromana.ViaRomana;
+import net.rasanovum.viaromana.tags.TagGenerator;
 import net.rasanovum.viaromana.util.PathSyncUtils;
 import net.rasanovum.viaromana.util.VersionUtils;
 import net.rasanovum.viaromana.path.Node;
@@ -29,7 +30,7 @@ public class LinkHandler {
      */
     public static boolean isSignBlock(LevelAccessor world, BlockPos blockPos) {
         BlockState targetBlock = world.getBlockState(blockPos);
-        return targetBlock.is(TagKey.create(Registries.BLOCK, VersionUtils.getLocation("via_romana:warp_block")));
+        return targetBlock.is(TagGenerator.WARP_BLOCK_TAG);
     }
 
     /**
@@ -137,9 +138,7 @@ public class LinkHandler {
      * Gets the node linked to a sign at the given position (works on both client and server).
      */
     public static Optional<Node> getLinkedNode(LevelAccessor level, BlockPos signPos) {
-        if (!isSignBlock(level, signPos)) return Optional.empty();
-
-        ViaRomana.LOGGER.debug("getLinkedNode: Checking sign at {}", signPos);
+//        if (!isSignBlock(level, signPos)) return Optional.empty(); // Disabled as ServerLevelMixin runs after sign is destroyed
 
         PathGraph graph = getPathGraph(level);
         if (graph == null) return Optional.empty();

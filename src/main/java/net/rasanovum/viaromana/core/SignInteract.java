@@ -16,14 +16,6 @@ public class SignInteract {
     private static long lastClickTime = 0;
     private static final long CLICK_DEBOUNCE_MS = 100;
 
-    public static void broken(LevelAccessor world, BlockPos signPos, Entity entity) {
-        if (entity == null) return;
-
-        if (world instanceof ServerLevel serverLevel && LinkHandler.isSignBlock(world, signPos)) {
-            LinkHandler.handleSignDestruction(serverLevel, signPos);
-        }
-    }
-
     public static boolean clicked(LevelAccessor world, BlockPos blockPos, Entity entity) {        
         if (entity == null) return false;
 

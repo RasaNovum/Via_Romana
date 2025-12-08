@@ -457,8 +457,7 @@ public final class PathGraph {
             node.unlink();
             signPosToIndex.remove(signPos.asLong());
 
-            if (CommonConfig.logging_enum.ordinal() > 0)
-                ViaRomana.LOGGER.info("Successfully unlinked sign at {}", signPos);
+            if (CommonConfig.logging_enum.ordinal() > 0) ViaRomana.LOGGER.info("Successfully unlinked sign at {}", signPos);
 
             refreshNetworkDestinations(node);
             return true;

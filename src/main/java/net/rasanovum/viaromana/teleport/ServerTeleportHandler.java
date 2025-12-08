@@ -211,8 +211,7 @@ public class ServerTeleportHandler {
     }
 
     private static boolean validateOriginSign(ServerLevel level, BlockPos signPos) {
-        boolean isValid = LinkHandler.isSignLinked(level, signPos);
-        return isValid;
+        return LinkHandler.isSignLinked(level, signPos);
     }
     
     private static BlockPos findSafePosition(ServerLevel level, BlockPos center) {
