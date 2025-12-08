@@ -1,5 +1,6 @@
 package net.rasanovum.viaromana.mixins.client;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.rasanovum.viaromana.speed.FieldOfViewHelper;
@@ -19,8 +20,14 @@ public abstract class AbstractClientPlayerMixin extends Player {
     public void modifyFov(CallbackInfoReturnable<Float> cir) {
         if (FieldOfViewHelper.shouldIgnoreProximitySpeed(this)) {
             float original = cir.getReturnValue();
+            float fovScale = Minecraft.getInstance().options.fovEffectScale().get().floatValue();
+
+            if (fovScale == 0.0F) return;
+
             float correction = FieldOfViewHelper.getProximityFovCorrection(this);
-            cir.setReturnValue(original * correction);
+            float newFov = 1.0F - fovScale + correction * (original + fovScale - 1.0F);
+
+            cir.setReturnValue(newFov);
         }
     }
 }

@@ -118,8 +118,8 @@ public record ChartedPathC2S(List<NodeData> chartedNodes) implements AbstractPac
             if (advancement != null) {
                 AdvancementProgress advancementProgress = player.getAdvancements().getOrStartProgress(advancement);
                 if (!advancementProgress.isDone()) {
-                    for (String c : advancementProgress.getRemainingCriteria()) {
-                        player.getAdvancements().award(advancement, c);
+                    for (String criterion : advancementProgress.getRemainingCriteria()) {
+                        player.getAdvancements().award(advancement, criterion);
                     }
                 }
             }
