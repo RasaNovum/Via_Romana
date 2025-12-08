@@ -28,7 +28,7 @@
 ### Fixes:
 - Resolved background of any GUI screen from appearing black when standing inside a charting node (NeoForge).
 - Resolved vignette overlay from darkening when in pause screen (NeoForge).
-- Resolved linked signs not unlinking when broken by the player (Forge/NeoForge).
+- Resolved linked signs not unlinking when broken.
 
 ### Changes:
 - Set `Biome Fallback` config option to false by default
