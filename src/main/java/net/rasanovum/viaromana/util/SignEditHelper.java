@@ -1,5 +1,6 @@
 package net.rasanovum.viaromana.util;
 
+import dev.corgitaco.dataanchor.network.broadcast.PacketBroadcaster;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
@@ -11,6 +12,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.client.data.ClientPathData;
 import net.rasanovum.viaromana.loaders.Platform;
+import net.rasanovum.viaromana.network.packets.SignLinkRequestC2S;
+import net.rasanovum.viaromana.network.packets.SignUnlinkRequestC2S;
 import net.rasanovum.viaromana.path.Node;
 import net.rasanovum.viaromana.client.gui.LinkSignScreen;
 import net.rasanovum.viaromana.client.gui.WarpBlockScreen;
@@ -55,6 +58,7 @@ public class SignEditHelper {
             return null;
         }
 
+        assert minecraft.level != null;
         if (!LinkHandler.isSignBlock(minecraft.level, signPos)) return null;
 
         boolean isSignPermLinked = LinkHandler.isSignLinked(player.level(), signPos);
@@ -62,7 +66,7 @@ public class SignEditHelper {
         Node linkedNode = LinkHandler.getLinkedNode(player.level(), signPos).orElse(null);
 
         boolean disableButton = false;
-        boolean isNodeTemp = false;
+        boolean isNodeTemp;
         String buttonText = "";
         String tooltip = "";
 
@@ -70,19 +74,28 @@ public class SignEditHelper {
 
         if (isSignPermLinked || isSignTempLinked) {
             if (isSignPermLinked) {
+                isNodeTemp = false;
                 linkData = LinkHandler.getLinkData(player.level(), signPos).orElse(null);
             } else {
                 linkData = clientPathData.getTemporarySignLink(signPos).orElse(null);
                 if (linkData != null) {
                     isNodeTemp = clientPathData.isTemporaryNode(linkData.nodePos());
+                } else {
+                    isNodeTemp = false;
                 }
             }
 
             boolean hasAccess = LinkHandler.hasAccess(player, linkedNode);
 
             if (hasAccess || isSignTempLinked) {
-                buttonText = "gui.viaromana.edit_destination";
-                tooltip = "gui.viaromana.edit_destination_tooltip";
+                if (!CommonConfig.no_gui_charting) {
+                    buttonText = "gui.viaromana.edit_destination";
+                    tooltip = "gui.viaromana.edit_destination_tooltip";
+                }
+                else {
+                    buttonText = "gui.viaromana.remove_destination";
+                    tooltip = "gui.viaromana.remove_destination_tooltip";
+                }
             } else {
                 disableButton = true;
                 buttonText = "gui.viaromana.no_access";
@@ -108,6 +121,7 @@ public class SignEditHelper {
 
                 tooltip = "gui.viaromana.add_to_path_tooltip";
             } else {
+                isNodeTemp = false;
                 disableButton = true;
                 tooltip = "gui.viaromana.place_near_node_tooltip";
             }
@@ -121,8 +135,17 @@ public class SignEditHelper {
             (button) -> {
                 if (finalLinkData != null) {
                     assert Minecraft.getInstance().player != null;
-                    LinkSignScreen linkScreen = new LinkSignScreen(Minecraft.getInstance().player, finalLinkData, finalIsNodeTemp, finalIsSignLinked);
-                    Minecraft.getInstance().setScreen(linkScreen);
+                    assert Minecraft.getInstance().screen != null;
+
+                    if (!CommonConfig.no_gui_charting) {
+                        LinkSignScreen linkScreen = new LinkSignScreen(Minecraft.getInstance().player, finalLinkData, finalIsNodeTemp, finalIsSignLinked);
+                        Minecraft.getInstance().setScreen(linkScreen);
+                    }
+                    else {
+                        if (!finalIsSignLinked) PacketBroadcaster.C2S.sendToServer(new SignLinkRequestC2S(finalLinkData, isNodeTemp));
+                        else PacketBroadcaster.C2S.sendToServer(new SignUnlinkRequestC2S(signPos));
+                        Minecraft.getInstance().screen.onClose();
+                    }
                 }
             },
             Component.translatable(tooltip)

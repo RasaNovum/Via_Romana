@@ -7,9 +7,11 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.network.AbstractPacket;
 import net.rasanovum.viaromana.path.PathGraph;
+import net.rasanovum.viaromana.teleport.ServerTeleportHandler;
 
 import java.util.List;
 
@@ -52,7 +54,14 @@ public record DestinationRequestC2S(BlockPos sourceSignPos) implements AbstractP
                 cache.id()
             );
 
-            PacketBroadcaster.S2C.sendToPlayer(response, serverPlayer);
+            if (!CommonConfig.direct_warp || destInfos.size() > 1) {
+                PacketBroadcaster.S2C.sendToPlayer(response, serverPlayer);
+            }
+            else if (destInfos.size() == 1) {
+                TeleportRequestC2S packet = new TeleportRequestC2S(this.sourceSignPos, destInfos.get(0).position);
+
+                ServerTeleportHandler.handleTeleportRequest(packet, (ServerPlayer) player);
+            }
         }
     }
 }

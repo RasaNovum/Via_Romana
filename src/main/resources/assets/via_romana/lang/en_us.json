@@ -39,6 +39,8 @@
   "gui.viaromana.warp_block.title": "Warp Block",
   "gui.viaromana.edit_destination": "Edit Destination",
   "gui.viaromana.edit_destination_tooltip": "Edit destination or unlink sign",
+  "gui.viaromana.remove_destination": "Unlink Sign",
+  "gui.viaromana.remove_destination_tooltip": "Unlink sign from nearest node",
   "gui.viaromana.no_access": "No Access",
   "gui.viaromana.no_access_tooltip": "You do not have permission to edit this destination",
   "gui.viaromana.add_to_path": "Add To Path",
@@ -128,7 +130,8 @@
   "via_romana.midnightconfig.travel_fatigue_cooldown.tooltip": "Cooldown (in seconds) before a player can warp again.\n • Server Managed",
   "via_romana.midnightconfig.fast_movement_speed": "Path Movement Speedup",
   "via_romana.midnightconfig.fast_movement_speed.tooltip": "Speedup from default movement speed when walking along a charted path (eg. 0.4 = 40%% faster).\n • Server Managed",
-
+  "via_romana.midnightconfig.direct_warp": "Direct Warp",
+  "via_romana.midnightconfig.direct_warp.tooltip": "When enabled, the player will directly teleport to another linked destination if the network only contains two total destinations.",
   "via_romana.midnightconfig.charting_footer": "• Check the 'Visuals' tab for charting visuals.",
 
   "via_romana.midnightconfig.fog_of_war_distance": "Fog of War Distance",
@@ -164,6 +167,8 @@
   "via_romana.midnightconfig.invalid_entities.tooltip": "List of entity IDs that cannot warp.\n • Server Managed",
   "via_romana.midnightconfig.invalid_dimensions": "Invalid Dimensions",
   "via_romana.midnightconfig.invalid_dimensions.tooltip": "List of dimension IDs where warping is disabled.\n • Server Managed",
+  "via_romana.midnightconfig.no_gui_charting": "Disable GUI",
+  "via_romana.midnightconfig.no_gui_charting.tooltip": "Disables the whimsy (Sign Link and Charting Map GUI).\nRight-click to start and stop charting.\nSneak Right-click to cancel charting and remove nodes.",
   "via_romana.midnightconfig.path_block_ids": "Infrastructure Block IDs",
   "via_romana.midnightconfig.path_block_ids.tooltip": "List of block IDs considered valid for paths.\n • Server Managed",
   "via_romana.midnightconfig.path_block_tags": "Infrastructure Block Tags",

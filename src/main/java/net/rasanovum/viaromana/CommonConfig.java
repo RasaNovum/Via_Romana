@@ -25,6 +25,7 @@ public class CommonConfig extends MidnightConfig {
     );
     @Entry(category = CHARTING) public static List<String> block_string_blacklist = Lists.newArrayList("diagonalwalls:", "diagonalfences:", "diagonalwindows:");
     @Entry(category = CHARTING) public static List<String> invalid_dimensions = Lists.newArrayList();
+    @Entry(category = CHARTING) public static boolean no_gui_charting = false;
     @Comment(category = CHARTING) public static Comment charting_footer;
 
     @Entry(category = WARP) public static List<String> invalid_entities = Lists.newArrayList();
@@ -32,6 +33,7 @@ public class CommonConfig extends MidnightConfig {
     @Entry(category = WARP) public static List<String> warp_block_tags = Lists.newArrayList("minecraft:all_signs");
     @Entry(category = WARP, min = 0) public static int travel_fatigue_cooldown = 6;
     @Entry(category = WARP, min = 0f, max = 5f) public static double fast_movement_speed = 0.4D;
+    @Entry(category = WARP) public static boolean direct_warp = false;
     @Comment(category = WARP) public static Comment warp_footer;
 
     @Entry(category = MAP, min = 1) public static int fog_of_war_distance = 10;
