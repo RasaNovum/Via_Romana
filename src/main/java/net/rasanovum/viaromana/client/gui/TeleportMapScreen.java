@@ -2,6 +2,7 @@ package net.rasanovum.viaromana.client.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.corgitaco.dataanchor.network.broadcast.PacketBroadcaster;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.Util;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -24,8 +25,9 @@ import net.rasanovum.viaromana.teleport.TeleportHelper;
 import net.rasanovum.viaromana.util.EffectUtils;
 import net.rasanovum.viaromana.util.VersionUtils;
 
-import java.awt.Point;
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @net.fabricmc.api.Environment(net.fabricmc.api.EnvType.CLIENT)
@@ -57,6 +59,7 @@ public class TeleportMapScreen extends Screen {
     private final Map<BlockPos, Float> destinationFadeProgress = new HashMap<>();
     private final Set<BlockPos> validatedNodes = new HashSet<>();
     private final Set<BlockPos> destinationPositions;
+    private final LongOpenHashSet drawnPixels = new LongOpenHashSet();
 
     private static final float SCREEN_FADE_IN_SPEED = 0.05f;
     private float screenAlpha = 0.0f;
@@ -69,7 +72,11 @@ public class TeleportMapScreen extends Screen {
     private static final float DIRECTION_ANGLE_RANGE = 45.0f;
     private static final float DIRECTION_BASE_OPACITY = 1.0f;
     private static final float DIRECTION_FADE_CURVE = 1.0f;
-    private static final int DIRECTION_COLOR_RGB = net.rasanovum.viaromana.client.ColorUtil.rgbToHex(1,1,1);
+    private static final int DIRECTION_COLOR_RGB = 0xFFFFFF;
+    private static int LINE_COLOR_BASE = 0xFFFFFF;
+    private static int LINE_COLOR_UNDERGROUND = 0xFFFFFF;
+    private static float LINE_OPACITY = 1.0f;
+    private static boolean SKIP_HASHSET = true;
     private static final int THICKNESS = 1;
     //endregion
 
@@ -157,7 +164,7 @@ public class TeleportMapScreen extends Screen {
 
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, this.screenAlpha);
         this.mapRenderer.render(guiGraphics, this.width, this.height);
-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f); // Reset for safety
+        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
 
         renderNetwork(guiGraphics);
 
@@ -177,11 +184,25 @@ public class TeleportMapScreen extends Screen {
         int newAlpha = (int)(alpha * this.screenAlpha);
         return (newAlpha << 24) | (color & 0x00FFFFFF);
     }
+
+    private int applyLineAlpha(int color) {
+        if (LINE_OPACITY >= 1.0f) return color;
+        int alpha = (color >> 24) & 0xFF;
+        int newAlpha = (int)(alpha * LINE_OPACITY);
+        return (newAlpha << 24) | (color & 0x00FFFFFF);
+    }
     //endregion
 
     //region Network Animation
     private void renderNetwork(GuiGraphics guiGraphics) {
         if (networkNodeMap.isEmpty()) return;
+
+        LINE_COLOR_BASE = Color.decode(CommonConfig.line_colors.get(0)).getRGB();
+        LINE_COLOR_UNDERGROUND = Color.decode(CommonConfig.line_colors.get(1)).getRGB();
+        LINE_OPACITY = CommonConfig.line_opacity;
+        SKIP_HASHSET = CommonConfig.line_opacity >= 1.0f;
+
+        this.drawnPixels.clear();
 
         updateAnimationProgress();
 
@@ -204,9 +225,9 @@ public class TeleportMapScreen extends Screen {
 
                     DestinationResponseS2C.NodeNetworkInfo endNodeInfo = networkNodeMap.get(endPos);
                     boolean bothUnderground = nodeInfo.clearance > 0 && nodeInfo.clearance < 24 && endNodeInfo != null && endNodeInfo.clearance > 0 && endNodeInfo.clearance < 24;
-                    int lineColor = bothUnderground ? 0xFFAAAAAA : 0xFFFFFFFF;
+                    int lineColor = bothUnderground ? LINE_COLOR_UNDERGROUND : LINE_COLOR_BASE;
 
-                    lineColor = applyGlobalFade(lineColor);
+                    lineColor = applyLineAlpha(lineColor);
 
                     // Case 1: Connection between two fully completed nodes. Drawn once.
                     if (isStartCompleted && isEndCompleted) {
@@ -502,6 +523,7 @@ public class TeleportMapScreen extends Screen {
 
     private void calculateBounds() {
         if (networkNodeMap.isEmpty()) {
+            assert minecraft != null;
             BlockPos playerPos = minecraft.player != null ? minecraft.player.blockPosition() : BlockPos.ZERO;
             this.minBounds = playerPos.offset(-128, 0, -128);
             this.maxBounds = playerPos.offset(128, 0, 128);
@@ -589,12 +611,26 @@ public class TeleportMapScreen extends Screen {
         int dy = -Math.abs(end.y - start.y), sy = start.y < end.y ? 1 : -1;
         int err = dx + dy, e2;
         int x = start.x, y = start.y;
+
         int half = thickness / 2;
 
         while (true) {
-            guiGraphics.fill(x - half, y - half, x + thickness - half, y + thickness - half, color);
+            for (int tx = 0; tx < thickness; tx++) {
+                for (int ty = 0; ty < thickness; ty++) {
+                    int pixelX = x - half + tx;
+                    int pixelY = y - half + ty;
+
+                    long packedPos = (((long) pixelX) << 32) | (pixelY & 0xFFFFFFFFL);
+
+                    if (SKIP_HASHSET || drawnPixels.add(packedPos)) {
+                        guiGraphics.fill(pixelX, pixelY, pixelX + 1, pixelY + 1, color);
+                    }
+                }
+            }
+
             if (x == end.x && y == end.y) break;
             e2 = 2 * err;
+
             if (e2 >= dy) { err += dy; x += sx; }
             if (e2 <= dx) { err += dx; y += sy; }
         }

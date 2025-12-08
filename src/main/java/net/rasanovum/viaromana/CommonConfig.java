@@ -50,6 +50,8 @@ public class CommonConfig extends MidnightConfig {
     @Entry(category = VISUALS, min = 0f, max = 1f) public static float invalid_block_overlay_opacity = 0.4f;
     @Entry(category = VISUALS, min = 0f, max = 1f) public static float biome_map_opacity = 0.3f;
     @Entry(category = VISUALS, min = 0f, max = 1f) public static float node_vignette_opacity = 1.0f;
+    @Entry(category = VISUALS, isColor = true) public static List<String> line_colors = Lists.newArrayList("#ffffff", "#cccccc");
+    @Entry(category = VISUALS, min = 0f, max = 1f) public static float line_opacity = 1.0f;
     @Entry(category = VISUALS) public static boolean enable_teleport_particles = true;
     @Entry(category = VISUALS) public static boolean enable_sign_particles = true;
     @Entry(category = VISUALS) public static boolean enable_custom_cursor = true;
