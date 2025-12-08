@@ -32,6 +32,10 @@ public class FabricMain implements ModInitializer {
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             ViaRomana.onJoin(handler.player);
         });
+
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+            ViaRomana.onLeave(handler.player);
+        });
         
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             for (var level : server.getAllLevels()) {

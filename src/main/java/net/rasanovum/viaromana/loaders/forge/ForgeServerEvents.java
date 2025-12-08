@@ -31,6 +31,13 @@ public final class ForgeServerEvents {
     }
 
     @SubscribeEvent
+    public static void onPlayerLeave(PlayerEvent.PlayerLoggedOutEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            ViaRomana.onJoin(player);
+        }
+    }
+
+    @SubscribeEvent
     public static void onLevelTick(final LevelTickEvent event) {
         if (event.phase == TickEvent.Phase.END) {
             Level level = event.level;

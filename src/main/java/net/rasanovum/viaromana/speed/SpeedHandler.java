@@ -39,6 +39,10 @@ public class SpeedHandler {
 
     private static final Map<UUID, BlockPos> lastPathWalkPositions = new HashMap<>();
 
+    public static void resetState(ServerPlayer player) {
+        lastPathWalkPositions.remove(player.getUUID());
+    }
+
     public static void onPlayerTick(ServerPlayer player) {
         if (player.level().isClientSide) return;
 

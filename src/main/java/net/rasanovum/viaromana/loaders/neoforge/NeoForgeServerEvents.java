@@ -32,6 +32,13 @@ public final class NeoForgeServerEvents {
     }
 
     @SubscribeEvent
+    public static void onPlayerLeave(PlayerEvent.PlayerLoggedOutEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            ViaRomana.onJoin(player);
+        }
+    }
+
+    @SubscribeEvent
     public static void onLevelTick(final LevelTickEvent.Post event) {
         Level level = event.getLevel();
         if (level instanceof ServerLevel serverLevel) {

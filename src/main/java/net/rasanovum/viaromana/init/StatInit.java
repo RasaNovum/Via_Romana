@@ -3,11 +3,11 @@ package net.rasanovum.viaromana.init;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.stats.StatFormatter;
 import net.minecraft.stats.Stats;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.rasanovum.viaromana.ViaRomana;
 import net.rasanovum.viaromana.util.VersionUtils;
 //? if fabric {
 import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
 //?} else if neoforge {
 /*import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;

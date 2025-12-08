@@ -27,6 +27,7 @@ import net.rasanovum.viaromana.network.packets.TeleportFadeS2C;
 import net.rasanovum.viaromana.network.packets.TeleportRequestC2S;
 import net.rasanovum.viaromana.path.Node;
 import net.rasanovum.viaromana.path.PathGraph;
+import net.rasanovum.viaromana.speed.SpeedHandler;
 import net.rasanovum.viaromana.util.EffectUtils;
 
 public class ServerTeleportHandler {
@@ -123,6 +124,8 @@ public class ServerTeleportHandler {
             player.stopRiding();
             rootVehicle = player;
         }
+
+        SpeedHandler.resetState(player);
 
         teleportStack(rootVehicle, level, x, y, z);
     }

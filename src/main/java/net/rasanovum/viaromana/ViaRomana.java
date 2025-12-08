@@ -73,6 +73,10 @@ public class ViaRomana {
         }
     }
 
+    public static void onLeave(ServerPlayer player) {
+        SpeedHandler.resetState(player);
+    }
+
     public static void onServerTick(ServerLevel level) {
         ServerTeleportHandler.tick(level);
         MinecraftServer server = level.getServer();
