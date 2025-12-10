@@ -2,6 +2,7 @@ package net.rasanovum.viaromana.command;
 
 import net.rasanovum.viaromana.CommonConfig;
 import net.rasanovum.viaromana.ViaRomana;
+import net.rasanovum.viaromana.map.ChunkPixelRenderer;
 import net.rasanovum.viaromana.path.PathGraph;
 import net.rasanovum.viaromana.storage.level.LevelDataManager;
 import net.rasanovum.viaromana.storage.path.PathDataManager;
@@ -190,6 +191,8 @@ public class ViaRomanaCommands {
      */
     private static int clearBiomePixels(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         CommandSourceStack source = context.getSource();
+
+        ChunkPixelRenderer.init();
 
         source.sendSuccess(() -> Component.translatable("command.via_romana.clearing_biome_data"), false);
         LevelDataManager.clearAllCornerBytes(source.getLevel());
