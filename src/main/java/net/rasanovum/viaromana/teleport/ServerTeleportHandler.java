@@ -82,11 +82,6 @@ public class ServerTeleportHandler {
         ServerLevel level = player.serverLevel();
         PathGraph graph = PathGraph.getInstance(level);
 
-        if (graph == null || (packet.originSignPos() != null && !validateOriginSign(level, packet.originSignPos()))) {
-            // ViaRomanaLandmarkManager.removeDestinationLandmark(level, packet.originSignPos().toLongPos()); //TODO: Add back
-            return;
-        }
-
         graph.getNodeAt(packet.destinationPos()).ifPresent(targetNode -> {
             activeTeleports.put(player.getUUID(), targetNode);
             teleportStartTimes.put(player.getUUID(), level.getGameTime());
@@ -208,10 +203,6 @@ public class ServerTeleportHandler {
         oldEntity.remove(Entity.RemovalReason.CHANGED_DIMENSION);
         
         return newEntity;
-    }
-
-    private static boolean validateOriginSign(ServerLevel level, BlockPos signPos) {
-        return LinkHandler.isSignLinked(level, signPos);
     }
     
     private static BlockPos findSafePosition(ServerLevel level, BlockPos center) {

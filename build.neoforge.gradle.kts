@@ -57,6 +57,7 @@ dependencies {
     implementation("maven.modrinth:moonlight:${property("deps.moonlightlib")}")
 
     compileOnly("maven.modrinth:supplementaries:${property("deps.supplementaries")}")
+    compileOnly("folk.sisby:surveyor:${property("deps.surveyor")}")
 
     implementation("com.google.code.gson:gson:2.10.1")
 }

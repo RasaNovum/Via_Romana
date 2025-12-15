@@ -1,11 +1,12 @@
 package net.rasanovum.viaromana.client.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.*;
 import dev.corgitaco.dataanchor.network.broadcast.PacketBroadcaster;
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.Util;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -24,6 +25,9 @@ import net.rasanovum.viaromana.storage.player.PlayerData;
 import net.rasanovum.viaromana.teleport.TeleportHelper;
 import net.rasanovum.viaromana.util.EffectUtils;
 import net.rasanovum.viaromana.util.VersionUtils;
+import org.joml.Matrix4f;
+import org.joml.Vector4f;
+import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
 import java.util.*;
@@ -59,7 +63,6 @@ public class TeleportMapScreen extends Screen {
     private final Map<BlockPos, Float> destinationFadeProgress = new HashMap<>();
     private final Set<BlockPos> validatedNodes = new HashSet<>();
     private final Set<BlockPos> destinationPositions;
-    private final LongOpenHashSet drawnPixels = new LongOpenHashSet();
 
     private static final float SCREEN_FADE_IN_SPEED = 0.05f;
     private float screenAlpha = 0.0f;
@@ -76,8 +79,6 @@ public class TeleportMapScreen extends Screen {
     private static int LINE_COLOR_BASE = 0xFFFFFF;
     private static int LINE_COLOR_UNDERGROUND = 0xFFFFFF;
     private static float LINE_OPACITY = 1.0f;
-    private static boolean SKIP_HASHSET = true;
-    private static final int THICKNESS = 1;
     //endregion
 
     //region Initialization
@@ -107,9 +108,6 @@ public class TeleportMapScreen extends Screen {
         requestMapAsync(this.minBounds, this.maxBounds);
     }
 
-    /**
-     * Requests map from server and sets up texture when received.
-     */
     private void requestMapAsync(BlockPos paddedMin, BlockPos paddedMax) {
         MapClient.requestMap(networkId, paddedMin, paddedMax, networkNodes)
                 .thenAccept(mapInfo -> {
@@ -166,10 +164,15 @@ public class TeleportMapScreen extends Screen {
         this.renderBlurredBackground(partialTicks);
 
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, this.screenAlpha);
+
         this.mapRenderer.render(guiGraphics, this.width, this.height);
+
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
 
         renderNetwork(guiGraphics);
+
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate(0.0f, 0.0f, 10.0f);
 
         Set<BlockPos> revealedNodes = getRevealedNodes();
         TeleportHelper.TeleportDestination hoveredDestination = findDestinationAtPosition(revealedNodes, mouseX, mouseY);
@@ -177,6 +180,8 @@ public class TeleportMapScreen extends Screen {
         renderDestinationMarkers(guiGraphics, revealedNodes, hoveredDestination);
         renderPlayerMarker(guiGraphics, this.minecraft.player);
         renderTooltip(guiGraphics, hoveredDestination, mouseX, mouseY);
+
+        guiGraphics.pose().popPose();
 
         super.render(guiGraphics, mouseX, mouseY, partialTicks);
     }
@@ -198,64 +203,154 @@ public class TeleportMapScreen extends Screen {
 
     //region Network Animation
     private void renderNetwork(GuiGraphics guiGraphics) {
-        if (networkNodeMap.isEmpty()) return;
+        if (networkNodeMap.isEmpty() || mapRenderer == null) return;
+
+        float scale = 1.0f;
+        Point p1 = mapRenderer.worldToScreen(minBounds, this.width, this.height);
+        Point p2 = mapRenderer.worldToScreen(minBounds.offset(1, 0, 0), this.width, this.height);
+
+        if (p1 != null && p2 != null) {
+            double dist = Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+            if (dist > 0.001) {
+                scale = (float) dist;
+            }
+        }
+
+        float drawSize = Math.max(1.0f, scale);
 
         LINE_COLOR_BASE = Color.decode(CommonConfig.line_colors.get(0)).getRGB();
         LINE_COLOR_UNDERGROUND = Color.decode(CommonConfig.line_colors.get(1)).getRGB();
         LINE_OPACITY = CommonConfig.line_opacity;
-        SKIP_HASHSET = CommonConfig.line_opacity >= 1.0f;
-
-        this.drawnPixels.clear();
 
         updateAnimationProgress();
 
-        Set<BlockPos> currentlyAnimatingSources = nodesToAnimate.stream()
-                .map(info -> info.position)
-                .collect(Collectors.toSet());
+        Tesselator tesselator = Tesselator.getInstance();
+        BufferBuilder buffer = tesselator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
 
-        // Draw connections
-        for (DestinationResponseS2C.NodeNetworkInfo nodeInfo : networkNodeMap.values()) {
-            final BlockPos startPos = nodeInfo.position;
-            final boolean isStartCompleted = animatedNodes.contains(startPos);
-            final boolean isStartAnimating = currentlyAnimatingSources.contains(startPos);
+        Matrix4f matrix = guiGraphics.pose().last().pose();
 
-            if (!isStartCompleted && !isStartAnimating) continue;
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.setShader(GameRenderer::getPositionColorShader);
 
-            worldToScreen(startPos).ifPresent(startScreenPos -> {
-                for (BlockPos endPos : nodeInfo.connections) {
-                    final boolean isEndCompleted = animatedNodes.contains(endPos);
-                    final boolean isEndAnimating = currentlyAnimatingSources.contains(endPos);
+        Matrix4f renderMatrix = new Matrix4f(matrix);
+        renderMatrix.translate(0.0f, 0.0f, 5.0f);
 
-                    DestinationResponseS2C.NodeNetworkInfo endNodeInfo = networkNodeMap.get(endPos);
-                    boolean bothUnderground = nodeInfo.clearance > 0 && nodeInfo.clearance < 24 && endNodeInfo != null && endNodeInfo.clearance > 0 && endNodeInfo.clearance < 24;
-                    int lineColor = bothUnderground ? LINE_COLOR_UNDERGROUND : LINE_COLOR_BASE;
+        RenderSystem.enableDepthTest();
+        RenderSystem.depthFunc(GL11.GL_LESS);
+        RenderSystem.depthMask(true);
 
-                    lineColor = applyLineAlpha(lineColor);
-
-                    // Case 1: Connection between two fully completed nodes. Drawn once.
-                    if (isStartCompleted && isEndCompleted) {
-                        if (startPos.hashCode() < endPos.hashCode()) {
-                            int finalLineColor = lineColor;
-                            worldToScreen(endPos).ifPresent(endScreenPos -> drawLine(guiGraphics, startScreenPos, endScreenPos, finalLineColor, THICKNESS));
-                        }
-                    }
-                    // Case 2: Bridge connection from a completed node to the current animating wave.
-                    else if (isStartCompleted && isEndAnimating) {
-                        int finalLineColor1 = lineColor;
-                        worldToScreen(endPos).ifPresent(endScreenPos -> drawLine(guiGraphics, startScreenPos, endScreenPos, finalLineColor1, THICKNESS));
-                    }
-                    // Case 3: The actively growing spline from the current wave to un-animated nodes.
-                    else if (isStartAnimating && !isEndCompleted) {
-                        int finalLineColor2 = lineColor;
-                        worldToScreen(endPos).ifPresent(endScreenPos -> {
-                            Point animatedEndPoint = getAnimatedPoint(startScreenPos, endScreenPos, animationProgress);
-                            drawLine(guiGraphics, startScreenPos, animatedEndPoint, finalLineColor2, THICKNESS);
-                        });
-                    }
-                }
-            });
+        Set<BlockPos> dynamicNodeSet = new HashSet<>();
+        for (DestinationResponseS2C.NodeNetworkInfo n : nodesToAnimate) {
+            dynamicNodeSet.add(n.position);
         }
 
+        for (DestinationResponseS2C.NodeNetworkInfo nodeInfo : this.networkNodes) {
+            BlockPos startPos = nodeInfo.position;
+            boolean isStatic = animatedNodes.contains(startPos);
+            boolean isDynamic = dynamicNodeSet.contains(startPos);
+
+            if (!isStatic && !isDynamic) continue;
+
+            Optional<Point> startScreenPosOpt = worldToScreen(startPos);
+            if (startScreenPosOpt.isEmpty()) continue;
+            Point startScreenPos = startScreenPosOpt.get();
+
+            for (BlockPos endPos : nodeInfo.connections) {
+                boolean isEndStatic = animatedNodes.contains(endPos);
+                boolean isEndDynamic = dynamicNodeSet.contains(endPos);
+
+                float progress = -1.0f;
+
+                if (isStatic && (isEndStatic || isEndDynamic)) progress = 1.0f;
+                else if (isDynamic && !isEndStatic) progress = animationProgress;
+
+                if (progress >= 0.0f) drawConnection(buffer, renderMatrix, startScreenPos, endPos, nodeInfo, progress, scale, drawSize);
+            }
+        }
+
+        MeshData mesh = buffer.build();
+        if (mesh != null) BufferUploader.drawWithShader(mesh);
+
+        RenderSystem.depthMask(false);
+        RenderSystem.depthFunc(GL11.GL_LEQUAL);
+        RenderSystem.enableDepthTest();
+        RenderSystem.disableBlend();
+    }
+
+    private void drawConnection(BufferBuilder buffer, Matrix4f matrix, Point startScreenPos, BlockPos endPos, DestinationResponseS2C.NodeNetworkInfo startInfo, float progress, float scale, float drawSize) {
+        DestinationResponseS2C.NodeNetworkInfo endInfo = networkNodeMap.get(endPos);
+        boolean bothUnderground = startInfo.clearance > 0 && startInfo.clearance < 24 &&
+                endInfo != null && endInfo.clearance > 0 && endInfo.clearance < 24;
+
+        int color = bothUnderground ? LINE_COLOR_UNDERGROUND : LINE_COLOR_BASE;
+        color = applyLineAlpha(color);
+
+        Optional<Point> endScreenPosOpt = worldToScreen(endPos);
+        if (endScreenPosOpt.isEmpty()) return;
+        Point targetScreenPos = endScreenPosOpt.get();
+
+        if (progress < 1.0f) {
+            Point animatedEndPoint = getAnimatedPoint(startScreenPos, targetScreenPos, progress);
+            drawPixelLine(buffer, matrix, startScreenPos, animatedEndPoint, scale, drawSize, color);
+        } else {
+            drawPixelLine(buffer, matrix, startScreenPos, targetScreenPos, scale, drawSize, color);
+        }
+    }
+
+    /**
+     * Draws a line conforming to the map's pixel grid
+     */
+    private void drawPixelLine(BufferBuilder buffer, Matrix4f matrix, Point p1, Point p2, float scale, float drawSize, int color) {
+        int x0 = (int)(p1.x / scale);
+        int y0 = (int)(p1.y / scale);
+        int x1 = (int)(p2.x / scale);
+        int y1 = (int)(p2.y / scale);
+
+        int dx = Math.abs(x1 - x0);
+        int dy = Math.abs(y1 - y0);
+        int sx = x0 < x1 ? 1 : -1;
+        int sy = y0 < y1 ? 1 : -1;
+        int err = dx - dy;
+
+        while (true) {
+            float drawX = x0 * scale;
+            float drawY = y0 * scale;
+
+            addPixelQuad(buffer, matrix, drawX, drawY, drawSize, color);
+
+            if (x0 == x1 && y0 == y1) break;
+
+            int e2 = 2 * err;
+            if (e2 > -dy) {
+                err -= dy;
+                x0 += sx;
+            }
+            if (e2 < dx) {
+                err += dx;
+                y0 += sy;
+            }
+        }
+    }
+
+    private void addPixelQuad(BufferBuilder buffer, Matrix4f matrix, float x, float y, float size, int color) {
+        addVertex(buffer, matrix, x, y, color);
+        addVertex(buffer, matrix, x, y + size, color);
+        addVertex(buffer, matrix, x + size, y + size, color);
+        addVertex(buffer, matrix, x + size, y, color);
+    }
+
+    private void addVertex(VertexConsumer buffer, Matrix4f matrix, float x, float y, int color) {
+        int a = (color >> 24) & 0xFF;
+        int r = (color >> 16) & 0xFF;
+        int g = (color >> 8) & 0xFF;
+        int b = color & 0xFF;
+
+        Vector4f vec = new Vector4f(x, y, 0.0F, 1.0F);
+        matrix.transform(vec);
+
+        buffer.addVertex(vec.x, vec.y, vec.z).setColor(r, g, b, a);
     }
 
     private void updateAnimationProgress() {
@@ -329,20 +424,13 @@ public class TeleportMapScreen extends Screen {
 
     //region Marker & Tooltip Rendering
     private void renderDestinationMarkers(GuiGraphics guiGraphics, Set<BlockPos> revealedNodes, TeleportHelper.TeleportDestination hoveredDestination) {
-        // Update fade-in progress for newly validated destinations that have been revealed
-        revealedNodes.stream()
-                .filter(destinationPositions::contains)
-                .filter(node -> sourceNodePos == null || validatedNodes.contains(node))
-                .forEach(pos -> {
-                    float progress = destinationFadeProgress.getOrDefault(pos, 0.0f);
-                    if (progress < 1.0f) {
-                        destinationFadeProgress.put(pos, Math.min(1.0f, progress + MARKER_FADE_SPEED));
-                    }
-                });
-
-        // Render the markers that have begun fading in and are validated
         for (TeleportHelper.TeleportDestination dest : destinations) {
             boolean isValidated = validatedNodes.contains(dest.position) || sourceNodePos == null;
+            boolean isRevealed = revealedNodes.contains(dest.position);
+
+            if (isRevealed && isValidated) {
+                destinationFadeProgress.merge(dest.position, MARKER_FADE_SPEED, (a, b) -> Math.min(1.0f, a + b));
+            }
 
             if (destinationFadeProgress.containsKey(dest.position) && isValidated) {
                 worldToScreen(dest.position).ifPresent(screenPos -> {
@@ -402,17 +490,17 @@ public class TeleportMapScreen extends Screen {
             RenderSystem.disableBlend();
             guiGraphics.pose().popPose();
 
-            renderPlayerDirectionIndicator(guiGraphics, screenPos, PLAYER_MARKER_SIZE, player.getYRot());
+            renderPlayerDirectionIndicator(guiGraphics, screenPos, player.getYRot());
         });
     }
 
-    private void renderPlayerDirectionIndicator(GuiGraphics guiGraphics, Point centerPos, int markerSize, float yaw) {
-        int indicatorSize = markerSize + DIRECTION_INDICATOR_BUFFER;
+    private void renderPlayerDirectionIndicator(GuiGraphics guiGraphics, Point centerPos, float yaw) {
+        int indicatorSize = PLAYER_MARKER_SIZE + DIRECTION_INDICATOR_BUFFER;
         float facingAngle = ((yaw % 360) + 360 + 180) % 360;
         int baseAlpha = (int) (255 * DIRECTION_BASE_OPACITY);
         int directionColor = (baseAlpha << 24) | DIRECTION_COLOR_RGB;
 
-        renderDirectionalPixels(guiGraphics, centerPos, indicatorSize, facingAngle, directionColor);
+        renderDirectionalPixels(guiGraphics, centerPos, indicatorSize, facingAngle, directionColor); // TODO: Make this less bad
     }
 
     private void renderDirectionalPixels(GuiGraphics guiGraphics, Point center, int size, float facingAngle, int baseColor) {
@@ -428,8 +516,8 @@ public class TeleportMapScreen extends Screen {
             else { x = left; y = top + size - 1 - (i - (size * 3 - 3)); } // Left edge
 
             float pixelAngle = getPixelAngle(center, new Point(x, y));
-            if (isWithinAngleRange(pixelAngle, facingAngle, DIRECTION_ANGLE_RANGE)) {
-                int fadedColor = getFadedColor(baseColor, pixelAngle, facingAngle, DIRECTION_ANGLE_RANGE);
+            if (isWithinAngleRange(pixelAngle, facingAngle)) {
+                int fadedColor = getFadedColor(baseColor, pixelAngle, facingAngle);
                 fadedColor = applyGlobalFade(fadedColor);
                 guiGraphics.fill(x, y, x + 1, y + 1, fadedColor);
             }
@@ -471,11 +559,6 @@ public class TeleportMapScreen extends Screen {
     public void selectDestination(TeleportHelper.TeleportDestination destination) {
         if (minecraft == null || minecraft.player == null) return;
 
-//        if (this.signPos == null) {
-//            HudMessageManager.queueMessage("message.viaromana.view_only_mode");
-//            return;
-//        }
-
         if (PlayerData.isChartingPath(minecraft.player)) {
             HudMessageManager.queueMessage("message.via_romana.cannot_warp_when_recording");
             this.onClose();
@@ -493,8 +576,6 @@ public class TeleportMapScreen extends Screen {
             this.onClose();
             return;
         }
-
-        //TODO: Display text over map without closing screen
 
         TeleportRequestC2S packet = new TeleportRequestC2S(this.signPos, destination.position);
         PacketBroadcaster.C2S.sendToServer(packet);
@@ -533,11 +614,18 @@ public class TeleportMapScreen extends Screen {
             return;
         }
 
-        IntSummaryStatistics xStats = networkNodeMap.keySet().stream().mapToInt(BlockPos::getX).summaryStatistics();
-        IntSummaryStatistics zStats = networkNodeMap.keySet().stream().mapToInt(BlockPos::getZ).summaryStatistics();
+        int minX = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE;
+        int maxX = Integer.MIN_VALUE, maxZ = Integer.MIN_VALUE;
 
-        this.minBounds = new BlockPos(xStats.getMin(), 0, zStats.getMin());
-        this.maxBounds = new BlockPos(xStats.getMax(), 0, zStats.getMax());
+        for (BlockPos pos : networkNodeMap.keySet()) {
+            minX = Math.min(minX, pos.getX());
+            minZ = Math.min(minZ, pos.getZ());
+            maxX = Math.max(maxX, pos.getX());
+            maxZ = Math.max(maxZ, pos.getZ());
+        }
+
+        this.minBounds = new BlockPos(minX, 0, minZ);
+        this.maxBounds = new BlockPos(maxX, 0, maxZ);
     }
 
     private void configureAnimationTiming() {
@@ -609,51 +697,21 @@ public class TeleportMapScreen extends Screen {
         return null;
     }
 
-    private void drawLine(GuiGraphics guiGraphics, Point start, Point end, int color, int thickness) {
-        int dx = Math.abs(end.x - start.x), sx = start.x < end.x ? 1 : -1;
-        int dy = -Math.abs(end.y - start.y), sy = start.y < end.y ? 1 : -1;
-        int err = dx + dy, e2;
-        int x = start.x, y = start.y;
-
-        int half = thickness / 2;
-
-        while (true) {
-            for (int tx = 0; tx < thickness; tx++) {
-                for (int ty = 0; ty < thickness; ty++) {
-                    int pixelX = x - half + tx;
-                    int pixelY = y - half + ty;
-
-                    long packedPos = (((long) pixelX) << 32) | (pixelY & 0xFFFFFFFFL);
-
-                    if (SKIP_HASHSET || drawnPixels.add(packedPos)) {
-                        guiGraphics.fill(pixelX, pixelY, pixelX + 1, pixelY + 1, color);
-                    }
-                }
-            }
-
-            if (x == end.x && y == end.y) break;
-            e2 = 2 * err;
-
-            if (e2 >= dy) { err += dy; x += sx; }
-            if (e2 <= dx) { err += dx; y += sy; }
-        }
-    }
-
     private float getPixelAngle(Point center, Point pixel) {
         return (float) ((Math.toDegrees(Math.atan2(pixel.x - center.x, center.y - pixel.y)) + 360) % 360);
     }
 
-    private boolean isWithinAngleRange(float angle, float target, float range) {
+    private boolean isWithinAngleRange(float angle, float target) {
         float diff = Math.abs(angle - target);
         if (diff > 180) diff = 360 - diff;
-        return diff <= range;
+        return diff <= DIRECTION_ANGLE_RANGE;
     }
 
-    private int getFadedColor(int baseColor, float pixelAngle, float facingAngle, float angleRange) {
+    private int getFadedColor(int baseColor, float pixelAngle, float facingAngle) {
         float diff = Math.abs(pixelAngle - facingAngle);
         if (diff > 180) diff = 360 - diff;
 
-        float fadeFactor = (float) Math.pow(1.0f - (diff / angleRange), DIRECTION_FADE_CURVE);
+        float fadeFactor = (float) Math.pow(1.0f - (diff / DIRECTION_ANGLE_RANGE), DIRECTION_FADE_CURVE);
         fadeFactor = Math.max(0.0f, Math.min(1.0f, fadeFactor));
 
         int alpha = (baseColor >> 24) & 0xFF;
