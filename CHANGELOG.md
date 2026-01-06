@@ -1,11 +1,11 @@
-# Via Romana 2.2.1 Changelog:
+# Via Romana 2.2.2 Changelog:
 
 ### Features:
-- Added `Disable GUI` config option which replaces GUI elements with mouse button actions.
-    - Disables the whimsy (Sign Link and Charting Map GUI).
-    - While holding the `Charting Map`, `right-click` to start and stop charting, `sneak right-click` to cancel charting (while charting) and remove nodes (while not charting).
-- Added `Direct Warp` config option.
-    - When enabled, the player will directly teleport to another linked destination if the network only contains two total destinations, if more than 2 destinations exist the Travel Map is displayed.
+- Added `GPU path rendering` to the `Travel Map Screen`.
+    - This resolves the lag while previewing the map of massive path networks with many curves.
 
-### Fixes:
-- Resolved `FOV Effect` slider not being taken into account for `Path Movement Speedup`.
+### Changes:
+- Removed Surveyor (Antique Atlas/Hoofprint) integration for the time being to avoid a crash. I plan on adding a better approach in the future, but since I don't plan on keeping the current system I don't want to maintain it.
+
+### Notes:
+- Moonlight Lib versions `1.20-2.18`, `1.20-2.16.19` and `1.20-2.20` break block tag generation for Fabric 1.20.1, either backport to `1.20-2.16` or use `1.20-2.21+` when it's released as it will fix the issue.
