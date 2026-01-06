@@ -225,7 +225,12 @@ public class TeleportMapScreen extends Screen {
         updateAnimationProgress();
 
         Tesselator tesselator = Tesselator.getInstance();
+        //? >1.21 {
         BufferBuilder buffer = tesselator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+        //?} else {
+        /*BufferBuilder buffer = tesselator.getBuilder();
+        buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+        *///?}
 
         Matrix4f matrix = guiGraphics.pose().last().pose();
 
@@ -270,8 +275,12 @@ public class TeleportMapScreen extends Screen {
             }
         }
 
+        //? if >1.21 {
         MeshData mesh = buffer.build();
         if (mesh != null) BufferUploader.drawWithShader(mesh);
+        //?} else {
+        /*tesselator.end();
+        *///?}
 
         RenderSystem.depthMask(false);
         RenderSystem.depthFunc(GL11.GL_LEQUAL);
@@ -350,7 +359,11 @@ public class TeleportMapScreen extends Screen {
         Vector4f vec = new Vector4f(x, y, 0.0F, 1.0F);
         matrix.transform(vec);
 
+        //? if >1.21 {
         buffer.addVertex(vec.x, vec.y, vec.z).setColor(r, g, b, a);
+        //?} else {
+        /*buffer.vertex(vec.x, vec.y, vec.z).color(r, g, b, a).endVertex();
+        *///?}
     }
 
     private void updateAnimationProgress() {
