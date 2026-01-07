@@ -9,4 +9,4 @@
 - Running `/viaromana maps clear biomePixels` will reset the biome colour cache for easier editing of `Biome Color Pairs` config option without `/reload` or re-logging.
 
 ### Notes:
-- Moonlight Lib versions `1.20-2.17`, `1.20-2.18`, `1.20-2.19` and `1.20-2.20` break block tag generation for `Fabric 1.20.1`, either backport to `1.20-2.16` or use `1.20-2.21+` when it's released as it will fix the issue.
+- Moonlight Lib versions `2.16.17`, `2.16.18`, `2.16.19` and `2.16.20` break block tag generation for `Fabric 1.20.1`, either backport to `2.16.16` or use `2.16.21+` when it's released as it will fix the issue.
