@@ -24,12 +24,38 @@ public class ClientPathData {
     private final Map<ResourceKey<Level>, PathGraph> graphByDimension = new HashMap<>();
     private boolean hasData = false;
     
+    // Visual Caches
+    private final Map<BlockPos, Double> yOffsetCache = new java.util.concurrent.ConcurrentHashMap<>();
+    
     // Client-side temporary nodes
     private final List<NodeData> temporaryNodes = new ArrayList<>();
     private final List<LinkData> temporaryLinks = new ArrayList<>();
     
     public static ClientPathData getInstance() {
         return INSTANCE;
+    }
+
+    // region Cache Management
+
+    /**
+     * Gets a cached visual surface Y position for a specific BlockPos.
+     */
+    public Optional<Double> getCachedSurfaceY(BlockPos pos) {
+        return Optional.ofNullable(yOffsetCache.get(pos));
+    }
+
+    /**
+     * Caches a visual surface Y position for a specific BlockPos.
+     */
+    public void cacheSurfaceY(BlockPos pos, double surfaceY) {
+        yOffsetCache.put(pos, surfaceY);
+    }
+
+    /**
+     * Clears all visual caches. Should be called when the world changes or blocks are updated.
+     */
+    public void clearVisualCaches() {
+        yOffsetCache.clear();
     }
 
     // region Graph Data
@@ -40,6 +66,7 @@ public class ClientPathData {
     public void updatePathData(PathGraph serverGraph, ResourceKey<Level> dimension) {
         this.graphByDimension.put(dimension, serverGraph);
         this.hasData = true;
+        clearVisualCaches();
     }
     
     /**
@@ -61,6 +88,7 @@ public class ClientPathData {
         this.hasData = false;
         this.temporaryNodes.clear();
         this.temporaryLinks.clear();
+        clearVisualCaches();
     }
     
     // region Temp Node Util
