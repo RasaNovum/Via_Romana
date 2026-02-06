@@ -7,6 +7,7 @@
     "client.AbstractClientPlayerMixin",
     "client.AbstractSignEditScreenAccessor",
     "client.BlockLightEngineMixin",
+    "client.ClientLevelMixin",
     "client.ClientPlayerInteractionManagerMixin",
     "client.InGameHudMixin",
     "client.SignEditScreenMixin",

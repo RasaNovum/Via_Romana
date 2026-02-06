@@ -58,6 +58,19 @@ public class ClientPathData {
         yOffsetCache.clear();
     }
 
+    /**
+     * Invalidates a specific column in the cache if a block change occurs within the vertical scan range.
+     */
+    public void invalidateColumn(int x, int y, int z) {
+        if (yOffsetCache.isEmpty()) return;
+        
+        yOffsetCache.keySet().removeIf(pos -> 
+            pos.getX() == x && 
+            pos.getZ() == z && 
+            Math.abs(pos.getY() - y) <= 6
+        );
+    }
+
     // region Graph Data
     
     /**
