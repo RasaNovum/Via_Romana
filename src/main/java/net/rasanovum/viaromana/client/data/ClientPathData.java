@@ -8,6 +8,7 @@ import net.rasanovum.viaromana.path.Node;
 import net.rasanovum.viaromana.path.Node.NodeData;
 import net.minecraft.core.BlockPos;
 
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 
 import java.util.*;
@@ -25,7 +26,7 @@ public class ClientPathData {
     private boolean hasData = false;
     
     // Visual Caches
-    private final Map<BlockPos, Double> yOffsetCache = new java.util.concurrent.ConcurrentHashMap<>();
+    private final Map<BlockPos, Double> yOffsetCache = new ConcurrentHashMap<>();
     
     // Client-side temporary nodes
     private final List<NodeData> temporaryNodes = new ArrayList<>();
