@@ -23,6 +23,6 @@ If you have any questions that aren't [answered in our Wiki](https://github.com/
 
 ## License
 
-**Via Romana** is licensed under the **GNU General Public License v3.0 (GPL-3.0)**. See the [LICENSE](LICENSE) file for full details.
+**Via Romana** is licensed under the **Responsive Source License (RSL) v1.0**. See the [LICENSE](LICENSE.md) file for full details.
 
 Feel free to include this mod in your modpack as long as you download it from our official sources.
