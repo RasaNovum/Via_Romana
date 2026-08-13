@@ -103,7 +103,7 @@ public class MapPixelAssembler {
             int baseX = (chunkToProcess.x - minChunk.x) / chunkStride * scaledChunkSize;
             int baseZ = (chunkToProcess.z - minChunk.z) / chunkStride * scaledChunkSize;
             if (baseX < 0 || baseZ < 0 || baseX + scaledChunkSize > pixelWidth || baseZ + scaledChunkSize > pixelHeight) {
-                ViaRomana.LOGGER.warn("Chunk {} out of pixel bounds, skipping", chunkToProcess);
+//                ViaRomana.LOGGER.warn("Chunk {} out of pixel bounds, skipping", chunkToProcess);
                 return;
             }
 
