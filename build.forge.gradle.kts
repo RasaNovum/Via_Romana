@@ -151,7 +151,7 @@ publishMods {
     file = tasks.jar.get().archiveFile
     changelog = rootProject.file("CHANGELOG.md").takeIf { it.exists() }?.readText() ?: "No changelog provided"
     type = STABLE
-    modLoaders.addAll("forge", "neoforge")
+    modLoaders.add("forge")
     
     modrinth {
         accessToken = providers.environmentVariable("MODRINTH_TOKEN")
@@ -177,4 +177,16 @@ publishMods {
         requires { slug = "midnightlib" }
         requires { slug = "selene" }
     }
+}
+
+tasks.named("publishModrinth") {
+    dependsOn("reobfJar")
+}
+
+tasks.named("publishCurseforge") {
+    dependsOn("reobfJar")
+}
+
+tasks.named("publishMods") {
+    dependsOn("reobfJar")
 }
